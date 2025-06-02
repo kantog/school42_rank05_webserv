@@ -43,6 +43,5 @@ private:
 public:
 
     static MyConfig& get(const char* filename = NULL);
-    static MyConfig& get() { return get(NULL); }
     ~MyConfig();    
 };

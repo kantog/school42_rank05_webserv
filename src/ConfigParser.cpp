@@ -174,7 +174,7 @@ bool ConfigParser::setIndex(Route &route, const std::string &token)
     std::string file = getNextToken();
     while (file != ";")
     {
-        route.allowedMethods.push_back(file);
+        route.defaultFiles.push_back(file);
         file = getNextToken();
     }
     return true;

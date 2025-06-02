@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# custom stuff
+Session.vim
+compile_commands.json

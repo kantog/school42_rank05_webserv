@@ -1,17 +1,17 @@
 
 
-#include "MyConfig.hpp"
-#include "ConfigParser.hpp"
+#include "../inc/ConfigParser.hpp"
+#include "../inc/MyConfig.hpp"
 
-MyConfig::MyConfig(const std::string &filename)
+MyConfig::MyConfig(const char *filename)
 {
     ConfigParser parser;
-    _servers = parser.parseConfigFile(filename);
+    _servers = parser.parseConfigFile(std::string(filename));
 }
 
-MyConfig& MyConfig::get(const std::string* filename)
+MyConfig& MyConfig::get(const char* filename)
 {
-    static MyConfig instance(*filename);
+    static MyConfig instance(filename);
     return instance;
 }
 

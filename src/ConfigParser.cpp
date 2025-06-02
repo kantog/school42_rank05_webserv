@@ -1,54 +1,99 @@
 
-#include "ConfigParser.hpp"
+#include "../inc/ConfigParser.hpp"
 
 bool ConfigParser::hasMoreTokens(void)
 {
-    return this->_crurentToken < this->_tokens.size();
+    return this->_curentToken < this->_tokens.size();
 }
 
 std::string ConfigParser::getCurrentToken(void)
 {
-    return this->_tokens[this->_crurentToken];
+    return this->_tokens[this->_curentToken];
 }
 
 std::string ConfigParser::getNextToken(void)
 {
     if (!hasMoreTokens())
         throw std::runtime_error("No more tokens");
-    return this->_tokens[this->_crurentToken++];
+    return this->_tokens[this->_curentToken++];
 }
 
 void ConfigParser::expectToken(const std::string &token)
 {
     if (!hasMoreTokens() || getCurrentToken() != token)
         throw std::runtime_error("Expected token: " + token + ", got: " + getCurrentToken());
-    this->_crurentToken++;
+    this->_curentToken++;
 }
 
 bool ConfigParser::setServerName(ServerConfig &server, const std::string &token)
 {
-    if (token == "server_name")
+    if (token != "server_name")
+        return false;
+
+    std::string host = getNextToken();
+    while (host != ";")
     {
-        server.host = getNextToken();
-        return true;
+        server.hosts.push_back(host);
+        host = getNextToken();
     }
-    return false;
+    return true;
 }
 
-void ConfigParser::tokenize(std::ifstream &file)
+bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
 {
-    std::string line;
-    while (std::getline(file, line))
-    {
-        size_t comment_pos = line.find('#');
-        if (comment_pos != std::string::npos)
-            line = line.substr(0, comment_pos);
-
-        std::istringstream line_stream(line);
-        std::string token;
-        while (line_stream >> token)
-            this->_tokens.push_back(token);
+    if (token != "listen")
+        return false;
+    std::string listen_value = getNextToken();
+    size_t colon_pos = listen_value.find(':');
+    
+    if (colon_pos != std::string::npos) {
+        server.hosts.push_back(listen_value.substr(0, colon_pos));
+        server.port = std::atoi(listen_value.substr(colon_pos + 1).c_str());
+    } else {
+        server.port = std::atoi(listen_value.c_str());
     }
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setClientMaxBodySize(ServerConfig &server, const std::string &token)
+{
+    if (token != "client_max_body_size")
+        return false;
+    server.client_max_body_size = std::atoi(getNextToken().c_str());
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
+{
+    if (token != "error_page")
+        return false;
+
+    /* vb: 
+    error_page 404 /errors/404.html;
+    error_page 404 502 503 504 /errors/50x.html;
+    */ 
+    std::vector<int> error_codes;
+
+    // 404
+    error_codes.push_back(std::atoi(getNextToken().c_str()));
+    // 502/file
+    std::string current_error_token = getNextToken();
+    // 503/;
+    std::string next_error_token = getNextToken();
+
+    while (next_error_token != ";")
+    {
+        error_codes.push_back(std::atoi(current_error_token.c_str()));
+        current_error_token = next_error_token;
+        next_error_token = getNextToken();
+    }
+    for (size_t i = 0; i < error_codes.size(); i++)
+    {
+        server.error_pages[error_codes[i]] = current_error_token;
+    }
+    return true;
 }
 
 std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filename)
@@ -59,8 +104,8 @@ std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filen
     this->tokenize(file);
     file.close();
 
-    this->_crurentToken = 0;
-    while (this->_crurentToken < this->_tokens.size())
+    this->_curentToken = 0;
+    while (this->_curentToken < this->_tokens.size())
     {
         this->parseServer();
     }
@@ -83,6 +128,12 @@ void ConfigParser::parseServer()
             continue;
         else if (this->setListen(server, token))
             continue;
+        else if (this->setClientMaxBodySize(server, token))
+            continue;
+        else if (this->setErrorPage(server, token))
+            continue;
+        else if (this->parseLocation(server, token))
+            continue;
         else
         {
             throw std::runtime_error("Unknown server directive: " + token);
@@ -93,7 +144,140 @@ void ConfigParser::parseServer()
     _configs.push_back(server);
 }
 
-void ConfigParser::printConfig(void)
+bool ConfigParser::setRoot(Route &route, const std::string &token)
 {
-    std::cout << "printConfig" << std::endl;
+    if (token != "root")
+        return false;
+    route.root = getNextToken();
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setAllowedMethods(Route &route, const std::string &token)
+{
+    if (token != "allowed_methods")
+        return false;
+    std::string methods = getNextToken();
+    while (methods != ";")
+    {
+        route.allowedMethods.push_back(methods);
+        methods = getNextToken();
+    }
+    return true;
+}
+
+bool ConfigParser::setIndex(Route &route, const std::string &token)
+{
+    if (token != "index")
+        return false;
+
+    std::string file = getNextToken();
+    while (file != ";")
+    {
+        route.allowedMethods.push_back(file);
+        file = getNextToken();
+    }
+    return true;
+}
+
+bool ConfigParser::setAutoIndex(Route &route, const std::string &token)
+{
+    if (token != "autoindex")
+        return false;
+    route.directoryListing = getNextToken() == "on";
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setAllowUpload(Route &route, const std::string &token)
+{
+    if (token != "allow_upload")
+        return false;
+    route.allowUpload = getNextToken() == "on";
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setUploadPath(Route &route, const std::string &token)
+{
+    if (token != "upload_path")
+        return false;
+    route.uploadPath = getNextToken();
+    expectToken(";");
+    return true;
+}
+
+bool ConfigParser::setCgi(Route &route, const std::string &token)
+{
+    if (token != "cgi_extension")
+        return false;
+    std::string extension = getNextToken();
+    while (extension != ";")
+    {
+        route.cgiExtensions[extension] = getNextToken();
+        extension = getNextToken();
+    }
+    return true;
+}
+
+bool ConfigParser::parseLocation(ServerConfig &server, const std::string &token)
+{
+    if (token != "location")
+        return false;
+    
+    Route route;
+
+    route.path = getNextToken();
+    this->getNextToken(); // skip {
+
+    while (hasMoreTokens() && getCurrentToken() != "}")
+    {
+        std::string token = getNextToken();
+
+        if (this->setRoot(route, token))
+            continue;
+        else if (this->setAllowedMethods(route, token))
+            continue;
+        else if (this->setIndex(route, token))
+            continue;
+        else if (this->setAutoIndex(route, token))
+            continue;
+        else if (this->setAllowUpload(route, token))
+            continue;
+        else if (this->setUploadPath(route, token))
+            continue;
+        else if (this->setCgi(route, token))
+            continue;
+        else
+        {
+            throw std::runtime_error("Unknown location directive: " + token);
+        }
+    }
+    server.routes.push_back(route);
+    this->expectToken("}");
+    return true;
+}
+
+void ConfigParser::tokenize(std::ifstream &file)
+{
+    std::string line;
+    while (std::getline(file, line))
+    {
+        size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos)
+            line = line.substr(0, comment_pos);
+
+        std::istringstream line_stream(line);
+        std::string token;
+        while (line_stream >> token)
+        {
+        if (!token.empty() && token.back() == ';')
+            {
+                this->_tokens.push_back(token.substr(0, token.size() - 1));
+                this->_tokens.push_back(";");
+            }
+            else
+                this->_tokens.push_back(token);
+        }
+    }
 }

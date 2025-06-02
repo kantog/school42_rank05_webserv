@@ -3,19 +3,20 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: bclaeys <bclaeys@student.s19.be>           +#+  +:+       +#+         #
+#    By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/08 11:15:03 by bclaeys           #+#    #+#              #
-#    Updated: 2025/05/08 11:16:32 by bclaeys          ###   ########.fr        #
+#    Updated: 2025/06/02 16:07:00 by kvanden-         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = webserv
 
 CC = clang++ #reason: c++ (gcc) is not up to date on many c19 computers
-FLAGS = -Wall -Wextra -Werror -std=c++98 -g -Wshadow
+# FLAGS = -Wall -Wextra -Werror -std=c++98 -g -Wshadow
+FLAGS = -g -O0 -Wall -Wextra -Werror -std=c++98
 
-SRCS = main.cpp 
+SRCS = main.cpp src/ConfigParser.cpp src/MyConfig.cpp
 
 OBJECTS = $(patsubst %.cpp,obj/%.o,$(SRCS))
 

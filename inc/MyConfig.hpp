@@ -15,7 +15,7 @@ struct Route
     std::string redirect;
     std::string root;
     bool directoryListing;
-    std::string defaultFile;
+    std::vector<std::string> defaultFiles;
     std::map<std::string, std::string> cgiExtensions;
     bool allowUpload;
     std::string uploadPath;
@@ -25,14 +25,12 @@ struct Route
 
 struct ServerConfig
 {
-    std::string host;
+    std::vector<std::string> hosts;
     int port;
     std::vector<std::string> server_names;
     std::map<int, std::string> error_pages;
     size_t client_max_body_size;
     std::vector<Route> routes;
-
-    ServerConfig() : host("localhost"), port(80), client_max_body_size(1024 * 1024) {} // 1MB default
 };
 
 
@@ -40,11 +38,11 @@ class MyConfig
 {
 private:
 
-    MyConfig(const std::string &filename);
+    MyConfig(const char* filename);
     std::vector<ServerConfig> _servers;
 public:
 
-    static MyConfig& get(const std::string* filename = NULL);
+    static MyConfig& get(const char* filename = NULL);
     static MyConfig& get() { return get(NULL); }
     ~MyConfig();    
 };

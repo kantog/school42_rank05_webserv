@@ -45,11 +45,14 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
         return false;
     std::string listen_value = getNextToken();
     size_t colon_pos = listen_value.find(':');
-    
-    if (colon_pos != std::string::npos) {
+
+    if (colon_pos != std::string::npos)
+    {
         server.hosts.push_back(listen_value.substr(0, colon_pos));
         server.port = std::atoi(listen_value.substr(colon_pos + 1).c_str());
-    } else {
+    }
+    else
+    {
         server.port = std::atoi(listen_value.c_str());
     }
     expectToken(";");
@@ -70,10 +73,10 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     if (token != "error_page")
         return false;
 
-    /* vb: 
+    /* vb:
     error_page 404 /errors/404.html;
     error_page 404 502 503 504 /errors/50x.html;
-    */ 
+    */
     std::vector<int> error_codes;
 
     // 404
@@ -220,11 +223,11 @@ bool ConfigParser::setCgi(Route &route, const std::string &token)
     return true;
 }
 
-bool ConfigParser::parseLocation(ServerConfig &server, const std::string &token)
+bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
 {
-    if (token != "location")
+    if (name != "location")
         return false;
-    
+
     Route route;
 
     route.path = getNextToken();
@@ -271,7 +274,7 @@ void ConfigParser::tokenize(std::ifstream &file)
         std::string token;
         while (line_stream >> token)
         {
-        if (!token.empty() && token.back() == ';')
+            if (!token.empty() && token[token.size() - 1] == ';')
             {
                 this->_tokens.push_back(token.substr(0, token.size() - 1));
                 this->_tokens.push_back(";");

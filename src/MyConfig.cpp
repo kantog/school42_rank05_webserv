@@ -3,6 +3,9 @@
 #include "../inc/ConfigParser.hpp"
 #include "../inc/MyConfig.hpp"
 
+MyConfig::MyConfig()
+{ }
+
 MyConfig::MyConfig(const char *filename)
 {
     ConfigParser parser;

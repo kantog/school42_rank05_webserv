@@ -13,7 +13,7 @@ NAME=webserv
 
 
 CC = clang++ #reason: c++ (gcc) is not up to date on many c19 computers
-FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g -Wshadow
+FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow --target=x86_64-pc-linux-gnu
 DEBUG_FLAGS= #-fsanitize=address -fsanitize=undefined -fsanitize=bounds -fsanitize=null
 
 SRCS = main.cpp ConfigParser.cpp MyConfig.cpp
@@ -55,7 +55,6 @@ fclean: clean
 aclean: fclean
 	@rm -rf compile_commands.json
 	@rm -rf Session.vim
-	@rm -rf gardenofeden_shrubbery
 	@echo "\033[32m+++++++++++++++++++++++++++++++++++\033[0m"
 	@echo "\033[32m+++++    All set for eval!    +++++\033[0m"
 	@echo "\033[32m+++++++++++++++++++++++++++++++++++\033[0m"

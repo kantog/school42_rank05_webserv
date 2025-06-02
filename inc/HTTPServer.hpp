@@ -11,10 +11,10 @@ class	HTTPServer {
 		int _socketFD;
 		int _epollFD;
 		std::vector <ConnectionHandler>_ConnectionHandlers;
-		MyConfig &_myConfig;
+		const MyConfig &_myConfig;
 
 	public:
-		HTTPServer();
+		HTTPServer(const MyConfig &_myConfig);
 		HTTPServer(const HTTPServer &other);
 		HTTPServer &operator=(const HTTPServer &other);
 		~HTTPServer();

@@ -9,6 +9,10 @@ MyConfig::MyConfig(const std::string &filename)
     _servers = parser.parseConfigFile(filename);
 }
 
-// <<singleton>>
+MyConfig& MyConfig::get(const std::string* filename)
+{
+    static MyConfig instance(*filename);
+    return instance;
+}
 
 MyConfig::~MyConfig() {}

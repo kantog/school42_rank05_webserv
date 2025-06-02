@@ -40,8 +40,11 @@ class MyConfig
 {
 private:
 
+    MyConfig(const std::string &filename);
     std::vector<ServerConfig> _servers;
 public:
-    MyConfig(const std::string& filename);
+
+    static MyConfig& get(const std::string* filename = NULL);
+    static MyConfig& get() { return get(NULL); }
     ~MyConfig();    
 };

@@ -1,7 +1,7 @@
 
 
-# include "inc/MyConfig.hpp"
-// # include "inc/HTTPServer.hpp"
+# include "../inc/MyConfig.hpp"
+// # include "../inc/HTTPServer.hpp"
 
 int main(int argc, char **argv)
 {
@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     (void)argv;
     MyConfig::get("default.conf");
 
-    auto conf = MyConfig::get();
+   	MyConfig::get();
     // HTTPServer server;
     return 0;
 }

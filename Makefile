@@ -9,14 +9,18 @@
 #    Updated: 2025/06/02 16:07:00 by kvanden-         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+NAME=webserv
 
-NAME = webserv
 
 CC = clang++ #reason: c++ (gcc) is not up to date on many c19 computers
-# FLAGS = -Wall -Wextra -Werror -std=c++98 -g -Wshadow
-FLAGS = -g -O0 -Wall -Wextra -Werror -std=c++98
+FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g -Wshadow
+DEBUG_FLAGS= #-fsanitize=address -fsanitize=undefined -fsanitize=bounds -fsanitize=null
 
-SRCS = main.cpp src/ConfigParser.cpp src/MyConfig.cpp
+SRCS = main.cpp ConfigParser.cpp MyConfig.cpp
+
+SRC_DIRS = src/
+
+vpath %.cpp $(SRC_DIRS)  
 
 OBJECTS = $(patsubst %.cpp,obj/%.o,$(SRCS))
 

@@ -33,15 +33,14 @@ struct ServerConfig
     const std::vector<Route> routes;
 };
 
-
 class MyConfig
 {
 private:
+	static MyConfig *_myConfig;
     MyConfig();
     MyConfig(const char* filename);
 
 public:
-
     std::vector<ServerConfig> _servers;//work in progress
     static MyConfig& get(const char* filename = NULL);
     ~MyConfig();    

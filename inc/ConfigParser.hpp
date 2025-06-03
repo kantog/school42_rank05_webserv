@@ -17,7 +17,6 @@ public:
 private:
 
     std::vector<ServerConfig> _configs;
-
     std::vector<std::string> _tokens;
     size_t _curentToken;
 

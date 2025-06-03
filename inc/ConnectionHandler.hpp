@@ -9,15 +9,18 @@ class	ConnectionHandler {
 		// HTTPRequest _httpRequest;
 		// HTTPResponse _httpRequest;
 		// HTTPAction *_HTTPAction
-		MyConfig &_myConfig;
-		std::string requestBuffer;
+		// MyConfig &_myConfig;
+		// std::string requestBuffer;
+		int _connectionSocketFD;
 
 	public:
-		ConnectionHandler();
+		ConnectionHandler(int input);
 		ConnectionHandler(const ConnectionHandler &other);
 		ConnectionHandler &operator=(const ConnectionHandler &other);
 		~ConnectionHandler();
 
+		// void setConnectionSocketFD(int input);
+		int getConnectionSocketFD();
 		// HTTPRequest receiveRequest();
 		// void sendResponse(int socketFD, HTTPResponse finishedHTTPResponse);
 };

@@ -6,19 +6,19 @@
 #    By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/08 11:15:03 by bclaeys           #+#    #+#              #
-#    Updated: 2025/06/02 16:07:00 by kvanden-         ###   ########.fr        #
+#    Updated: 2025/06/04 13:13:53 by kvanden-         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
-NAME=webserv
 
+NAME = webserv
 
 CC = clang++ #reason: c++ (gcc) is not up to date on many c19 computers
 FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow --target=x86_64-pc-linux-gnu
 DEBUG_FLAGS= #-fsanitize=address -fsanitize=undefined -fsanitize=bounds -fsanitize=null
 
-SRCS = main.cpp HTTPServer.cpp ConnectionHandler.cpp
-# ConfigParser.cpp \
-MyConfig.cpp
+SRCS = main.cpp HTTPServer.cpp ConnectionHandler.cpp \
+		ConfigParser.cpp MyConfig.cpp
+
 
 SRC_DIRS = src/
 

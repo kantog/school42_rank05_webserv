@@ -40,6 +40,7 @@ private:
     bool setAllowUpload(Route& route, const std::string& token);
     bool setUploadPath(Route& route, const std::string& token);
     bool setCgi(Route& route, const std::string& token);
+    bool setReturn(Route& route, const std::string& token);
 
     void tokenize(std::ifstream& file);
     void parseServer(void);

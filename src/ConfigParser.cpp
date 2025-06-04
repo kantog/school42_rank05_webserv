@@ -30,11 +30,11 @@ bool ConfigParser::setServerName(ServerConfig &server, const std::string &token)
     if (token != "server_name")
         return false;
 
-    std::string host = getNextToken();
-    while (host != ";")
+    std::string name = getNextToken();
+    while (name != ";")
     {
-        server.hosts.push_back(host);
-        host = getNextToken();
+        server.server_names.push_back(name);
+        name = getNextToken();
     }
     return true;
 }
@@ -48,12 +48,13 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
 
     if (colon_pos != std::string::npos)
     {
-        server.hosts.push_back(listen_value.substr(0, colon_pos));
+        server.host = listen_value.substr(0, colon_pos);
         server.port = std::atoi(listen_value.substr(colon_pos + 1).c_str());
     }
     else
     {
         server.port = std::atoi(listen_value.c_str());
+        server.host = "0.0.0.0";
     }
     expectToken(";");
     return true;
@@ -214,12 +215,38 @@ bool ConfigParser::setCgi(Route &route, const std::string &token)
 {
     if (token != "cgi_extension")
         return false;
+    
     std::string extension = getNextToken();
-    while (extension != ";")
+    std::string path = getNextToken();
+    
+    while (extension != ";" && path != ";")
     {
-        route.cgiExtensions[extension] = getNextToken();
-        extension = getNextToken();
+        route.cgiExtensions[extension] = path;
+        
+        if (hasMoreTokens() && getCurrentToken() != ";")
+        {
+            extension = getNextToken();
+            if (extension != ";")
+                path = getNextToken();
+        }
+        else
+            break;
     }
+    
+    if (hasMoreTokens() && getCurrentToken() == ";")
+        expectToken(";");
+        
+    return true;
+}
+
+bool ConfigParser::setReturn(Route &route, const std::string &token)
+{
+    if (token != "return")
+        return false;
+    
+    route.redirectCode = std::atoi(getNextToken().c_str());
+    route.redirectPath = getNextToken();
+    expectToken(";");
     return true;
 }
 
@@ -250,6 +277,8 @@ bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
         else if (this->setUploadPath(route, token))
             continue;
         else if (this->setCgi(route, token))
+            continue;
+        else if (this->setReturn(route, token))
             continue;
         else
         {

@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include "ConnectionHandler.hpp"
-// #include "MyConfig.hpp"
 
 class	HTTPServer {
 	private:
@@ -12,7 +11,6 @@ class	HTTPServer {
 		int _epollFD;
 		int _connAmount;
 		std::vector <ConnectionHandler> _connectionHandlers;// turn into map? //test uncomment
-		// const MyConfig &_myConfig;//test uncomment
 		static const int _maxEpollEvents = 32;
 
 		void initListeningSocket();

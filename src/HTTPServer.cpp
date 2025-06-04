@@ -1,5 +1,7 @@
 
 #include "../inc/HTTPServer.hpp"
+#include "../inc/MyConfig.hpp"
+
 #include <asm-generic/socket.h>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -10,9 +12,7 @@
 
 #define MAX_LISTEN_QUEUE 10
 
-HTTPServer::HTTPServer(): //test
-// HTTPServer::HTTPServer(const MyConfig &myConfig): //test uncomment
-	// _myConfig(MyConfig::get()),//test uncomment
+HTTPServer::HTTPServer():
 	_listeningSocketFD(-1),
 	_epollFD(-1),
 	_connAmount(0)
@@ -20,7 +20,6 @@ HTTPServer::HTTPServer(): //test
 { }
 
 HTTPServer::HTTPServer(const HTTPServer &other):
-	// _myConfig(other._myConfig), //test
 	_listeningSocketFD(-1),
 	_epollFD(-1),
 	_connAmount(0)
@@ -33,7 +32,6 @@ HTTPServer &HTTPServer::operator=(const HTTPServer &other)
 	_listeningSocketFD = -1;
 	_epollFD = -1;
 	_connAmount = 0;
-	// _myConfig = other.myConfig; //test uncomment
 	(void)other;//test
 	return (*this); 
 }
@@ -48,13 +46,17 @@ HTTPServer::~HTTPServer()
 
 void HTTPServer::initListeningSocket() 
 {
+
+	// TODO: meerdere severs nog te inplemneteren
+	int serverNumber = 0;
+
 	struct sockaddr_in socketAddress;
 	int optval = 1;
 
 	socketAddress.sin_family = AF_INET;
-	// socketAddress.sin_port = htons(_myConfig._servers[_connAmount].port);
-	socketAddress.sin_port = htons(8080);//this is just for testing without config file
-	socketAddress.sin_addr.s_addr = INADDR_ANY;//set to 127.0.0.1?
+
+	socketAddress.sin_port = htons(MyConfig::getPort(serverNumber));
+	socketAddress.sin_addr.s_addr = INADDR_ANY;
 
 	_listeningSocketFD = socket(AF_INET, SOCK_NONBLOCK | SOCK_STREAM, 0); //SOCK_NONBLOCK is Linux specific, use fnctl for other systems
 	if (_listeningSocketFD == -1)

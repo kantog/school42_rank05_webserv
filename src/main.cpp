@@ -1,26 +1,35 @@
 
 
-# include "../inc/MyConfig.hpp"
-# include "../inc/HTTPServer.hpp"
+#include "../inc/MyConfig.hpp"
+#include "../inc/HTTPServer.hpp"
 
 int main(int argc, char **argv)
 {
-    (void)argc;
-    (void)argv;
-    // MyConfig::get("default.conf");
-	// std::string test ="jdjd";
+    try
+    {
+        if (argc > 1)
+            MyConfig::get(argv[1]);
+        else
+        {
+            std::cout << "Using default config file" << std::endl;
+            MyConfig::get("default.conf");
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        return 1;
+    }
 
-   	// MyConfig::get();
-	
-	try 
-	{
-		HTTPServer server;
-		server.init();
-		server.start();
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << e.what() << std::endl;
-	}
+    try
+    {
+        HTTPServer server;
+        server.init();
+        server.start();
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
     return 0;
 }

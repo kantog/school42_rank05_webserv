@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/04 16:52:36 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/04 19:30:40 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ void HTTPRequest::fillHeaders(std::string line)
 
 void HTTPRequest::print() const
 {
-    std::cout << "Method: " << _method << std::endl;
+    std::cout << "lol Method: " << _method << std::endl;
     std::cout << "Request Target: " << _requestTarget << std::endl;
     std::cout << "Host URL: " << _hostURL << std::endl;
     std::cout << "Headers: " << std::endl;

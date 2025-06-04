@@ -60,8 +60,9 @@ bool ConnectionHandler::isAutoClose()
 
 void ConnectionHandler::makeResponse(std::string &input)
 {
-	std::cout << input << std::endl;
+	// std::cout << "input: " << input << std::endl;//test
 	_request.parseRequest(input);
+	std::cout << std::endl;
 	// actions aanmaken ...
 }
 

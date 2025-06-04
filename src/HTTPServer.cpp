@@ -84,7 +84,7 @@ void HTTPServer::initEpoll()
 	if (_epollFD == -1)
 		throw(std::runtime_error("Error: problem with epoll_create"));
 
-	localEpollEvent.events = EPOLLIN | EPOLLET;
+	localEpollEvent.events = EPOLLIN;
 	localEpollEvent.data.fd = _listeningSocketFD;
 
 	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, _listeningSocketFD, &localEpollEvent) == -1)
@@ -111,22 +111,19 @@ void HTTPServer::createNewConnection()
 
 	newSocketFD = accept(_listeningSocketFD,
 						 (struct sockaddr *)&socketAddress, &addressLen);
-	// dit nog non-blocking maken? doet accept hetzelfde als socket()?
-	if (newSocketFD == -1)
-		throw(std::runtime_error("Error accepting new connection socket"));
-
-	/*
-		if (newSocketFD == -1) {
+	
+	if (newSocketFD == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			// No more connections to accept
+			std::cout << "No more connections to accept (EAGAIN/EWOULDBLOCK)" << std::endl;
 			return;
 		}
+		std::cerr << "Accept failed: " << strerror(errno) << std::endl;
 		throw (std::runtime_error("Error accepting new connection socket"));
 	}
-	*/
-	// recv(client_fd, buffer, sizeof(buffer), 0) // read the actual request made by the client?
 
-	// non blocking
+	std::cout << "Accepted new connection with FD: " << newSocketFD << std::endl;
+
+	// Set non-blocking
 	int flags = fcntl(newSocketFD, F_GETFL, 0);
 	if (flags == -1 || fcntl(newSocketFD, F_SETFL, flags | O_NONBLOCK) == -1)
 	{
@@ -134,27 +131,29 @@ void HTTPServer::createNewConnection()
 		throw(std::runtime_error("Error: problem setting client socket to non-blocking"));
 	}
 
+	// Add to epoll
 	struct epoll_event newLocalEpollEvent;
-
-	newLocalEpollEvent.events = EPOLLIN | EPOLLET;
+	newLocalEpollEvent.events = EPOLLIN;
 	newLocalEpollEvent.data.fd = newSocketFD;
 
-	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocketFD,
-				  &newLocalEpollEvent) == -1)
+	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocketFD, &newLocalEpollEvent) == -1)
+	{
+		close(newSocketFD);
 		throw(std::runtime_error("Error: problem with epoll_ctl"));
+	}
 
+	// Create connection handler
 	ConnectionHandler newConnection(newSocketFD);
 	_connectionHandlers[newSocketFD] = newConnection;
 	_connAmount++;
 
-	// sendResponse();// answer the request with a response?
+	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
-	std::cout << "Connection established!" << std::endl;
-
-	if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
-		throw(std::runtime_error("Error listening for new connection"));
+	this->handleConnection(newSocketFD);
+	// VERWIJDER DEZE REGEL - listen() hoort hier niet!
+	// if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
+	//     throw(std::runtime_error("Error listening for new connection"));
 }
-
 void HTTPServer::handleConnection(int connectionFd)
 {
 
@@ -221,11 +220,11 @@ void HTTPServer::start()
 
 	while (true)
 	{
-		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, 0); // timeout is 0?
+		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, -1); // timeout is 0?
 		if (eventCount == -1)
 			throw(std::runtime_error("Error: problem while waiting for events"));
 		if (eventCount > 0)						  // test
-			std::cout << eventCount << std::endl; // test
+			std::cout << "eventCount: " << eventCount << std::endl; // test
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;

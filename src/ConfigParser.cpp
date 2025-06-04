@@ -100,54 +100,6 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     return true;
 }
 
-std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filename)
-{
-    std::ifstream file(filename.c_str());
-    if (!file.is_open())
-        throw std::runtime_error("Cannot open config file: " + filename);
-    this->tokenize(file);
-    file.close();
-
-    this->_curentToken = 0;
-    while (this->_curentToken < this->_tokens.size())
-    {
-        this->parseServer();
-    }
-
-    return _configs;
-}
-
-void ConfigParser::parseServer()
-{
-    ServerConfig server;
-
-    this->expectToken("server");
-    this->expectToken("{");
-
-    while (hasMoreTokens() && getCurrentToken() != "}")
-    {
-        std::string token = getNextToken();
-
-        if (this->setServerName(server, token))
-            continue;
-        else if (this->setListen(server, token))
-            continue;
-        else if (this->setClientMaxBodySize(server, token))
-            continue;
-        else if (this->setErrorPage(server, token))
-            continue;
-        else if (this->parseLocation(server, token))
-            continue;
-        else
-        {
-            throw std::runtime_error("Unknown server directive: " + token);
-        }
-    }
-
-    expectToken("}");
-    _configs.push_back(server);
-}
-
 bool ConfigParser::setRoot(Route &route, const std::string &token)
 {
     if (token != "root")
@@ -250,6 +202,37 @@ bool ConfigParser::setReturn(Route &route, const std::string &token)
     return true;
 }
 
+void ConfigParser::parseServer()
+{
+    ServerConfig server;
+
+    this->expectToken("server");
+    this->expectToken("{");
+
+    while (hasMoreTokens() && getCurrentToken() != "}")
+    {
+        std::string token = getNextToken();
+
+        if (this->setServerName(server, token))
+            continue;
+        else if (this->setListen(server, token))
+            continue;
+        else if (this->setClientMaxBodySize(server, token))
+            continue;
+        else if (this->setErrorPage(server, token))
+            continue;
+        else if (this->parseLocation(server, token))
+            continue;
+        else
+        {
+            throw std::runtime_error("Unknown server directive: " + token);
+        }
+    }
+
+    expectToken("}");
+    _configs.push_back(server);
+}
+
 bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
 {
     if (name != "location")
@@ -312,4 +295,21 @@ void ConfigParser::tokenize(std::ifstream &file)
                 this->_tokens.push_back(token);
         }
     }
+}
+
+std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filename)
+{
+    std::ifstream file(filename.c_str());
+    if (!file.is_open())
+        throw std::runtime_error("Cannot open config file: " + filename);
+    this->tokenize(file);
+    file.close();
+
+    this->_curentToken = 0;
+    while (this->_curentToken < this->_tokens.size())
+    {
+        this->parseServer();
+    }
+
+    return _configs;
 }

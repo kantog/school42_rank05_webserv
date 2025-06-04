@@ -111,7 +111,6 @@ void HTTPServer::createNewConnection()
 
 	newSocketFD = accept(_listeningSocketFD,
 						 (struct sockaddr *)&socketAddress, &addressLen);
-	// dit nog non-blocking maken? doet accept hetzelfde als socket()?
 	if (newSocketFD == -1)
 		throw(std::runtime_error("Error accepting new connection socket"));
 
@@ -155,8 +154,7 @@ void HTTPServer::createNewConnection()
 		throw(std::runtime_error("Error listening for new connection"));
 }
 
-void HTTPServer::handleConnection(int connectionFd)
-{
+void HTTPServer::handleConnection(int connectionFd){
 
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
@@ -166,6 +164,7 @@ void HTTPServer::handleConnection(int connectionFd)
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
 		return;
 	}
+// put in ConnectionHandler class starting here
 
 	ConnectionHandler &connectionHandler = it->second;
 	char buffer[2048]; // ?
@@ -221,7 +220,7 @@ void HTTPServer::start()
 
 	while (true)
 	{
-		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, 0); // timeout is 0?
+		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, -1); // timeout 0 or -1?
 		if (eventCount == -1)
 			throw(std::runtime_error("Error: problem while waiting for events"));
 		if (eventCount > 0)						  // test
@@ -248,11 +247,10 @@ void HTTPServer::start()
 					closeConnection(fd);
 				}
 				else if (events & EPOLLIN)
-				{
 					handleConnection(fd);
-				}
 			}
 		}
+		// usleep(1000000);//test
 	}
 
 	std::cout << "Server shutting down..." << std::endl;

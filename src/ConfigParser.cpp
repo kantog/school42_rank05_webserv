@@ -54,7 +54,7 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
     else
     {
         server.port = std::atoi(listen_value.c_str());
-        server.host = "0.0.0.0";
+        server.host = "127.0.0.1";
     }
     expectToken(";");
     return true;

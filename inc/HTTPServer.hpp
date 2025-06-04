@@ -11,12 +11,13 @@ class	HTTPServer {
 		int _listeningSocketFD;
 		int _epollFD;
 		int _connAmount;
-		std::vector <ConnectionHandler> _connectionHandlers;//test uncomment
+		std::vector <ConnectionHandler> _connectionHandlers;// turn into map? //test uncomment
 		// const MyConfig &_myConfig;//test uncomment
 		static const int _maxEpollEvents = 32;
 
-		void initSocket();
+		void initListeningSocket();
 		void initEpoll();
+		void createNewConnection();
 
 	public:
 		// HTTPServer(const MyConfig &_myConfig);

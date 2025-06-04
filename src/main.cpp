@@ -14,9 +14,9 @@ int main(int argc, char **argv)
 	
 	try 
 	{
-    HTTPServer server;
-	server.init();
-	server.start();
+		HTTPServer server;
+		server.init();
+		server.start();
 	}
 	catch (std::exception &e)
 	{

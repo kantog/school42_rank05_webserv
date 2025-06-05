@@ -61,7 +61,7 @@ void HTTPServer::initListeningSocket()
 	int optval = 1;
 
 	socketAddress.sin_family = AF_INET;
-	socketAddress.sin_port = htons(MyConfig::getPort(serverNumber));
+	socketAddress.sin_port = htons(8080); ////////
 	socketAddress.sin_addr.s_addr = INADDR_ANY;
 
 	_listeningSocketFD = socket(AF_INET, SOCK_NONBLOCK | SOCK_STREAM, 0); // SOCK_NONBLOCK is Linux specific, use fnctl for other systems

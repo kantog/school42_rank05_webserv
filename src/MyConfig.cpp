@@ -3,8 +3,8 @@
 #include "../inc/ConfigParser.hpp"
 #include "../inc/MyConfig.hpp"
 
-MyConfig::MyConfig()
-{ }
+MyConfig::MyConfig() {}
+MyConfig::~MyConfig() {}
 
 MyConfig::MyConfig(const char *filename)
 {
@@ -18,9 +18,10 @@ const MyConfig& MyConfig::get(const char* filename)
     return instance;
 }
 
-int MyConfig::getPort(int serverNumber)
+//////////////////////////////////////////////////////////////////////////
+std::string ServerConfig::getServerKey(void) const
 {
-    return MyConfig::get()._servers[serverNumber].port;
+    std::stringstream ss;
+    ss << host << ":" << port;
+    return ss.str();
 }
-
-MyConfig::~MyConfig() {}

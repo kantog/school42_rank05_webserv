@@ -230,7 +230,7 @@ void ConfigParser::parseServer()
     }
 
     expectToken("}");
-    _configs.push_back(server);
+    _configs[server.getServerKey()].push_back(server);
 }
 
 bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
@@ -297,7 +297,7 @@ void ConfigParser::tokenize(std::ifstream &file)
     }
 }
 
-std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filename)
+std::map<std::string, std::vector<ServerConfig>> ConfigParser::parseConfigFile(const std::string &filename)
 {
     std::ifstream file(filename.c_str());
     if (!file.is_open())

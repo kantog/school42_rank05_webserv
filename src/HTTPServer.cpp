@@ -11,7 +11,6 @@
 #include <netinet/in.h>
 #include <cstring>
 
-
 #define MAX_LISTEN_QUEUE 10
 
 HTTPServer::HTTPServer() : _listeningSocketFD(-1),
@@ -39,13 +38,14 @@ HTTPServer &HTTPServer::operator=(const HTTPServer &other)
 
 HTTPServer::~HTTPServer()
 {
-	std::map<int, ConnectionHandler>::iterator it;
+	std::map<int, ConnectionHandler *>::iterator it;
 	for (it = _connectionHandlers.begin(); it != _connectionHandlers.end(); ++it)
 	{
+		delete it->second; 
 		close(it->first);
 	}
 	_connectionHandlers.clear();
-
+	//
 	if (_listeningSocketFD > 0)
 		close(_listeningSocketFD);
 	if (_epollFD > 0)
@@ -84,7 +84,7 @@ void HTTPServer::initEpoll()
 	if (_epollFD == -1)
 		throw(std::runtime_error("Error: problem with epoll_create"));
 
-	localEpollEvent.events = EPOLLIN;
+	localEpollEvent.events = EPOLLIN | EPOLLET;
 	localEpollEvent.data.fd = _listeningSocketFD;
 
 	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, _listeningSocketFD, &localEpollEvent) == -1)
@@ -124,77 +124,49 @@ void HTTPServer::createNewConnection()
 	std::cout << "Accepted new connection with FD: " << newSocketFD << std::endl;
 
 	// Set non-blocking
-	int flags = fcntl(newSocketFD, F_GETFL, 0);
-	if (flags == -1 || fcntl(newSocketFD, F_SETFL, flags | O_NONBLOCK) == -1)
+	// int flags = fcntl(newSocketFD, F_GETFL, 0); GETFL mag niet 
+	if (fcntl(newSocketFD, F_SETFL,  O_NONBLOCK) == -1)
 	{
-		close(newSocketFD);
+		close(newSocketFD);//necessary? ConnectionHandler handles this?
 		throw(std::runtime_error("Error: problem setting client socket to non-blocking"));
 	}
 
 	// Add to epoll
 	struct epoll_event newLocalEpollEvent;
-	newLocalEpollEvent.events = EPOLLIN;
+	newLocalEpollEvent.events = EPOLLIN | EPOLLET;
 	newLocalEpollEvent.data.fd = newSocketFD;
 
 	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocketFD, &newLocalEpollEvent) == -1)
 	{
-		close(newSocketFD);
+		close(newSocketFD);//necessary? ConnectionHandler handles this?
 		throw(std::runtime_error("Error: problem with epoll_ctl"));
 	}
 
 	// Create connection handler
-	ConnectionHandler newConnection(newSocketFD);
+	ConnectionHandler *newConnection = new ConnectionHandler(newSocketFD);
 	_connectionHandlers[newSocketFD] = newConnection;
 	_connAmount++;
 
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
-	this->handleConnection(newSocketFD);
-	// VERWIJDER DEZE REGEL - listen() hoort hier niet!
+	this->delegateToConnectionHandler(newSocketFD);
+	// VERWIJDER DEZE REGEL? 
 	// if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
 	//     throw(std::runtime_error("Error listening for new connection"));
 }
 
-void HTTPServer::handleConnection(int connectionFd)
+void HTTPServer::delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
-	std::map<int, ConnectionHandler>::iterator it = _connectionHandlers.find(connectionFd);
+	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
 	if (it == _connectionHandlers.end())
 	{
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
 		return;
 	}
-// put in ConnectionHandler class starting here
-
-	ConnectionHandler &connectionHandler = it->second;
-	char buffer[2048]; // ?
-
-	ssize_t bytesRead = recv(connectionFd, buffer, 2048 - 1, 0);
-
-	if (bytesRead <= 0)
-	{
-		if (bytesRead == 0)
-			std::cout << "Client closed connection " << connectionFd << std::endl;
-		else if (errno != EAGAIN && errno != EWOULDBLOCK)
-			std::cerr << "Error reading from socket " << connectionFd << ": " << strerror(errno) << std::endl;
-		closeConnection(connectionFd);
-		return;
-	}
-
-	buffer[bytesRead] = '\0';
-	std::string raw_request(buffer, bytesRead);
-
-	std::cout << "Received " << bytesRead << " bytes from connection " << connectionFd << std::endl;
-	std::cout << "Request: " << raw_request.substr(0, 100) << "..." << std::endl;
-
-	connectionHandler.makeResponse(raw_request);
-	std::string response = connectionHandler.getResponse();
-
-	send(connectionFd, response.c_str(), response.length(), 0);
-
-	if (connectionHandler.isAutoClose())
-		closeConnection(connectionFd);
+	ConnectionHandler *connectionHandler = it->second;
+	connectionHandler->handleHTTP();
 }
 
 void HTTPServer::closeConnection(int connectionFd)
@@ -202,9 +174,10 @@ void HTTPServer::closeConnection(int connectionFd)
 	epoll_ctl(_epollFD, EPOLL_CTL_DEL, connectionFd, NULL);
 	close(connectionFd);
 
-	std::map<int, ConnectionHandler>::iterator it = _connectionHandlers.find(connectionFd);
+	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
 	if (it != _connectionHandlers.end())
 	{
+		delete it->second;
 		_connectionHandlers.erase(it);
 		_connAmount--;
 	}
@@ -221,7 +194,7 @@ void HTTPServer::start()
 
 	while (true)
 	{
-		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, -1); // timeout 0 or -1?
+		eventCount = epoll_wait(_epollFD, localEpollEvents, _maxEpollEvents, -1); 
 		if (eventCount == -1)
 			throw(std::runtime_error("Error: problem while waiting for events"));
 		if (eventCount > 0)						  // test
@@ -245,10 +218,11 @@ void HTTPServer::start()
 				if (events & (EPOLLHUP | EPOLLERR))
 				{
 					std::cout << "Connection error/hangup on FD " << fd << std::endl;
-					closeConnection(fd);
+					// closeConnection(fd);
+					// erase from connectionHanders? = mee in closeConnection? gwn uit map verwijderen
 				}
 				else if (events & EPOLLIN)
-					handleConnection(fd);
+					delegateToConnectionHandler(fd);
 			}
 		}
 		// usleep(1000000);//test

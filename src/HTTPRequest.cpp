@@ -171,3 +171,8 @@ void HTTPRequest::parseRequest(std::string rawRequest)
         this->print();
     #endif
 }
+
+void HTTPRequest::reset()
+{
+	//	empty everything for reuse
+}

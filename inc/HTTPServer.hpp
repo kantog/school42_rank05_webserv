@@ -10,14 +10,14 @@ class	HTTPServer {
 		int _listeningSocketFD;
 		int _epollFD;
 		int _connAmount;
-		std::map<int, ConnectionHandler> _connectionHandlers;
+		std::map<int, ConnectionHandler *> _connectionHandlers;
 		static const int _maxEpollEvents = 32;
 
 		void initListeningSocket();
 		void initEpoll();
 		void createNewConnection();
 		void closeConnection(int connectionFd);
-		void handleConnection(int connectionFd);
+		void delegateToConnectionHandler(int connectionFd);
 
 	public:
 		// HTTPServer(const MyConfig &_myConfig);

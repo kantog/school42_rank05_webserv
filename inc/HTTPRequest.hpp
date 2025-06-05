@@ -41,4 +41,5 @@ public:
 	const std::string &getBody() const;
 
 	void parseRequest(std::string rawRequest);
+	void reset();
 };

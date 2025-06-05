@@ -8,13 +8,21 @@
 
 class	ConnectionHandler {
 	private:
-		HTTPRequest _request;
-		// HTTPResponse _httpRequest;
+		HTTPRequest _request; //nog handlen: onvolledige requests binnenkrijgen, check wat recv doet exact
+		// HTTPResponse _httpRequest; // toevoegen: reset()
 		// HTTPAction *_HTTPAction
 		// MyConfig &_myConfig;
 		// std::string requestBuffer;
 		int _connectionSocketFD;
 
+		void makeResponse(std::string &input);
+		std::string getResponse();
+
+		// void setConnectionSocketFD(int input);
+		int getConnectionSocketFD();
+		void receiveRequest();
+		// void sendResponse(int socketFD, HTTPResponse finishedHTTPResponse);
+		//
 	public:
 		ConnectionHandler();
 		ConnectionHandler(int input);
@@ -22,14 +30,7 @@ class	ConnectionHandler {
 		ConnectionHandler &operator=(const ConnectionHandler &other);
 		~ConnectionHandler();
 
-		void makeResponse(std::string &input);
-		std::string getResponse();
-
-		// void setConnectionSocketFD(int input);
-		int getConnectionSocketFD();
-		// HTTPRequest receiveRequest();
-		// void sendResponse(int socketFD, HTTPResponse finishedHTTPResponse);
-
+		void handleHTTP();
 		bool isAutoClose();
 };
 

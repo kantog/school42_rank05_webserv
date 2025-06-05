@@ -115,10 +115,10 @@ const std::string &HTTPRequest::getHeader(const std::string &key) const
     return it != _headers.end() ? it->second : empty;
 }
 
-bool HTTPRequest::isAutoClose() const
+bool HTTPRequest::hasCloseHeader() const //TODO: different name
 {
-    /// @todo
-    return true;
+    // TODO: check
+    return false;
 }
 
 void HTTPRequest::fillHeaders(std::string line)
@@ -138,16 +138,14 @@ void HTTPRequest::fillHeaders(std::string line)
     }
 }
 
-void HTTPRequest::print() const
+void HTTPRequest::printRequest() const
 {
-    std::cout << "lol Method: " << _method << std::endl;
+    std::cout << "Method: " << _method << std::endl;
     std::cout << "Request Target: " << _requestTarget << std::endl;
     std::cout << "Host URL: " << _hostURL << std::endl;
     std::cout << "Headers: " << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-    {
         std::cout << it->first << ": " << it->second << std::endl;
-    }
     std::cout << "Body: " << _body << std::endl;
 }
 
@@ -183,11 +181,7 @@ void HTTPRequest::parseRequest(std::string rawRequest)
     setBody(body);
 
     #ifdef DEBUG
-        this->print();
+		std::cout << "\n";
+        this->printRequest();
     #endif
-}
-
-void HTTPRequest::reset()
-{
-	//	empty everything for reuse
 }

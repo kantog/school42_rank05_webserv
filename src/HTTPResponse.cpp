@@ -16,13 +16,16 @@ void HTTPResponse::reset()
     _statusText = "OK";
     _headers.clear();
     _body.clear();
-    _response.clear();
+    _responseString.clear();
+
+    // setHeader("Content-Length", "0");
+    setBody("Hallo wereld!");//test
 }
 
 void HTTPResponse::setStatusCode(int code)
 {
     _statusCode = code;
-    _setStatisMessage(code);
+    _setStatusMessage(code);
 }
 
 void HTTPResponse::setStatusMessage(const std::string &message)
@@ -72,12 +75,12 @@ void HTTPResponse::setRedirect(const std::string &location, int code)
     setHeader("Content-Length", "0");
 }
 
-const std::string &HTTPResponse::getResponse() const
+const std::string &HTTPResponse::getResponseString() const
 {
-    return _response;
+    return _responseString;
 }
 
-void HTTPResponse::_setStatisMessage(int code)
+void HTTPResponse::_setStatusMessage(int code)
 {
     /// @todo
     switch (code)
@@ -110,5 +113,5 @@ void HTTPResponse::buildResponse()
     if (_body.size() > 0)
         responsStream << _body;
 
-    _response = responsStream.str();
+    _responseString = responsStream.str();
 }

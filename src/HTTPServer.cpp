@@ -29,6 +29,7 @@ HTTPServer::HTTPServer(const HTTPServer &other) : _listeningSocketFD(-1),
 
 HTTPServer &HTTPServer::operator=(const HTTPServer &other)
 {
+	//gewoon error throwen?
 	_listeningSocketFD = -1;
 	_epollFD = -1;
 	_connAmount = 0;
@@ -57,12 +58,12 @@ void HTTPServer::initListeningSocket()
 
 	// TODO: meerdere severs nog te inplemneteren
 	int serverNumber = 0;
-	struct sockaddr_in socketAddress;
+	struct sockaddr_in sockAdress;
 	int optval = 1;
 
-	socketAddress.sin_family = AF_INET;
-	socketAddress.sin_port = htons(8080); ////////
-	socketAddress.sin_addr.s_addr = INADDR_ANY;
+	sockAdress.sin_family = AF_INET;
+	sockAdress.sin_port = htons(8080); ////////
+	sockAdress.sin_addr.s_addr = INADDR_ANY;
 
 	_listeningSocketFD = socket(AF_INET, SOCK_NONBLOCK | SOCK_STREAM, 0); // SOCK_NONBLOCK is Linux specific, use fnctl for other systems
 	if (_listeningSocketFD == -1)
@@ -70,7 +71,7 @@ void HTTPServer::initListeningSocket()
 	if (setsockopt(_listeningSocketFD, SOL_SOCKET, SO_REUSEADDR,
 				   &optval, sizeof(optval)) == -1)
 		throw(std::runtime_error("Error setting socket options SO_REUSEADDR"));
-	if (bind(_listeningSocketFD, (struct sockaddr *)&socketAddress, sizeof(socketAddress)) == -1)
+	if (bind(_listeningSocketFD, (struct sockaddr *)&sockAdress, sizeof(sockAdress)) == -1)
 		throw(std::runtime_error("Error: problem with socket binding"));
 	if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
 		throw(std::runtime_error("Error listening for new connection"));
@@ -103,14 +104,13 @@ void HTTPServer::init()
 
 void HTTPServer::createNewConnection()
 {
-	struct sockaddr_in socketAddress;
-	socklen_t addressLen = sizeof(socketAddress);
+	struct sockaddr_in sockAdress;
+	socklen_t addressLen = sizeof(sockAdress);
 	int newSocketFD = -1;
 
 	std::cout << "Connecting..." << std::endl;
 
-	newSocketFD = accept(_listeningSocketFD,
-						 (struct sockaddr *)&socketAddress, &addressLen);
+	newSocketFD = accept(_listeningSocketFD, (struct sockaddr *)&sockAdress, &addressLen);
 	if (newSocketFD == -1) 
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -124,10 +124,10 @@ void HTTPServer::createNewConnection()
 	std::cout << "Accepted new connection with FD: " << newSocketFD << std::endl;
 
 	// Set non-blocking
-	// int flags = fcntl(newSocketFD, F_GETFL, 0); GETFL mag niet 
+	// int flags = fcntl(newSocketFD, F_GETFL, 0); TODO: GETFL mag niet?
 	if (fcntl(newSocketFD, F_SETFL,  O_NONBLOCK) == -1)
 	{
-		close(newSocketFD);//necessary? ConnectionHandler handles this?
+		close(newSocketFD);
 		throw(std::runtime_error("Error: problem setting client socket to non-blocking"));
 	}
 
@@ -135,7 +135,6 @@ void HTTPServer::createNewConnection()
 	struct epoll_event newLocalEpollEvent;
 	newLocalEpollEvent.events = EPOLLIN | EPOLLET;
 	newLocalEpollEvent.data.fd = newSocketFD;
-
 	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocketFD, &newLocalEpollEvent) == -1)
 	{
 		close(newSocketFD);//necessary? ConnectionHandler handles this?
@@ -150,9 +149,6 @@ void HTTPServer::createNewConnection()
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->delegateToConnectionHandler(newSocketFD);
-	// VERWIJDER DEZE REGEL? 
-	// if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
-	//     throw(std::runtime_error("Error listening for new connection"));
 }
 
 void HTTPServer::delegateToConnectionHandler(int connectionFd)
@@ -167,12 +163,14 @@ void HTTPServer::delegateToConnectionHandler(int connectionFd)
 	}
 	ConnectionHandler *connectionHandler = it->second;
 	connectionHandler->handleHTTP();
+	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
+										 //IF there are other cases where we should close after handling request, add to shouldClose()
+		closeConnection(connectionFd);
 }
 
 void HTTPServer::closeConnection(int connectionFd)
 {
 	epoll_ctl(_epollFD, EPOLL_CTL_DEL, connectionFd, NULL);
-	close(connectionFd);
 
 	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
 	if (it != _connectionHandlers.end())
@@ -218,14 +216,12 @@ void HTTPServer::start()
 				if (events & (EPOLLHUP | EPOLLERR))
 				{
 					std::cout << "Connection error/hangup on FD " << fd << std::endl;
-					// closeConnection(fd);
-					// erase from connectionHanders? = mee in closeConnection? gwn uit map verwijderen
+					closeConnection(fd);
 				}
 				else if (events & EPOLLIN)
 					delegateToConnectionHandler(fd);
 			}
 		}
-		// usleep(1000000);//test
 	}
 
 	std::cout << "Server shutting down..." << std::endl;

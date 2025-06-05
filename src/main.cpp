@@ -22,6 +22,8 @@ int main(int argc, char **argv)
 
     try
     {
+        const MyConfig &lol = MyConfig::get();
+        (void)lol;
         HTTPServer server;
         server.init();
         server.start();

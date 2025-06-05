@@ -49,12 +49,12 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
     if (colon_pos != std::string::npos)
     {
         server.host = listen_value.substr(0, colon_pos);
-        server.port = std::atoi(listen_value.substr(colon_pos + 1).c_str());
+        server.port = listen_value.substr(colon_pos + 1);
     }
     else
     {
-        server.port = std::atoi(listen_value.c_str());
-        server.host = "127.0.0.1";
+        server.port = listen_value;
+        server.host = "127.0.0.1"; // TODO
     }
     expectToken(";");
     return true;

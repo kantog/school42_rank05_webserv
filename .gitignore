@@ -34,3 +34,5 @@
 # custom stuff
 Session.vim
 compile_commands.json
+
+webserv

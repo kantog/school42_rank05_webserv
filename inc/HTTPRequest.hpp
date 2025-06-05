@@ -33,12 +33,15 @@ public:
 	HTTPRequest &operator=(const HTTPRequest &other);
 	~HTTPRequest();
 
+	void reset();
+
 	const std::string &getMethod() const;
 	const std::string &getRequestTarget() const;
 	const std::string &getHostURL() const;
 	const std::map<std::string, std::string> &getHeaders() const;
 	const std::string &getHeader(const std::string &key) const;
 	const std::string &getBody() const;
+	bool isAutoClose() const;
 
 	void parseRequest(std::string rawRequest);
 	void reset();

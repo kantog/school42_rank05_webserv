@@ -93,7 +93,7 @@ void ConnectionHandler::receiveRequest()
 
 bool ConnectionHandler::isAutoClose()
 {
-	return (false); //////
+	return (this->_request.isAutoClose());
 }
 
 

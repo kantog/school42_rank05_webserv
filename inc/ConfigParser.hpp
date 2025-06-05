@@ -1,6 +1,4 @@
 
-
-
 # pragma once
 
 # include "MyConfig.hpp"
@@ -16,11 +14,13 @@ public:
 
 private:
 
+	// variables
+	
     std::vector<ServerConfig> _configs;
     std::vector<std::string> _tokens;
     size_t _curentToken;
 
-private:
+	// functions
 
     bool hasMoreTokens(void);
     std::string getCurrentToken(void);

@@ -7,16 +7,19 @@
 ConnectionHandler::ConnectionHandler()
 {
 	_connectionSocketFD = -1;
+	// _HTTPAction = NULL;
 }
 
 ConnectionHandler::ConnectionHandler(int input):
 	_connectionSocketFD(input)
+	// _HTTPAction(NULL)
 {
 		
 }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
 	_connectionSocketFD(other._connectionSocketFD)
+	// _HTTPAction(NULL)
 {
 		
 }
@@ -33,17 +36,12 @@ ConnectionHandler::~ConnectionHandler()
 		close(_connectionSocketFD);
 }
 
-// void ConnectionHandler::setConnectionSocketFD(int input)
-// {
-// 	_connectionSocketFD = input;
-// }
-
 int ConnectionHandler::getConnectionSocketFD()
 {
 	return (_connectionSocketFD);
 }
 
-void ConnectionHandler::receiveRequest()
+void ConnectionHandler::createRequest()
 {
 	char buffer[2048]; // ?
 
@@ -56,7 +54,7 @@ void ConnectionHandler::receiveRequest()
 		else if (bytesRead == -1)
 			//TODO: 
 			std::cerr << "Error reading from socket " << _connectionSocketFD << ": " << strerror(errno) << std::endl;
-		// closeConnection(connectionFd);
+		// TODO: set flag to trigger isAutoclose()
 		return;
 	}
 
@@ -67,54 +65,40 @@ void ConnectionHandler::receiveRequest()
 	std::cout << "Request: " << rawRequest.substr(0, 100) << "..." << std::endl;
 	
 	_request.parseRequest(rawRequest);
-
-	//to do: dit hieronder weghalen en sendResponse doen werken
-	makeResponse(rawRequest);
-	std::string response = getResponse(); // dit is gwn om te testen
-
-	send(_connectionSocketFD, response.c_str(), response.length(), 0);
-
-	// if (connectionHandler.isAutoClose())
-	// 	closeConnection(connectionFd);
 }
-//
-// void ConnectionHandler::sendResponse(int socketFD, HTTPResponse finishedHTTPResponse)
+
+void ConnectionHandler::sendResponse()
+{
+	//TODO: check if a response also has a max length
+	_response.buildResponse();
+	const std::string &responseString = _response.getResponseString();
+
+	std::cout << "Sent back by server: " << responseString << std::endl; //test
+
+	send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+}
+
+
+bool ConnectionHandler::shouldClose() 
+{
+	return (this->_request.hasCloseHeader());
+	// ....
+}
+
+// void ConnectionHandler::makeResponse(std::string &input)
 // {
-// 	makeResponse(rawRequest);
-// 	std::string response = getResponse();
-//
-// 	send(_connectionSocketFD, response.c_str(), response.length(), 0);
-//
-// 	if (connectionHandler.isAutoClose())
-// 		closeConnection(connectionFd);
-//
+// 	// std::cout << "input: " << input << std::endl;//test
+// 	_request.parseRequest(input);
+// 	std::cout << std::endl;
+// 	// actions aanmaken ...
 // }
-
-
-bool ConnectionHandler::isAutoClose()
-{
-	return (this->_request.isAutoClose());
-}
-
-
-void ConnectionHandler::makeResponse(std::string &input)
-{
-	// std::cout << "input: " << input << std::endl;//test
-	_request.parseRequest(input);
-	std::cout << std::endl;
-	// actions aanmaken ...
-}
-
-std::string ConnectionHandler::getResponse()
-{
-	std::string response = "HTTP/1.1 200 OK\r\n\r\n Hello World";
-	return (response);
-}
 
 void ConnectionHandler::handleHTTP()
 {
-	this->receiveRequest();
-	//interne handlerfunctie van connectionHandler?
-	// this->sendResponse();
+	_response.reset();
+	// make new Action, based on type of request
+	this->createRequest();
+	//TODO: use Action
+	this->sendResponse();
 		
 }

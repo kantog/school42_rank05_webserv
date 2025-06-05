@@ -12,6 +12,7 @@ private:
 	std::string _hostURL;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
+	//boolean: isReady
 
 	void setMethod(const std::string &input);
 	void setRequestTarget(const std::string &input);
@@ -20,7 +21,7 @@ private:
 	void setBody(const std::string &input);
 
 	void fillHeaders(std::string line);
-	void print() const;
+	void printRequest() const;
 
 public:
 	HTTPRequest();
@@ -33,16 +34,15 @@ public:
 	HTTPRequest &operator=(const HTTPRequest &other);
 	~HTTPRequest();
 
-	void reset();
-
 	const std::string &getMethod() const;
 	const std::string &getRequestTarget() const;
 	const std::string &getHostURL() const;
 	const std::map<std::string, std::string> &getHeaders() const;
 	const std::string &getHeader(const std::string &key) const;
 	const std::string &getBody() const;
-	bool isAutoClose() const;
 
-	void parseRequest(std::string rawRequest);
+
 	void reset();
+	bool hasCloseHeader() const;
+	void parseRequest(std::string rawRequest);
 };

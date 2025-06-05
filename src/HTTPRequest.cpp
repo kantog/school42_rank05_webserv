@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/04 19:30:40 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/05 11:20:19 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,15 @@ HTTPRequest &HTTPRequest::operator=(const HTTPRequest &other)
 }
 
 HTTPRequest::~HTTPRequest() {}
+
+void HTTPRequest::reset()
+{
+    _method.clear();
+    _requestTarget.clear();
+    _hostURL.clear();
+    _headers.clear();
+    _body.clear();
+}
 
 void HTTPRequest::setMethod(const std::string &input)
 {
@@ -104,6 +113,12 @@ const std::string &HTTPRequest::getHeader(const std::string &key) const
     static const std::string empty = "";
     std::map<std::string, std::string>::const_iterator it = _headers.find(key);
     return it != _headers.end() ? it->second : empty;
+}
+
+bool HTTPRequest::isAutoClose() const
+{
+    /// @todo
+    return true;
 }
 
 void HTTPRequest::fillHeaders(std::string line)

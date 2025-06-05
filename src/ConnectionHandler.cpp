@@ -54,7 +54,7 @@ int ConnectionHandler::getConnectionSocketFD()
 
 bool ConnectionHandler::isAutoClose()
 {
-	return (false); //////
+	return (this->_request.isAutoClose());
 }
 
 

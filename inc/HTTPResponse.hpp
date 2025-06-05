@@ -1,34 +1,39 @@
 
-#pragma once 
+
+#pragma once
 
 #include <string>
+#include <map>
 
-class	N {
-	private:
-		std::string	_aaa;
-		std::string _bbb;
-		std::string _ccc;
-		std::string _ddd;
+class HTTPResponse
+{	
+public:
+	HTTPResponse();
+	~HTTPResponse();
 
-	public:
-		N();
-		N(std::string aaa,
-			std::string bbb,
-			std::string ccc,
-			std::string ddd);
-		N(const N &other);
-		N &operator=(const N &other);
-		~N();
+	void reset();
+	void buildResponse();
 
-		const std::string	&getaaa() const;
-		const std::string	&getbbb() const;
-		const std::string	&getccc() const;
-		const std::string	&getddd() const;
+	const std::string &getResponse() const;
+	
+	void setStatusCode(int code);
+	void setStatusMessage(const std::string &message);
+	void setHeader(const std::string &key, const std::string &value);
+	void setBody(const std::string &body, const std::string &contentType = "text/plain");
+	void setBodyFromFile(const std::string &filePath, const std::string &contentType = "text/html");
+	void setRedirect(const std::string &location, int code = 302);
 
-		void		setaaa(const std::string &input);
-		void		setbbb(const std::string &input);
-		void		setccc(const std::string &input);
-		void		setddd(const std::string &input);
+	void setBodySize(); // public?
+	
+private:
+
+    int _statusCode;
+    std::string _statusText;
+    std::map<std::string, std::string> _headers;
+    std::string _body;
+
+	std::string _response;
+
+	void _setStatisMessage(int code);
+
 };
-
-

@@ -10,13 +10,13 @@ public:
     ConfigParser() {}
     ~ConfigParser() {}
 
-    std::map<std::string, std::vector<ServerConfig>> parseConfigFile(const std::string& filename);
+    std::map<std::string, std::vector<ServerConfig> > parseConfigFile(const std::string& filename);
 
 private:
 
 	// variables
 	
-    std::map<std::string, std::vector<ServerConfig>> _configs;
+    std::map<std::string, std::vector<ServerConfig> > _configs;
     std::vector<std::string> _tokens;
     size_t _curentToken;
 

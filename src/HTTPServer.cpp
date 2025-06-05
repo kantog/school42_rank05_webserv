@@ -57,7 +57,6 @@ void HTTPServer::initListeningSocket()
 {
 
 	// TODO: meerdere severs nog te inplemneteren
-	int serverNumber = 0;
 	struct sockaddr_in sockAdress;
 	int optval = 1;
 

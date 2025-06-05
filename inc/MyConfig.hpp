@@ -45,7 +45,7 @@ private:
     MyConfig(const char *filename);
 
 public:
-    std::map<std::string, std::vector<ServerConfig>> _servers;
+    std::map<std::string, std::vector<ServerConfig> > _servers;
     static const MyConfig &get(const char *filename = NULL);
     ~MyConfig();
 };

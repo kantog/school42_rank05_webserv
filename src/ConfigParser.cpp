@@ -297,7 +297,7 @@ void ConfigParser::tokenize(std::ifstream &file)
     }
 }
 
-std::map<std::string, std::vector<ServerConfig>> ConfigParser::parseConfigFile(const std::string &filename)
+std::map<std::string, std::vector<ServerConfig> > ConfigParser::parseConfigFile(const std::string &filename)
 {
     std::ifstream file(filename.c_str());
     if (!file.is_open())

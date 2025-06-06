@@ -11,15 +11,15 @@
 // } // doet moelijk met &_serverKey
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
+	_AHTTPAction(NULL),
 	_serverKey(serverKey),
-	_connectionSocketFD(fd),
-	_AHTTPAction(NULL)
+	_connectionSocketFD(fd)
 { }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
+	_AHTTPAction(NULL),
 	_serverKey(other._serverKey),//dit ok? 
-	_connectionSocketFD(other._connectionSocketFD),
-	_AHTTPAction(NULL)
+	_connectionSocketFD(other._connectionSocketFD)
 { }
 
 // ConnectionHandler &ConnectionHandler::operator=(const ConnectionHandler &other)

@@ -182,6 +182,6 @@ void HTTPRequest::parseRequest(std::string rawRequest)
 
     #ifdef DEBUG
 		std::cout << "\n";
-        this->printRequest();
+        this->_printRequest();
     #endif
 }

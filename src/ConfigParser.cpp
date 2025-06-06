@@ -149,7 +149,7 @@ bool ConfigParser::setAutoIndex(Route &route, const std::string &token)
 {
     if (token != "autoindex")
         return false;
-    route.directoryListing = getNextToken() == "on";
+    route.isDirectoryListing = getNextToken() == "on";
     expectToken(";");
     return true;
 }
@@ -158,7 +158,7 @@ bool ConfigParser::setAllowUpload(Route &route, const std::string &token)
 {
     if (token != "allow_upload")
         return false;
-    route.allowUpload = getNextToken() == "on";
+    route.uploadAllowed = getNextToken() == "on";
     expectToken(";");
     return true;
 }

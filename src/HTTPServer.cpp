@@ -16,7 +16,7 @@
 
 HTTPServer::HTTPServer() : _epollFD(-1),
 						   _connAmount(0),
-						   _GotStopSignal(false)
+						   _gotStopSignal(false)
 // is this good practice, using a singleton like this basically creates a global?
 {
 }
@@ -52,19 +52,16 @@ HTTPServer::~HTTPServer()
 		close(_epollFD);
 }
 
-<<<<<<< HEAD
-void HTTPServer::_initListeningSocket()
-=======
-void HTTPServer::initSockets()
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
+void HTTPServer::_initSockets() //waarom andere naam?
 {
 	const MyConfig &myConfig = MyConfig::get();
 	for (std::map<std::string, std::vector<ServerConfig> >::const_iterator it = myConfig._servers.begin(); it != myConfig._servers.end(); ++it)
 	{
 		struct epoll_event localEpollEvent;
 		localEpollEvent.events = EPOLLIN | EPOLLET;
-		localEpollEvent.data.fd = makeNewSocket(it->second[0].host, it->second[0].port);
+		localEpollEvent.data.fd = _makeNewSocket(it->second[0].host, it->second[0].port);
 
+		std::cout << _epollFD << std::endl;//test
 		if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, localEpollEvent.data.fd, &localEpollEvent) == -1)
 			throw(std::runtime_error("Error: problem with adding listeningSocketFD"));
 
@@ -75,7 +72,6 @@ void HTTPServer::initSockets()
 // void HTTPServer::initListeningSocket()
 // {
 
-// 	// TODO: meerdere severs nog te inplemneteren
 // 	struct sockaddr_in sockAdress;
 // 	int optval = 1;
 
@@ -95,7 +91,7 @@ void HTTPServer::initSockets()
 // 		throw(std::runtime_error("Error listening for new connection"));
 // }
 
-int HTTPServer::makeNewSocket(const std::string &ip, const std::string &port)
+int HTTPServer::_makeNewSocket(const std::string &ip, const std::string &port)
 {
 	struct addrinfo hints;
 	struct addrinfo *res = NULL;
@@ -114,11 +110,11 @@ int HTTPServer::makeNewSocket(const std::string &ip, const std::string &port)
 		error_msg += gai_strerror(gai_result);
 		throw std::runtime_error(error_msg);
 	}
-
+	
 	int socketFD = -1;
 	for (struct addrinfo *p = res; p != NULL; p = p->ai_next)
 	{
-		socketFD = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		socketFD = socket(p->ai_family, p->ai_socktype | SOCK_NONBLOCK, p->ai_protocol);
 		if (socketFD == -1)
 			continue;
 		if (setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
@@ -127,23 +123,14 @@ int HTTPServer::makeNewSocket(const std::string &ip, const std::string &port)
 			socketFD = -1;
 			continue;
 		}
-		int flags = fcntl(socketFD, F_GETFL, 0);
-		if (flags == -1 || fcntl(socketFD, F_SETFL, flags | O_NONBLOCK) == -1)
-		{
-			close(socketFD);
-			socketFD = -1;
-			continue;
-		}
 		if (bind(socketFD, p->ai_addr, p->ai_addrlen) == 0)
 			break; // Success!
-
 		close(socketFD);
 		socketFD = -1;
 	}
 	freeaddrinfo(res);
 	if (socketFD == -1)
 		throw std::runtime_error("Error: Failed to bind to any address");
-
 	if (listen(socketFD, MAX_LISTEN_QUEUE) == -1)
 	{
 		close(socketFD);
@@ -159,26 +146,7 @@ void HTTPServer::_initEpoll()
 		throw(std::runtime_error("Error: problem with epoll_create"));
 }
 
-void HTTPServer::init()
-{
-	std::cout << "Setting up server..." << std::endl;
-
-<<<<<<< HEAD
-	_initListeningSocket();
-	_initEpoll();
-=======
-	initEpoll();
-	initSockets();
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
-
-	std::cout << "Server all set!" << std::endl;
-}
-
-<<<<<<< HEAD
-void HTTPServer::_createNewConnection()
-=======
-void HTTPServer::createNewConnection(int fd)
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
+void HTTPServer::_createNewConnection(int fd)
 {
 	struct sockaddr_in sockAdress;
 	socklen_t addressLen = sizeof(sockAdress);
@@ -201,8 +169,8 @@ void HTTPServer::createNewConnection(int fd)
 	std::cout << "Accepted new connection with FD: " << newSocketFD << std::endl;
 
 	// Set non-blocking
-	// int flags = fcntl(newSocketFD, F_GETFL, 0); TODO: GETFL mag niet?
-	if (fcntl(newSocketFD, F_SETFL, O_NONBLOCK) == -1)
+	int flags = fcntl(newSocketFD, F_GETFL, 0);
+	if (fcntl(newSocketFD, F_SETFL, flags | O_NONBLOCK) == -1)
 	{
 		close(newSocketFD);
 		throw(std::runtime_error("Error: problem setting client socket to non-blocking"));
@@ -218,17 +186,14 @@ void HTTPServer::createNewConnection(int fd)
 		throw(std::runtime_error("Error: problem with epoll_ctl"));
 	}
 
-	this->setNewHandeler(newSocketFD);
+	this->_setNewHandler(newSocketFD);
 
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->_delegateToConnectionHandler(newSocketFD);
 }
 
-<<<<<<< HEAD
-void HTTPServer::_delegateToConnectionHandler(int connectionFd)
-=======
-void HTTPServer::setNewHandeler(int newSocketFD)
+void HTTPServer::_setNewHandler(int newSocketFD)
 {
 	std::string &serverKey = _listeningSockets[0].first;
 	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
@@ -245,8 +210,7 @@ void HTTPServer::setNewHandeler(int newSocketFD)
 	_connAmount++;
 }
 
-void HTTPServer::delegateToConnectionHandler(int connectionFd)
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
+void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
@@ -258,15 +222,9 @@ void HTTPServer::delegateToConnectionHandler(int connectionFd)
 	}
 	ConnectionHandler *connectionHandler = it->second;
 	connectionHandler->handleHTTP();
-<<<<<<< HEAD
 	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(connectionFd);
-=======
-	if (connectionHandler->shouldClose()) // TODO: Added this for cases where header says "connection close".
-										  // IF there are other cases where we should close after handling request, add to shouldClose()
-		closeConnection(connectionFd);
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
 }
 
 void HTTPServer::_closeConnection(int connectionFd)
@@ -284,7 +242,7 @@ void HTTPServer::_closeConnection(int connectionFd)
 	std::cout << "Connection " << connectionFd << " closed" << std::endl;
 }
 
-bool HTTPServer::isListeningSocket(int fd)
+bool HTTPServer::_isListeningSocket(int fd)
 {
 	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
 	{
@@ -294,19 +252,30 @@ bool HTTPServer::isListeningSocket(int fd)
 	return false;
 }
 
-void HTTPServer::handleConnectionEvent(int fd, uint32_t events)
+void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
 	std::cout << "Data event on existing connection" << std::endl;
 
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
-		closeConnection(fd);
+		_closeConnection(fd);
 	}
 	else if (events & EPOLLIN)
 	{
-		delegateToConnectionHandler(fd);
+		_delegateToConnectionHandler(fd);
 	}
+}
+
+void HTTPServer::init()
+{
+	std::cout << "Setting up server..." << std::endl;
+
+	// _initListeningSockets();
+	_initEpoll();
+	_initSockets();
+
+	std::cout << "Server all set!" << std::endl;
 }
 
 void HTTPServer::start()
@@ -315,7 +284,7 @@ void HTTPServer::start()
 
 	std::cout << "Waiting for a connection <3" << std::endl;
 
-	while (!this->_GotStopSignal)
+	while (!this->_gotStopSignal)
 	{
 		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1); // 10 second timeout?
 		if (eventCount == -1)
@@ -329,30 +298,14 @@ void HTTPServer::start()
 			int fd = localEpollEvents[i].data.fd;
 			uint32_t events = localEpollEvents[i].events;
 
-			if (isListeningSocket(fd))
+			if (_isListeningSocket(fd))
 			{
 				std::cout << "New connection event" << std::endl;
-<<<<<<< HEAD
-				_createNewConnection();
+				_createNewConnection(fd);
 			}
 			else
 			{
-				std::cout << "Data event on existing connection" << std::endl;
-
-				if (events & (EPOLLHUP | EPOLLERR))
-				{
-					std::cout << "Connection error/hangup on FD " << fd << std::endl;
-					_closeConnection(fd);
-				}
-				else if (events & EPOLLIN)
-					_delegateToConnectionHandler(fd);
-=======
-				createNewConnection(fd);
-			}
-			else
-			{
-				handleConnectionEvent(fd, events);
->>>>>>> cdb3b795ef8842c13f81285534ed55138a33eb43
+				_handleConnectionEvent(fd, events);
 			}
 		}
 	}
@@ -363,5 +316,5 @@ void HTTPServer::start()
 void HTTPServer::stop(int signal)
 {
 	(void)signal;
-	_GotStopSignal = true;
+	_gotStopSignal = true;
 }

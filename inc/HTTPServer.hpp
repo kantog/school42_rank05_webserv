@@ -16,15 +16,16 @@ class HTTPServer
 		static const int _maxEpollEvents = 32;
 		bool _gotStopSignal;
 
-		void _initListeningSocket();// void initSockets();
+		// void _initListeningSockets();
+		void _initSockets();
 		void _initEpoll();
 		int _makeNewSocket(const std::string &ip, const std::string &port);
-		void _createNewConnection();
+		void _createNewConnection(int fd);
 		void _closeConnection(int connectionFd);
 		void _delegateToConnectionHandler(int connectionFd);
-		void handleConnectionEvent(int connectionFd, uint32_t events);
-		bool isListeningSocket(int fd);
-		void setNewHandeler(int newSocketFD);
+		void _handleConnectionEvent(int connectionFd, uint32_t events);
+		bool _isListeningSocket(int fd);
+		void _setNewHandler(int newSocketFD);
 
 	public:
 		// HTTPServer(const MyConfig &_myConfig);

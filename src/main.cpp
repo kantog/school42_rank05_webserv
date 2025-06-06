@@ -8,9 +8,7 @@ HTTPServer *globalServerPtr = NULL;
 void handleSigint(int signum)
 {
     if (globalServerPtr)
-    {
         globalServerPtr->stop(signum);
-    }
 }
 
 int main(int argc, char **argv)

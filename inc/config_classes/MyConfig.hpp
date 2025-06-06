@@ -21,40 +21,40 @@ struct Route
     bool uploadAllowed;
     std::string uploadPath;
 
-    Route() : directoryListing(false), allowUpload(false) {}
+    Route() : isDirectoryListing(false), uploadAllowed(false) {}
 };
 
 class ServerConfig
 {
-public:
-    std::string host;
-    std::string port;
-    std::string root;
-    std::vector<std::string> server_names;
-    std::map<int, std::string> error_pages;
-    size_t client_max_body_size;
-    std::vector<Route> routes;
+	public:
+		std::string host;
+		std::string port;
+		std::string root;
+		std::vector<std::string> server_names;
+		std::map<int, std::string> error_pages;
+		size_t client_max_body_size;
+		std::vector<Route> routes;
 
-    std::string getServerKey(void) const;
+		std::string getServerKey(void) const;
 };
 
 class MyConfig
 {
-private:
-    static MyConfig *_myConfig;
-    MyConfig();
-    MyConfig(const char *filename);
+	private:
+		static MyConfig *_myConfig;
+		MyConfig();
+		MyConfig(const char *filename);
 
 
-public:
-    ~MyConfig();
-    static const MyConfig &get(const char *filename = NULL);
-    
-    std::map<std::string, std::vector<ServerConfig> > _servers;
-    
+	public:
+		~MyConfig();
+		static const MyConfig &get(const char *filename = NULL);
 
-    const ServerConfig *findServerConfig(const std::string &serverKey, const std::string &hostURL) const;
+		std::map<std::string, std::vector<ServerConfig> > _servers;
 
-    static const ServerConfig *getServerConfig(const std::string &serverKey, const std::string &hostURL);
+
+		const ServerConfig *findServerConfig(const std::string &serverKey, const std::string &hostURL) const;
+
+		static const ServerConfig *getServerConfig(const std::string &serverKey, const std::string &hostURL);
 
 };

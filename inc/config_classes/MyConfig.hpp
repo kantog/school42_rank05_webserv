@@ -24,27 +24,37 @@ struct Route
     Route() : directoryListing(false), allowUpload(false) {}
 };
 
-struct ServerConfig
+class ServerConfig
 {
+public:
     std::string host;
-    int port;
+    std::string port;
+    std::string root;
     std::vector<std::string> server_names;
     std::map<int, std::string> error_pages;
     size_t client_max_body_size;
     std::vector<Route> routes;
+
+    std::string getServerKey(void) const;
 };
 
 class MyConfig
 {
 private:
-	static MyConfig *_myConfig;
+    static MyConfig *_myConfig;
     MyConfig();
-    MyConfig(const char* filename);
+    MyConfig(const char *filename);
+
 
 public:
-    std::vector<ServerConfig> _servers;//work in progress
-    static const MyConfig& get(const char* filename = NULL);
     ~MyConfig();
+    static const MyConfig &get(const char *filename = NULL);
+    
+    std::map<std::string, std::vector<ServerConfig> > _servers;
+    
 
-    static int getPort(int serverNumber);
+    const ServerConfig *findServerConfig(const std::string &serverKey, const std::string &hostURL) const;
+
+    static const ServerConfig *getServerConfig(const std::string &serverKey, const std::string &hostURL);
+
 };

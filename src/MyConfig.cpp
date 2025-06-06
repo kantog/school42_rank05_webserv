@@ -3,8 +3,8 @@
 #include "../inc/config_classes/ConfigParser.hpp"
 #include "../inc/config_classes/MyConfig.hpp"
 
-MyConfig::MyConfig()
-{ }
+MyConfig::MyConfig() {}
+MyConfig::~MyConfig() {}
 
 MyConfig::MyConfig(const char *filename)
 {
@@ -18,9 +18,29 @@ const MyConfig& MyConfig::get(const char* filename)
     return instance;
 }
 
-int MyConfig::getPort(int serverNumber)
+const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const
 {
-    return MyConfig::get()._servers[serverNumber].port;
+    // TODO mulies servir names?
+    std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
+    if (it == _servers.end())
+        return NULL;
+    for (std::vector<ServerConfig>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+    {
+        if (it2->host == hostURL)
+            return &(*it2);
+    }
+    return &(*it->second.begin()); // default to the first
 }
 
-MyConfig::~MyConfig() {}
+const ServerConfig *MyConfig::getServerConfig(const std::string &serverKey, const std::string &hostURL)
+{
+    return MyConfig::get().findServerConfig(serverKey, hostURL);
+}
+
+//////////////////////////////////////////////////////////////////////////
+std::string ServerConfig::getServerKey(void) const
+{
+    std::stringstream ss;
+    ss << host << ":" << port;
+    return ss.str();
+}

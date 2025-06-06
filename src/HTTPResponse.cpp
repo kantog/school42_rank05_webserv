@@ -19,7 +19,7 @@ void HTTPResponse::reset()
     _responseString.clear();
 
     // setHeader("Content-Length", "0");
-    setBody("Hallo wereld!");//test
+    setBodyFromFile("tempFile.html");
 }
 
 void HTTPResponse::setStatusCode(int code)

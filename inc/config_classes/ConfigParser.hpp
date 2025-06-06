@@ -10,13 +10,13 @@ public:
     ConfigParser() {}
     ~ConfigParser() {}
 
-    std::vector<ServerConfig> parseConfigFile(const std::string& filename);
+    std::map<std::string, std::vector<ServerConfig> > parseConfigFile(const std::string& filename);
 
 private:
 
 	// variables
 	
-    std::vector<ServerConfig> _configs;
+    std::map<std::string, std::vector<ServerConfig> > _configs;
     std::vector<std::string> _tokens;
     size_t _curentToken;
 
@@ -31,6 +31,7 @@ private:
     bool setListen(ServerConfig& server, const std::string& token);
     bool setClientMaxBodySize(ServerConfig& server, const std::string& token); // clientMaxBodySize
     bool setErrorPage(ServerConfig& server, const std::string& token);
+    bool setRoot(ServerConfig& server, const std::string& token);
 
     bool parseLocation(ServerConfig& server, const std::string& token);
     bool setRoot(Route& route, const std::string& token);

@@ -49,12 +49,12 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
     if (colon_pos != std::string::npos)
     {
         server.host = listen_value.substr(0, colon_pos);
-        server.port = std::atoi(listen_value.substr(colon_pos + 1).c_str());
+        server.port = listen_value.substr(colon_pos + 1);
     }
     else
     {
-        server.port = std::atoi(listen_value.c_str());
-        server.host = "127.0.0.1";
+        server.port = listen_value;
+        server.host = "127.0.0.1"; // TODO
     }
     expectToken(";");
     return true;
@@ -97,6 +97,15 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     {
         server.error_pages[error_codes[i]] = current_error_token;
     }
+    return true;
+}
+
+bool ConfigParser::setRoot(ServerConfig &server, const std::string &token)
+{
+    if (token != "root")
+        return false;
+    server.root = getNextToken();
+    expectToken(";");
     return true;
 }
 
@@ -221,6 +230,8 @@ void ConfigParser::parseServer()
             continue;
         else if (this->setErrorPage(server, token))
             continue;
+        else if (this->setRoot(server, token))
+            continue;
         else if (this->parseLocation(server, token))
             continue;
         else
@@ -230,7 +241,7 @@ void ConfigParser::parseServer()
     }
 
     expectToken("}");
-    _configs.push_back(server);
+    _configs[server.getServerKey()].push_back(server);
 }
 
 bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
@@ -297,7 +308,7 @@ void ConfigParser::tokenize(std::ifstream &file)
     }
 }
 
-std::vector<ServerConfig> ConfigParser::parseConfigFile(const std::string &filename)
+std::map<std::string, std::vector<ServerConfig> > ConfigParser::parseConfigFile(const std::string &filename)
 {
     std::ifstream file(filename.c_str());
     if (!file.is_open())

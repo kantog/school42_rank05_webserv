@@ -14,21 +14,24 @@ class	ConnectionHandler
 		HTTPResponse _response;
 		AHTTPAction *_AHTTPAction;
 		// MyConfig &_myConfig;
-		int _connectionSocketFD;
 
-		ConnectionHandler();
+		std::string &_serverKey;
+		int _connectionSocketFD;
+		const ServerConfig *_serverConfig;
+
+		// ConnectionHandler();
+		ConnectionHandler(const ConnectionHandler &other);
+		ConnectionHandler &operator=(const ConnectionHandler &other);
 
 		int _getConnectionSocketFD();
 
 		// void makeResponse(std::string &input);
 		void _createRequest();
 		void _sendResponse();
-
+		void _setServerConfig();
 
 	public:
-		ConnectionHandler(int input);
-		ConnectionHandler(const ConnectionHandler &other);
-		ConnectionHandler &operator=(const ConnectionHandler &other);
+		ConnectionHandler(std::string &serverKey, int fd);
 		~ConnectionHandler();
 
 		void handleHTTP();

@@ -20,6 +20,7 @@ const MyConfig& MyConfig::get(const char* filename)
 
 const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const
 {
+    // TODO mulies servir names?
     std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
     if (it == _servers.end())
         return NULL;

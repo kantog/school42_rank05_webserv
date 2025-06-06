@@ -100,6 +100,15 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     return true;
 }
 
+bool ConfigParser::setRoot(ServerConfig &server, const std::string &token)
+{
+    if (token != "root")
+        return false;
+    server.root = getNextToken();
+    expectToken(";");
+    return true;
+}
+
 bool ConfigParser::setRoot(Route &route, const std::string &token)
 {
     if (token != "root")
@@ -220,6 +229,8 @@ void ConfigParser::parseServer()
         else if (this->setClientMaxBodySize(server, token))
             continue;
         else if (this->setErrorPage(server, token))
+            continue;
+        else if (this->setRoot(server, token))
             continue;
         else if (this->parseLocation(server, token))
             continue;

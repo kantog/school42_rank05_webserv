@@ -15,7 +15,8 @@
 #define MAX_LISTEN_QUEUE 10
 
 HTTPServer::HTTPServer() : _epollFD(-1),
-						   _connAmount(0)
+						   _connAmount(0),
+						   _GotStopSignal(false)
 // is this good practice, using a singleton like this basically creates a global?
 {
 }
@@ -291,12 +292,15 @@ void HTTPServer::start()
 
 	std::cout << "Waiting for a connection <3" << std::endl;
 
-	while (true)
+	while (!this->_GotStopSignal)
 	{
-		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1);
+		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1); // 10 second timeout?
 		if (eventCount == -1)
+		{
+			if (errno == EINTR)
+				continue;
 			throw std::runtime_error("Error: problem while waiting for events");
-
+		}
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;
@@ -317,6 +321,8 @@ void HTTPServer::start()
 	std::cout << "Server shutting down..." << std::endl;
 }
 
-void HTTPServer::stop()
+void HTTPServer::stop(int signal)
 {
+	(void)signal;
+	_GotStopSignal = true;
 }

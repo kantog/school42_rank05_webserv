@@ -27,6 +27,8 @@ private:
 	bool isListeningSocket(int fd);
 	void setNewHandeler(int newSocketFD);
 
+	bool _GotStopSignal;
+
 public:
 	// HTTPServer(const MyConfig &_myConfig);
 	HTTPServer(); // test
@@ -36,5 +38,5 @@ public:
 
 	void init();
 	void start();
-	void stop();
+	void stop(int signal);
 };

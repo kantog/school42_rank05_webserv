@@ -45,8 +45,8 @@ HTTPServer::~HTTPServer()
 	}
 	_connectionHandlers.clear();
 	//
-	for (int fd = 0; fd < (int)_listeningSocketFDs.size(); ++fd)
-		close(fd);
+	for (int i = 0; i < (int)_listeningSockets.size(); ++i)
+		close(_listeningSockets[i].second);
 	if (_epollFD > 0)
 		close(_epollFD);
 }
@@ -63,7 +63,7 @@ void HTTPServer::initSockets()
 		if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, localEpollEvent.data.fd, &localEpollEvent) == -1)
 			throw(std::runtime_error("Error: problem with adding listeningSocketFD"));
 
-		_listeningSocketFDs.push_back(localEpollEvent.data.fd);
+		_listeningSockets.push_back(std::pair<std::string, int>(it->first, localEpollEvent.data.fd)); // TODO: is dit nodig?localEpollEvent.data.fd);
 	}
 }
 
@@ -204,14 +204,28 @@ void HTTPServer::createNewConnection(int fd)
 		throw(std::runtime_error("Error: problem with epoll_ctl"));
 	}
 
-	// Create connection handler
-	ConnectionHandler *newConnection = new ConnectionHandler(newSocketFD);
-	_connectionHandlers[newSocketFD] = newConnection;
-	_connAmount++;
+	this->setNewHandeler(newSocketFD);
 
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->delegateToConnectionHandler(newSocketFD);
+}
+
+void HTTPServer::setNewHandeler(int newSocketFD)
+{
+	std::string &serverKey = _listeningSockets[0].first;
+	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	{
+		if (it->second == newSocketFD)
+		{
+			serverKey = it->first;
+			break;
+		}
+	}
+
+	ConnectionHandler *newConnection = new ConnectionHandler(serverKey, newSocketFD);
+	_connectionHandlers[newSocketFD] = newConnection;
+	_connAmount++;
 }
 
 void HTTPServer::delegateToConnectionHandler(int connectionFd)
@@ -248,7 +262,12 @@ void HTTPServer::closeConnection(int connectionFd)
 
 bool HTTPServer::isListeningSocket(int fd)
 {
-	return std::find(_listeningSocketFDs.begin(), _listeningSocketFDs.end(), fd) != _listeningSocketFDs.end();
+	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	{
+		if (it->second == fd)
+			return true;
+	}
+	return false;
 }
 
 void HTTPServer::handleConnectionEvent(int fd, uint32_t events)

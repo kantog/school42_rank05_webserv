@@ -18,6 +18,24 @@ const MyConfig& MyConfig::get(const char* filename)
     return instance;
 }
 
+const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const
+{
+    std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
+    if (it == _servers.end())
+        return NULL;
+    for (std::vector<ServerConfig>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+    {
+        if (it2->host == hostURL)
+            return &(*it2);
+    }
+    return &(*it->second.begin()); // default to the first
+}
+
+const ServerConfig *MyConfig::getServerConfig(const std::string &serverKey, const std::string &hostURL)
+{
+    return MyConfig::get().findServerConfig(serverKey, hostURL);
+}
+
 //////////////////////////////////////////////////////////////////////////
 std::string ServerConfig::getServerKey(void) const
 {

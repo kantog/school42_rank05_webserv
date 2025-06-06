@@ -4,31 +4,31 @@
 #include <sys/socket.h>
 #include <cstring>
 
-ConnectionHandler::ConnectionHandler()
-{
-	_connectionSocketFD = -1;
-	// _HTTPAction = NULL;
-}
+// ConnectionHandler::ConnectionHandler()
+// {
+// 	_connectionSocketFD = -1;
+// 	// _HTTPAction = NULL;
+// } // doet moelijk met &_serverKey
 
-ConnectionHandler::ConnectionHandler(int input):
-	_connectionSocketFD(input)
+ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
+	_serverKey(serverKey),
+	_connectionSocketFD(fd)
 	// _HTTPAction(NULL)
 {
-		
 }
 
-ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
-	_connectionSocketFD(other._connectionSocketFD)
-	// _HTTPAction(NULL)
-{
+// ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
+// 	_connectionSocketFD(other._connectionSocketFD)
+// 	// _HTTPAction(NULL)
+// {
 		
-}
+// }
 
-ConnectionHandler &ConnectionHandler::operator=(const ConnectionHandler &other)
-{
-	_connectionSocketFD = other._connectionSocketFD;
-	return (*this);
-}
+// ConnectionHandler &ConnectionHandler::operator=(const ConnectionHandler &other)
+// {
+// 	_connectionSocketFD = other._connectionSocketFD;
+// 	return (*this);
+// }
 
 ConnectionHandler::~ConnectionHandler()
 {
@@ -93,11 +93,17 @@ bool ConnectionHandler::shouldClose()
 // 	// actions aanmaken ...
 // }
 
+void ConnectionHandler::setServerConfig()
+{
+	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
+}
+
 void ConnectionHandler::handleHTTP()
 {
 	_response.reset();
 	// make new Action, based on type of request
 	this->createRequest();
+	this->setServerConfig();
 	//TODO: use Action
 	this->sendResponse();
 		

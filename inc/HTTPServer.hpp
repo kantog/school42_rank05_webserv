@@ -10,7 +10,7 @@
 class HTTPServer
 {
 private:
-	std::vector<int> _listeningSocketFDs;
+	std::vector<std::pair<std::string, int> > _listeningSockets;
 	int _epollFD;
 	int _connAmount;
 	std::map<int, ConnectionHandler *> _connectionHandlers;
@@ -25,6 +25,7 @@ private:
 
 	void handleConnectionEvent(int connectionFd, uint32_t events);
 	bool isListeningSocket(int fd);
+	void setNewHandeler(int newSocketFD);
 
 public:
 	// HTTPServer(const MyConfig &_myConfig);

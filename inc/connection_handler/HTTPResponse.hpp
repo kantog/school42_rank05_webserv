@@ -1,5 +1,4 @@
 
-
 #pragma once
 
 #include <string>
@@ -35,5 +34,4 @@ class HTTPResponse
 		std::string _responseString;
 
 		void _setStatusMessage(int code);
-
 };

@@ -1,6 +1,6 @@
 
 #include "../inc/HTTPServer.hpp"
-#include "../inc/MyConfig.hpp"
+#include "../inc/config_classes/MyConfig.hpp"
 
 #include <asm-generic/socket.h>
 #include <stdexcept>
@@ -53,7 +53,7 @@ HTTPServer::~HTTPServer()
 		close(_epollFD);
 }
 
-void HTTPServer::initListeningSocket()
+void HTTPServer::_initListeningSocket()
 {
 
 	// TODO: meerdere severs nog te inplemneteren
@@ -77,7 +77,7 @@ void HTTPServer::initListeningSocket()
 		throw(std::runtime_error("Error listening for new connection"));
 }
 
-void HTTPServer::initEpoll()
+void HTTPServer::_initEpoll()
 {
 	struct epoll_event localEpollEvent;
 
@@ -96,13 +96,13 @@ void HTTPServer::init()
 {
 	std::cout << "Setting up server..." << std::endl;
 
-	initListeningSocket();
-	initEpoll();
+	_initListeningSocket();
+	_initEpoll();
 
 	std::cout << "Server all set!" << std::endl;
 }
 
-void HTTPServer::createNewConnection()
+void HTTPServer::_createNewConnection()
 {
 	struct sockaddr_in sockAdress;
 	socklen_t addressLen = sizeof(sockAdress);
@@ -148,10 +148,10 @@ void HTTPServer::createNewConnection()
 
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
-	this->delegateToConnectionHandler(newSocketFD);
+	this->_delegateToConnectionHandler(newSocketFD);
 }
 
-void HTTPServer::delegateToConnectionHandler(int connectionFd)
+void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
@@ -165,10 +165,10 @@ void HTTPServer::delegateToConnectionHandler(int connectionFd)
 	connectionHandler->handleHTTP();
 	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
-		closeConnection(connectionFd);
+		_closeConnection(connectionFd);
 }
 
-void HTTPServer::closeConnection(int connectionFd)
+void HTTPServer::_closeConnection(int connectionFd)
 {
 	epoll_ctl(_epollFD, EPOLL_CTL_DEL, connectionFd, NULL);
 
@@ -207,7 +207,7 @@ void HTTPServer::start()
 			if (fd == _listeningSocketFD)
 			{
 				std::cout << "New connection event" << std::endl;
-				createNewConnection();
+				_createNewConnection();
 			}
 			else
 			{
@@ -216,10 +216,10 @@ void HTTPServer::start()
 				if (events & (EPOLLHUP | EPOLLERR))
 				{
 					std::cout << "Connection error/hangup on FD " << fd << std::endl;
-					closeConnection(fd);
+					_closeConnection(fd);
 				}
 				else if (events & EPOLLIN)
-					delegateToConnectionHandler(fd);
+					_delegateToConnectionHandler(fd);
 			}
 		}
 	}

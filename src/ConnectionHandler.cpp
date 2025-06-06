@@ -1,5 +1,5 @@
 
-#include "../inc/ConnectionHandler.hpp"
+#include "../inc/connection_handler/ConnectionHandler.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>
@@ -7,19 +7,19 @@
 ConnectionHandler::ConnectionHandler()
 {
 	_connectionSocketFD = -1;
-	// _HTTPAction = NULL;
+	_AHTTPAction = NULL;
 }
 
 ConnectionHandler::ConnectionHandler(int input):
-	_connectionSocketFD(input)
-	// _HTTPAction(NULL)
+	_connectionSocketFD(input),
+	_AHTTPAction(NULL)
 {
 		
 }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
-	_connectionSocketFD(other._connectionSocketFD)
-	// _HTTPAction(NULL)
+	_connectionSocketFD(other._connectionSocketFD),
+	_AHTTPAction(NULL)
 {
 		
 }
@@ -36,12 +36,12 @@ ConnectionHandler::~ConnectionHandler()
 		close(_connectionSocketFD);
 }
 
-int ConnectionHandler::getConnectionSocketFD()
+int ConnectionHandler::_getConnectionSocketFD()
 {
 	return (_connectionSocketFD);
 }
 
-void ConnectionHandler::createRequest()
+void ConnectionHandler::_createRequest()
 {
 	char buffer[2048]; // ?
 
@@ -67,7 +67,7 @@ void ConnectionHandler::createRequest()
 	_request.parseRequest(rawRequest);
 }
 
-void ConnectionHandler::sendResponse()
+void ConnectionHandler::_sendResponse()
 {
 	//TODO: check if a response also has a max length
 	_response.buildResponse();
@@ -97,8 +97,8 @@ void ConnectionHandler::handleHTTP()
 {
 	_response.reset();
 	// make new Action, based on type of request
-	this->createRequest();
-	//TODO: use Action
-	this->sendResponse();
-		
+	this->_createRequest();
+	// if !(_response.error)
+		//TODO: use fitting Action
+	this->_sendResponse();
 }

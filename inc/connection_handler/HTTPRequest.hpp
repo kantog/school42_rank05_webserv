@@ -14,14 +14,14 @@ private:
 	std::string _body;
 	//boolean: isReady
 
-	void setMethod(const std::string &input);
-	void setRequestTarget(const std::string &input);
-	void setHostURL(const std::string &input);
-	void setHeaders(const std::map<std::string, std::string> &input);
-	void setBody(const std::string &input);
+	void _setMethod(const std::string &input);
+	void _setRequestTarget(const std::string &input);
+	void _setHostURL(const std::string &input);
+	void _setHeaders(const std::map<std::string, std::string> &input);
+	void _setBody(const std::string &input);
 
-	void fillHeaders(std::string line);
-	void printRequest() const;
+	void _fillHeaders(std::string line);
+	void _printRequest() const;
 
 public:
 	HTTPRequest();

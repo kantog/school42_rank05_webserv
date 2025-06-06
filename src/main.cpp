@@ -1,5 +1,5 @@
 
-#include "../inc/MyConfig.hpp"
+#include "../inc/config_classes/MyConfig.hpp"
 #include "../inc/HTTPServer.hpp"
 
 int main(int argc, char **argv)

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "ConnectionHandler.hpp"
+#include "connection_handler/ConnectionHandler.hpp"
 
 class	HTTPServer {
 	private:
@@ -13,11 +13,11 @@ class	HTTPServer {
 		std::map<int, ConnectionHandler *> _connectionHandlers;
 		static const int _maxEpollEvents = 32;
 
-		void initListeningSocket();
-		void initEpoll();
-		void createNewConnection();
-		void closeConnection(int connectionFd);
-		void delegateToConnectionHandler(int connectionFd);
+		void _initListeningSocket();
+		void _initEpoll();
+		void _createNewConnection();
+		void _closeConnection(int connectionFd);
+		void _delegateToConnectionHandler(int connectionFd);
 
 	public:
 		// HTTPServer(const MyConfig &_myConfig);

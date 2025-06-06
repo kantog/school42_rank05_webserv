@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/HTTPRequest.hpp"
+#include "../inc/connection_handler/HTTPRequest.hpp"
 #include <sstream>
 #include <iostream>
 
@@ -22,11 +22,11 @@ HTTPRequest::HTTPRequest(std::string method,
                          const std::map<std::string, std::string> &headers,
                          std::string body)
 {
-    setMethod(method);
-    setRequestTarget(requestTarget);
-    setHostURL(hostURL);
-    setHeaders(headers);
-    setBody(body);
+    _setMethod(method);
+    _setRequestTarget(requestTarget);
+    _setHostURL(hostURL);
+    _setHeaders(headers);
+    _setBody(body);
 }
 
 HTTPRequest::HTTPRequest(const HTTPRequest &other)
@@ -58,27 +58,27 @@ void HTTPRequest::reset()
     _body.clear();
 }
 
-void HTTPRequest::setMethod(const std::string &input)
+void HTTPRequest::_setMethod(const std::string &input)
 {
     _method = input;
 }
 
-void HTTPRequest::setRequestTarget(const std::string &input)
+void HTTPRequest::_setRequestTarget(const std::string &input)
 {
     _requestTarget = input;
 }
 
-void HTTPRequest::setHostURL(const std::string &input)
+void HTTPRequest::_setHostURL(const std::string &input)
 {
     _hostURL = input;
 }
 
-void HTTPRequest::setHeaders(const std::map<std::string, std::string> &input)
+void HTTPRequest::_setHeaders(const std::map<std::string, std::string> &input)
 {
     _headers = input;
 }
 
-void HTTPRequest::setBody(const std::string &input)
+void HTTPRequest::_setBody(const std::string &input)
 {
     _body = input;
 }
@@ -121,7 +121,7 @@ bool HTTPRequest::hasCloseHeader() const //TODO: different name
     return false;
 }
 
-void HTTPRequest::fillHeaders(std::string line)
+void HTTPRequest::_fillHeaders(std::string line)
 {
     size_t colonPos = line.find(':');
     if (colonPos != std::string::npos)
@@ -132,13 +132,13 @@ void HTTPRequest::fillHeaders(std::string line)
             value.erase(0, 1);
         if (key == "Host")
         {
-            setHostURL(value);
+            _setHostURL(value);
         }
         _headers[key] = value;
     }
 }
 
-void HTTPRequest::printRequest() const
+void HTTPRequest::_printRequest() const
 {
     std::cout << "Method: " << _method << std::endl;
     std::cout << "Request Target: " << _requestTarget << std::endl;
@@ -161,8 +161,8 @@ void HTTPRequest::parseRequest(std::string rawRequest)
         std::istringstream startLine(line);
         std::string method, target, version;
         startLine >> method >> target >> version;
-        setMethod(method);
-        setRequestTarget(target);
+        _setMethod(method);
+        _setRequestTarget(target);
     }
 
     while (std::getline(stream, line))
@@ -174,11 +174,11 @@ void HTTPRequest::parseRequest(std::string rawRequest)
         }
 
         if (!isBody)
-            this->fillHeaders(line);
+            this->_fillHeaders(line);
         else
             body += line + "\n";
     }
-    setBody(body);
+    _setBody(body);
 
     #ifdef DEBUG
 		std::cout << "\n";

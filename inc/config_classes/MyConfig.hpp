@@ -12,13 +12,13 @@ struct Route
 {
     std::string path;
     std::vector<std::string> allowedMethods;
-    std::string redirectPath;
-    int redirectCode;
-    std::string root;
-    bool directoryListing;
+    std::string redirectPath;//?
+    int redirectCode;//?
+    std::string root;//necessary, or is only path enough?
+    bool isDirectoryListing;
     std::vector<std::string> defaultFiles;
-    std::map<std::string, std::string> cgiExtensions;
-    bool allowUpload;
+    std::map<std::string, std::string> cgiExtensions;//CGI arguments zitten ook hiern, nog te parsen
+    bool uploadAllowed;
     std::string uploadPath;
 
     Route() : directoryListing(false), allowUpload(false) {}

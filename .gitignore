@@ -34,5 +34,6 @@
 # custom stuff
 Session.vim
 compile_commands.json
+README.md
 
 webserv

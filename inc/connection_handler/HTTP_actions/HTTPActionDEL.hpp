@@ -15,6 +15,5 @@ class	HTTPActionDEL : public AHTTPAction {
 
 		void deleteFile();
 
-
 		//GCI: if server allows it, CGI can also be executed
 };

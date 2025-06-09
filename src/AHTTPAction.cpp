@@ -30,29 +30,38 @@ AHTTPAction::~AHTTPAction()
 
 }
 
-void AHTTPAction::sessionManager()
-{
+// void AHTTPAction::sessionManager()
+// {
+//
+// }
 
-}
+// void generateErrorResponse(int errorCode) //sets status code and body and return
+// {
+//
+// }
 
-void generateErrorResponse(int errorCode) //sets status code and body and return
-{
-		
-}
+// void AHTTPAction::addHeader(const std::string &input)
+// {
+	//
+	// return (*this);
+//
+// }
 
-void run()
-{
-		//e.g.
+// void run()
+// {
+//
+// }
+
+		// e.g.
 		// void run ()
 		// {
 		// 	if (_response.error)
-		// 		generateErrorResponse()//
+		// 		generateErrorResponse()
 		// 	else if (checkPermissions)
-		// 		generateErrorResponse()//
+		// 		generateErrorResponse()
 		// 	else
 		// 	{
-		// 		//dingen die alle child classes moeten doen
-		// 		_implementMethod();
+		// 		dingen die alle child classes moeten doen
+		// 		_implementMethod(); z
 		// 	}
-		// }
-}
+		// } z

@@ -14,7 +14,8 @@ class	AHTTPAction {
 		// ServerConfig & _serverConfig;//TODO: toevoegen als ServerConfig class klaar is
 
 		virtual void _implementMethod() = 0;//implements actions specific to the child classes and fills HTTPResponse
-											//
+		void addHeader(const std::string &input); // Returns (*this), so use modularly.
+
 	public:
 		AHTTPAction(HTTPResponse & _response, 
 				HTTPRequest & _request);
@@ -23,7 +24,7 @@ class	AHTTPAction {
 		AHTTPAction &operator=(const AHTTPAction &other);
 		~AHTTPAction();
 
-		void sessionManager();//TODO: wat moet dit doen?
-		void generateErrorResponse(int errorCode);//sets status code and body and returns
+		// void sessionManager();//TODO: wat moet dit doen?
+		// void generateErrorResponse(int errorCode);//sets status code and body and returns
 		void run();
 };

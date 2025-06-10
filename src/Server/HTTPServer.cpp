@@ -2,149 +2,13 @@
 #include "../../inc/HTTPServer.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
 
-#include <asm-generic/socket.h>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <cstring>
-#include <netdb.h>
+#include <cstring>      // for strerror
+#include <sys/socket.h> // for socket
+#include <netinet/in.h> // for sockaddr_in
+#include <sys/epoll.h>  // for epoll
+#include <unistd.h>     // for close, read, write
+#include <cerrno>       // for errno
 
-#define MAX_LISTEN_QUEUE 10
-
-HTTPServer::HTTPServer() : _epollFD(-1),
-						   _connAmount(0),
-						   _gotStopSignal(false)
-// is this good practice, using a singleton like this basically creates a global?
-{
-}
-
-HTTPServer::HTTPServer(const HTTPServer &other) : _epollFD(-1),
-												  _connAmount(0)
-{
-	(void)other; // test
-}
-
-HTTPServer &HTTPServer::operator=(const HTTPServer &other)
-{
-	// gewoon error throwen?
-	_epollFD = -1;
-	_connAmount = 0;
-	(void)other; // test
-	return (*this);
-}
-
-HTTPServer::~HTTPServer()
-{
-	std::map<int, ConnectionHandler *>::iterator it;
-	for (it = _connectionHandlers.begin(); it != _connectionHandlers.end(); ++it)
-	{
-		delete it->second;
-		close(it->first);
-	}
-	_connectionHandlers.clear();
-	//
-	for (int i = 0; i < (int)_listeningSockets.size(); ++i)
-		close(_listeningSockets[i].second);
-	if (_epollFD > 0)
-		close(_epollFD);
-}
-
-void HTTPServer::_initSockets() //waarom andere naam?
-{
-	const MyConfig &myConfig = MyConfig::get();
-	for (std::map<std::string, std::vector<ServerConfig> >::const_iterator it = myConfig._servers.begin(); it != myConfig._servers.end(); ++it)
-	{
-		struct epoll_event localEpollEvent;
-		localEpollEvent.events = EPOLLIN | EPOLLET;
-		localEpollEvent.data.fd = _makeNewSocket(it->second[0].host, it->second[0].port);
-
-		std::cout << _epollFD << std::endl;//test
-		if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, localEpollEvent.data.fd, &localEpollEvent) == -1)
-			throw(std::runtime_error("Error: problem with adding listeningSocketFD"));
-
-		_listeningSockets.push_back(std::pair<std::string, int>(it->first, localEpollEvent.data.fd)); // TODO: is dit nodig?localEpollEvent.data.fd);
-	}
-}
-
-// void HTTPServer::initListeningSocket()
-// {
-
-// 	struct sockaddr_in sockAdress;
-// 	int optval = 1;
-
-// 	sockAdress.sin_family = AF_INET;
-// 	sockAdress.sin_port = htons(8080); ////////
-// 	sockAdress.sin_addr.s_addr = INADDR_ANY;
-
-// 	_listeningSocketFD = socket(AF_INET, SOCK_NONBLOCK | SOCK_STREAM, 0); // SOCK_NONBLOCK is Linux specific, use fnctl for other systems
-// 	if (_listeningSocketFD == -1)
-// 		throw(std::runtime_error("Error: problem with socket creation"));
-// 	if (setsockopt(_listeningSocketFD, SOL_SOCKET, SO_REUSEADDR,
-// 				   &optval, sizeof(optval)) == -1)
-// 		throw(std::runtime_error("Error setting socket options SO_REUSEADDR"));
-// 	if (bind(_listeningSocketFD, (struct sockaddr *)&sockAdress, sizeof(sockAdress)) == -1)
-// 		throw(std::runtime_error("Error: problem with socket binding"));
-// 	if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
-// 		throw(std::runtime_error("Error listening for new connection"));
-// }
-
-int HTTPServer::_makeNewSocket(const std::string &ip, const std::string &port)
-{
-	struct addrinfo hints;
-	struct addrinfo *res = NULL;
-	int optval = 1;
-
-	std::memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	const char *host = (ip == "0.0.0.0") ? NULL : ip.c_str();
-	int gai_result = getaddrinfo(host, port.c_str(), &hints, &res);
-	if (gai_result != 0)
-	{
-		std::string error_msg = "Error: getaddrinfo failed: ";
-		error_msg += gai_strerror(gai_result);
-		throw std::runtime_error(error_msg);
-	}
-	
-	int socketFD = -1;
-	for (struct addrinfo *p = res; p != NULL; p = p->ai_next)
-	{
-		socketFD = socket(p->ai_family, p->ai_socktype | SOCK_NONBLOCK, p->ai_protocol);
-		if (socketFD == -1)
-			continue;
-		if (setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
-		{
-			close(socketFD);
-			socketFD = -1;
-			continue;
-		}
-		if (bind(socketFD, p->ai_addr, p->ai_addrlen) == 0)
-			break; // Success!
-		close(socketFD);
-		socketFD = -1;
-	}
-	freeaddrinfo(res);
-	if (socketFD == -1)
-		throw std::runtime_error("Error: Failed to bind to any address");
-	if (listen(socketFD, MAX_LISTEN_QUEUE) == -1)
-	{
-		close(socketFD);
-		throw std::runtime_error("Error listening for new connection");
-	}
-	return socketFD;
-}
-
-void HTTPServer::_initEpoll()
-{
-	_epollFD = epoll_create(1); // epoll_create argument is ignored since linux 2.6.8, but must be > 0
-	if (_epollFD == -1)
-		throw(std::runtime_error("Error: problem with epoll_create"));
-}
 
 void HTTPServer::_createNewConnection(int fd)
 {
@@ -166,28 +30,9 @@ void HTTPServer::_createNewConnection(int fd)
 		throw(std::runtime_error("Error accepting new connection socket"));
 	}
 
-	std::cout << "Accepted new connection with FD: " << newSocketFD << std::endl;
-
-	// Set non-blocking
-	int flags = fcntl(newSocketFD, F_GETFL, 0);
-	if (fcntl(newSocketFD, F_SETFL, flags | O_NONBLOCK) == -1)
-	{
-		close(newSocketFD);
-		throw(std::runtime_error("Error: problem setting client socket to non-blocking"));
-	}
-
-	// Add to epoll
-	struct epoll_event newLocalEpollEvent;
-	newLocalEpollEvent.events = EPOLLIN | EPOLLET;
-	newLocalEpollEvent.data.fd = newSocketFD;
-	if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocketFD, &newLocalEpollEvent) == -1)
-	{
-		close(newSocketFD); // necessary? ConnectionHandler handles this?
-		throw(std::runtime_error("Error: problem with epoll_ctl"));
-	}
-
+	this->_setNonBlocking(newSocketFD);
+	this->_addFDToEpoll(newSocketFD);
 	this->_setNewHandler(newSocketFD);
-
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->_delegateToConnectionHandler(newSocketFD);
@@ -254,8 +99,6 @@ bool HTTPServer::_isListeningSocket(int fd)
 
 void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
-	std::cout << "Data event on existing connection" << std::endl;
-
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
@@ -265,17 +108,6 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 	{
 		_delegateToConnectionHandler(fd);
 	}
-}
-
-void HTTPServer::init()
-{
-	std::cout << "Setting up server..." << std::endl;
-
-	// _initListeningSockets();
-	_initEpoll();
-	_initSockets();
-
-	std::cout << "Server all set!" << std::endl;
 }
 
 void HTTPServer::start()
@@ -296,21 +128,16 @@ void HTTPServer::start()
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;
-			uint32_t events = localEpollEvents[i].events;
 
 			if (_isListeningSocket(fd))
-			{
-				std::cout << "New connection event" << std::endl;
 				_createNewConnection(fd);
-			}
 			else
 			{
+				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);
 			}
 		}
 	}
-
-	std::cout << "Server shutting down..." << std::endl;
 }
 
 void HTTPServer::stop(int signal)

@@ -60,8 +60,8 @@ void ConnectionHandler::_createRequest()
 	buffer[bytesRead] = '\0';
 	std::string rawRequest(buffer, bytesRead);
 
-	std::cout << "Received " << bytesRead << " bytes from connection " << _connectionSocketFD << std::endl;
-	std::cout << "Request: " << rawRequest.substr(0, 100) << "..." << std::endl;
+	// std::cout << "Received " << bytesRead << " bytes from connection " << _connectionSocketFD << std::endl;
+	// std::cout << "Request: " << rawRequest.substr(0, 100) << "..." << std::endl;
 	
 	_request.parseRequest(rawRequest);
 }

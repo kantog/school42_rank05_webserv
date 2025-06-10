@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/10 11:28:00 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/10 14:30:48 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,13 +140,13 @@ void HTTPRequest::_fillHeaders(std::string line)
 
 void HTTPRequest::_printRequest() const
 {
-    std::cout << "Method: " << _method << std::endl;
-    std::cout << "Request Target: " << _requestTarget << std::endl;
-    std::cout << "Host URL: " << _hostURL << std::endl;
-    std::cout << "Headers: " << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-        std::cout << it->first << ": " << it->second << std::endl;
-    std::cout << "Body: " << _body << std::endl;
+    std::cout << "\tMethod: " << _method << std::endl;
+    std::cout << "\tRequest Target: " << _requestTarget << std::endl;
+    std::cout << "\tHost URL: " << _hostURL << std::endl;
+    // std::cout << "\tHeaders: " << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    std::cout << "\tBody: " << _body.substr(0, 100) << "..." << std::endl;
 }
 
 void HTTPRequest::parseRequest(std::string rawRequest)

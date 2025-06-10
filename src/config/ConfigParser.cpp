@@ -1,6 +1,11 @@
 
 #include "../../inc/config_classes/ConfigParser.hpp"
 
+#include <stdexcept>            // std::runtime_error
+#include <iostream>             // std::cout
+#include <fstream>              // std::ifstream
+#include <sstream>              // std::stringstream
+
 bool ConfigParser::hasMoreTokens(void)
 {
     return this->_curentToken < this->_tokens.size();

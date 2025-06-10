@@ -1,0 +1,36 @@
+
+# pragma once
+
+#include <string>
+#include <vector>
+#include <map>
+
+struct Route
+{
+    std::string path;
+    std::vector<std::string> allowedMethods;
+    std::string redirectPath;//?
+    int redirectCode;//?
+    std::string root;//necessary, or is only path enough?
+    bool isDirectoryListing;
+    std::vector<std::string> defaultFiles;
+    std::map<std::string, std::string> cgiExtensions;//CGI arguments zitten ook hiern, nog te parsen
+    bool uploadAllowed;
+    std::string uploadPath;
+
+    Route() : isDirectoryListing(false), uploadAllowed(false) {}
+};
+
+class ServerConfig
+{
+	public:
+		std::string host;
+		std::string port;
+		std::string root;
+		std::vector<std::string> server_names;
+		std::map<int, std::string> error_pages;
+		size_t client_max_body_size;
+		std::vector<Route> routes;
+
+		std::string getServerKey(void) const;
+};

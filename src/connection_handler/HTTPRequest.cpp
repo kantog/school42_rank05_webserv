@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/10 16:20:22 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/10 19:59:27 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,6 +184,9 @@ void HTTPRequest::_setBody(std::string &line)
             this->_isComplete = true;
         // TODO : is er niet te veel in de body?
     }
+    if (_contentLength > _body.length())
+        this->_isComplete = true; // TODO: check
+    
 }
 
 void HTTPRequest::_addLineToBody(std::string line)

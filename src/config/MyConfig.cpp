@@ -36,11 +36,3 @@ const ServerConfig *MyConfig::getServerConfig(const std::string &serverKey, cons
 {
     return MyConfig::get().findServerConfig(serverKey, hostURL);
 }
-
-//////////////////////////////////////////////////////////////////////////
-std::string ServerConfig::getServerKey(void) const
-{
-    std::stringstream ss;
-    ss << host << ":" << port;
-    return ss.str();
-}

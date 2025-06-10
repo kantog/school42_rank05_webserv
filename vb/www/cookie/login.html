@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+</head>
+<body>
+  <h1>Login Pagina</h1>
+  <button onclick="login()">Login als Jan</button>
+
+  <script>
+    function login() {
+      // Cookie zetten
+      document.cookie = "username=jan; path=/";
+      // Doorsturen naar welcome-pagina
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

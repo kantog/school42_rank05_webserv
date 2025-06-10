@@ -41,7 +41,7 @@ int ConnectionHandler::_getConnectionSocketFD()
 
 void ConnectionHandler::_createRequest()
 {
-	size_t bufferSize = 2048; // TODO
+	size_t bufferSize = 2048 * 20; // TODO
 	char buffer[bufferSize];
 
 	ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
@@ -58,12 +58,11 @@ void ConnectionHandler::_createRequest()
 	}
 
 	buffer[bytesRead] = '\0';
-	std::string rawRequest(buffer, bytesRead);
 
 	// std::cout << "Received " << bytesRead << " bytes from connection " << _connectionSocketFD << std::endl;
 	// std::cout << "Request: " << rawRequest.substr(0, 100) << "..." << std::endl;
 	
-	_request.parseRequest(rawRequest);
+	_request.parseRequest(buffer);
 }
 
 void ConnectionHandler::_sendResponse()
@@ -99,13 +98,17 @@ void ConnectionHandler::_setServerConfig()
 
 void ConnectionHandler::handleHTTP()
 {
+	this->_createRequest();
+	if (!this->_request.isComplete())
+		return;
+
+	this->_setServerConfig();
+	
 	_response.reset();
 	// make new Action, based on type of request
-	this->_createRequest();
-	// if !(_response.error)
-		//TODO: use fitting Action
-	// is het klaar?
-	this->_setServerConfig();
+
 	// action
 	this->_sendResponse();
+
+	this->_request.reset(); // TODO ?
 }

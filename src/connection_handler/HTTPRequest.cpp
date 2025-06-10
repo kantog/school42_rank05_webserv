@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/10 14:30:48 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/10 16:20:22 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,9 @@
 #include <sstream>
 #include <iostream>
 
-HTTPRequest::HTTPRequest() {}
-
-HTTPRequest::HTTPRequest(std::string method,
-                         std::string requestTarget,
-                         std::string hostURL,
-                         const std::map<std::string, std::string> &headers,
-                         std::string body)
-{
-    _setMethod(method);
-    _setRequestTarget(requestTarget);
-    _setHostURL(hostURL);
-    _setHeaders(headers);
-    _setBody(body);
+HTTPRequest::HTTPRequest() {
+    _isComplete = false;
+    _currentFunction = &HTTPRequest::_setMethod;
 }
 
 HTTPRequest::HTTPRequest(const HTTPRequest &other)
@@ -40,7 +30,6 @@ HTTPRequest &HTTPRequest::operator=(const HTTPRequest &other)
     {
         _method = other._method;
         _requestTarget = other._requestTarget;
-        _hostURL = other._hostURL;
         _headers = other._headers;
         _body = other._body;
     }
@@ -53,34 +42,10 @@ void HTTPRequest::reset()
 {
     _method.clear();
     _requestTarget.clear();
-    _hostURL.clear();
     _headers.clear();
     _body.clear();
-}
-
-void HTTPRequest::_setMethod(const std::string &input)
-{
-    _method = input;
-}
-
-void HTTPRequest::_setRequestTarget(const std::string &input)
-{
-    _requestTarget = input;
-}
-
-void HTTPRequest::_setHostURL(const std::string &input)
-{
-    _hostURL = input;
-}
-
-void HTTPRequest::_setHeaders(const std::map<std::string, std::string> &input)
-{
-    _headers = input;
-}
-
-void HTTPRequest::_setBody(const std::string &input)
-{
-    _body = input;
+    _isComplete = false;
+    _currentFunction = &HTTPRequest::_setMethod;
 }
 
 const std::string &HTTPRequest::getMethod() const
@@ -95,7 +60,7 @@ const std::string &HTTPRequest::getRequestTarget() const
 
 const std::string &HTTPRequest::getHostURL() const
 {
-    return _hostURL;
+    return this->getHeader("Host"); // TODO
 }
 
 const std::map<std::string, std::string> &HTTPRequest::getHeaders() const
@@ -115,7 +80,7 @@ const std::string &HTTPRequest::getHeader(const std::string &key) const
     return it != _headers.end() ? it->second : empty;
 }
 
-bool HTTPRequest::hasCloseHeader() const //TODO: different name
+bool HTTPRequest::hasCloseHeader() const // TODO: different name
 {
     // TODO: check
     return false;
@@ -130,10 +95,6 @@ void HTTPRequest::_fillHeaders(std::string line)
         std::string value = line.substr(colonPos + 1);
         while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
             value.erase(0, 1);
-        if (key == "Host")
-        {
-            _setHostURL(value);
-        }
         _headers[key] = value;
     }
 }
@@ -142,46 +103,117 @@ void HTTPRequest::_printRequest() const
 {
     std::cout << "\tMethod: " << _method << std::endl;
     std::cout << "\tRequest Target: " << _requestTarget << std::endl;
-    std::cout << "\tHost URL: " << _hostURL << std::endl;
+    std::cout << "\tHost URL: " << getHeader("Host") << std::endl;
     // std::cout << "\tHeaders: " << std::endl;
     // for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
     //     std::cout << it->first << ": " << it->second << std::endl;
     std::cout << "\tBody: " << _body.substr(0, 100) << "..." << std::endl;
 }
 
-void HTTPRequest::parseRequest(std::string rawRequest)
+bool HTTPRequest::isComplete() const
 {
-    std::istringstream stream(rawRequest);
-    std::string line;
-    bool isBody = false;
-    std::string body;
+    return _isComplete;
+}
 
-    if (std::getline(stream, line))
-    {
-        std::istringstream startLine(line);
-        std::string method, target, version;
-        startLine >> method >> target >> version;
-        _setMethod(method);
-        _setRequestTarget(target);
-    }
+void HTTPRequest::_setMethod(std::string &line)
+{
+    std::istringstream startLine(line);
 
-    while (std::getline(stream, line))
+    startLine >> _method >> _requestTarget >> _version;
+    // TODO: version check error?
+    this->_currentFunction = &HTTPRequest::_setHeader;
+}
+
+void HTTPRequest::_setHeader(std::string &line)
+{
+    if (line == "\r" || line.empty())
     {
-        if (line == "\r" || line.empty())
+        _contentLength = 0;
+        if (!this->getHeader("Content-Length").empty())
         {
-            isBody = true;
-            continue;
+            std::istringstream is(this->getHeader("Content-Length"));
+            is >> _contentLength;
+        }
+        if (_contentLength == 0)
+            this->_isComplete = true; // TODO: check
+        this->_currentFunction = &HTTPRequest::_setBody;
+        return;
+    }
+    this->_fillHeaders(line);
+}
+
+const std::string HTTPRequest::decodeChunkedBody(const std::string &chunkedBody)
+{
+
+    static size_t chunkSize = 0;
+    static bool done = false;
+
+    if (!chunkSize && !done)
+    {
+        std::stringstream hexStream(chunkedBody);
+        hexStream >> std::hex >> chunkSize;
+        if (chunkSize == 0)
+            done = true; // TODO: check
+        return "";
+    }
+    else if (done)
+    {
+        done = false;
+        _isComplete = true;
+        return "";
+    }
+    return chunkedBody;
+}
+
+void HTTPRequest::_setBody(std::string &line)
+{
+
+    if (this->getHeader("Content-Length") == "0")
+    {
+        this->_isComplete = true;
+        return;
+    }
+    else if (this->getHeader("Transfer-Encoding") == "chunked")
+    {
+        _addLineToBody(decodeChunkedBody(line));
+    }
+    else
+    {
+        _addLineToBody(line);
+        if (_contentLength == _body.length())
+            this->_isComplete = true;
+        // TODO : is er niet te veel in de body?
+    }
+}
+
+void HTTPRequest::_addLineToBody(std::string line)
+{
+    _body += line;
+}
+
+void HTTPRequest::parseRequest(const char *rawRequest)
+{
+    _requestBuffer.append(rawRequest);
+    std::cout << "requestBuffer: " << _requestBuffer << std::endl;
+    std::string processedBuffer;
+    std::string line;
+    size_t pos = 0;
+
+    while ((pos = _requestBuffer.find('\n')) != std::string::npos && !_isComplete)
+    {
+        line = _requestBuffer.substr(0, pos);
+
+        if (!line.empty() && line[line.length() - 1] == '\r')
+        {
+            line.erase(line.length() - 1);
         }
 
-        if (!isBody)
-            this->_fillHeaders(line);
-        else
-            body += line + "\n";
+        (this->*_currentFunction)(line);
+        _requestBuffer.erase(0, pos + 1);
     }
-    _setBody(body);
 
-    #ifdef DEBUG
-		std::cout << "\n";
-        this->_printRequest();
-    #endif
+#ifdef DEBUG
+    std::cout << "\n";
+    this->_printRequest();
+#endif
 }

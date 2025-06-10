@@ -1,6 +1,6 @@
 
-#include "../inc/HTTPServer.hpp"
-#include "../inc/config_classes/MyConfig.hpp"
+#include "../../inc/HTTPServer.hpp"
+#include "../../inc/config_classes/MyConfig.hpp"
 
 #include <asm-generic/socket.h>
 #include <stdexcept>

@@ -1,13 +1,12 @@
 NAME = webserv
 
-# Default mode: release (clang++)
 MODE ?= release
 
 ifeq ($(MODE),debug)
 	CC = g++
 	FLAGS = -DDEBUG -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow
 	DEBUG_FLAGS =
-	JSON_FLAG = # g++ doesn't support -MJ
+	JSON_FLAG =
 else
 	CC = clang++
 	FLAGS = -DDEBUG -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow --target=x86_64-pc-linux-gnu
@@ -15,20 +14,30 @@ else
 	JSON_FLAG = -MJ $@.json
 endif
 
-SRCS = main.cpp HTTPServer.cpp ConnectionHandler.cpp \
-		ConfigParser.cpp MyConfig.cpp \
-		HTTPRequest.cpp HTTPResponse.cpp
+# Lijst van alle bronbestanden mét hun submappen
+SRCS = \
+	src/main.cpp \
+	src/Server/HTPPServerInit.cpp \
+	src/Server/HTTPServer.cpp \
+	src/connection_handler/ConnectionHandler.cpp \
+	src/connection_handler/HTTPRequest.cpp \
+	src/connection_handler/HTTPResponse.cpp \
+	src/config/ConfigParser.cpp \
+	src/config/MyConfig.cpp
 
-SRC_DIRS = src/
+# src/connection_handler/HTTP_actions/AHTTPAction.cpp \
+# src/connection_handler/HTTP_actions/HTTPActionDEL.cpp \
+# src/connection_handler/HTTP_actions/HTTPActionGET.cpp \
+# src/connection_handler/HTTP_actions/HTTPActionPost.cpp \
+# src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
 
-vpath %.cpp $(SRC_DIRS)
-
-OBJECTS = $(patsubst %.cpp,obj/%.o,$(SRCS))
+# Zet object-bestanden in obj/ met dezelfde mappenstructuur
+OBJECTS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 all: $(NAME)
 
 $(NAME): $(OBJECTS)
-	$(CC) $(FLAGS) -o $(NAME) $(OBJECTS)
+	$(CC) $(FLAGS) -o $@ $(OBJECTS)
 ifeq ($(MODE),release)
 	@echo "\033[33mMaking compile_commands.json...\033[0m"
 	@find . -type f -name "compile_commands.json" -delete
@@ -39,10 +48,15 @@ endif
 	@echo "\033[32m+++++    All set!    +++++\033[0m"
 	@echo "\033[32m++++++++++++++++++++++++++\033[0m"
 
+# Maak mappen aan voor object bestanden (recursive)
 obj:
-	@mkdir -p obj
+	@mkdir -p obj/config
+	@mkdir -p obj/connection_handler
+	@mkdir -p obj/connection_handler/HTTP_actions
+	@mkdir -p obj/Server
 
-obj/%.o: %.cpp | obj
+# Compileer per source file met correcte pad
+obj/%.o: src/%.cpp | obj
 	$(CC) $(FLAGS) $(JSON_FLAG) -c -o $@ $<
 
 clean:
@@ -62,4 +76,4 @@ aclean: fclean
 
 re: fclean all
 
-.PHONY: all clean fclean re aclean
+.PHONY: all clean fclean re aclean obj

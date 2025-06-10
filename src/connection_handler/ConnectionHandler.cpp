@@ -1,5 +1,5 @@
 
-#include "../inc/connection_handler/ConnectionHandler.hpp"
+#include "../../inc/connection_handler/ConnectionHandler.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>
@@ -41,9 +41,10 @@ int ConnectionHandler::_getConnectionSocketFD()
 
 void ConnectionHandler::_createRequest()
 {
-	char buffer[2048]; // ?
+	size_t bufferSize = 2048; // TODO
+	char buffer[bufferSize];
 
-	ssize_t bytesRead = recv(_connectionSocketFD, buffer, 2048 - 1, 0);
+	ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
 
 	if (bytesRead <= 0)
 	{
@@ -71,7 +72,7 @@ void ConnectionHandler::_sendResponse()
 	_response.buildResponse();
 	const std::string &responseString = _response.getResponseString();
 
-	std::cout << "Sent back by server: " << responseString << std::endl; //test
+	// std::cout << "Sent back by server: " << responseString << std::endl; //test
 
 	send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
 }
@@ -101,8 +102,10 @@ void ConnectionHandler::handleHTTP()
 	_response.reset();
 	// make new Action, based on type of request
 	this->_createRequest();
-	this->_setServerConfig();
 	// if !(_response.error)
 		//TODO: use fitting Action
+	// is het klaar?
+	this->_setServerConfig();
+	// action
 	this->_sendResponse();
 }

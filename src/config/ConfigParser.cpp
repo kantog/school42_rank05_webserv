@@ -1,5 +1,5 @@
 
-#include "..//inc/config_classes/ConfigParser.hpp"
+#include "../../inc/config_classes/ConfigParser.hpp"
 
 bool ConfigParser::hasMoreTokens(void)
 {

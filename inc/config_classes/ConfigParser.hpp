@@ -21,7 +21,6 @@ private:
     size_t _curentToken;
 
 	// functions
-
     bool hasMoreTokens(void);
     std::string getCurrentToken(void);
     std::string getNextToken(void);

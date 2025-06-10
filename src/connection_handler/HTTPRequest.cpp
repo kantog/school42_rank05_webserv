@@ -6,11 +6,11 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/05 11:20:19 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/10 11:28:00 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/connection_handler/HTTPRequest.hpp"
+#include "../../inc/connection_handler/HTTPRequest.hpp"
 #include <sstream>
 #include <iostream>
 

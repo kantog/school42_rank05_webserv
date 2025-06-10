@@ -1,7 +1,7 @@
 
 
-#include "../inc/config_classes/ConfigParser.hpp"
-#include "../inc/config_classes/MyConfig.hpp"
+#include "../../inc/config_classes/ConfigParser.hpp"
+#include "../../inc/config_classes/MyConfig.hpp"
 
 MyConfig::MyConfig() {}
 MyConfig::~MyConfig() {}

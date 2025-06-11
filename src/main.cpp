@@ -1,7 +1,9 @@
 
 #include "../inc/config_classes/MyConfig.hpp"
 #include "../inc/HTTPServer.hpp"
+
 #include <signal.h>
+#include <iostream>
 
 HTTPServer *globalServerPtr = NULL;
 
@@ -20,7 +22,7 @@ int main(int argc, char **argv)
         else
         {
             std::cout << "Using default config file" << std::endl;
-            MyConfig::get("default.conf");
+            MyConfig::get("default/default.conf");
         }
     }
     catch (const std::exception &e)

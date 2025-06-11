@@ -1,7 +1,7 @@
 
 
-#include "../inc/config_classes/ConfigParser.hpp"
-#include "../inc/config_classes/MyConfig.hpp"
+#include "../../inc/config_classes/ConfigParser.hpp"
+#include "../../inc/config_classes/MyConfig.hpp"
 
 MyConfig::MyConfig() {}
 MyConfig::~MyConfig() {}
@@ -35,12 +35,4 @@ const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, con
 const ServerConfig *MyConfig::getServerConfig(const std::string &serverKey, const std::string &hostURL)
 {
     return MyConfig::get().findServerConfig(serverKey, hostURL);
-}
-
-//////////////////////////////////////////////////////////////////////////
-std::string ServerConfig::getServerKey(void) const
-{
-    std::stringstream ss;
-    ss << host << ":" << port;
-    return ss.str();
 }

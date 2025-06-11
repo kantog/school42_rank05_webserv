@@ -15,6 +15,7 @@ class	ConnectionHandler
 		HTTPAction *_HTTPAction;
 		// MyConfig &_myConfig;
 
+		bool _shouldClose;
 		std::string &_serverKey;
 		int _connectionSocketFD;
 		const ServerConfig *_serverConfig;
@@ -29,6 +30,8 @@ class	ConnectionHandler
 		void _createRequest();
 		void _sendResponse();
 		void _setServerConfig();
+
+		void _handleErrorRecv(int bytesRead, bool dataReceived);
 
 	public:
 		ConnectionHandler(std::string &serverKey, int fd);

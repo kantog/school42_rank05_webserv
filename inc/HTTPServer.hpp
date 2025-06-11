@@ -6,6 +6,10 @@
 #include <vector>
 #include "connection_handler/ConnectionHandler.hpp"
 
+
+#define MAX_LISTEN_QUEUE 10
+
+
 class HTTPServer
 {
 	private:
@@ -16,10 +20,13 @@ class HTTPServer
 		static const int _maxEpollEvents = 32;
 		bool _gotStopSignal;
 
-		// void _initListeningSockets();
-		void _initSockets();
+		void _initListeningSockets();
 		void _initEpoll();
-		int _makeNewSocket(const std::string &ip, const std::string &port);
+
+		void _setNonBlocking(int fd);
+		void _addFDToEpoll(int fd);
+		int _makeNewListeningSocket(const std::string &ip, const std::string &port);
+		
 		void _createNewConnection(int fd);
 		void _closeConnection(int connectionFd);
 		void _delegateToConnectionHandler(int connectionFd);
@@ -35,6 +42,7 @@ class HTTPServer
 		~HTTPServer();
 
 		void init();
+
 		void start();
 		void stop(int signal);
 };

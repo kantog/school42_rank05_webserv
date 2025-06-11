@@ -1,14 +1,12 @@
 
 
-#include "../inc/connection_handler/HTTPResponse.hpp"
+#include "../../inc/connection_handler/HTTPResponse.hpp"
 
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
-HTTPResponse::HTTPResponse(): 
-	_error(false)
-{}
+HTTPResponse::HTTPResponse() {}
 
 HTTPResponse::~HTTPResponse() {}
 
@@ -19,10 +17,10 @@ void HTTPResponse::reset()
     _headers.clear();
     _body.clear();
     _responseString.clear();
-	_error = false;
 
     // setHeader("Content-Length", "0");
-    setBodyFromFile("tempFile.html");//TODO: delete hardcode 
+    setBodyFromFile("tests/test.html");
+    // setBodyFromFile("tempFile.html");
 }
 
 void HTTPResponse::setStatusCode(int code)

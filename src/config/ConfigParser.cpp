@@ -1,5 +1,11 @@
 
-#include "..//inc/config_classes/ConfigParser.hpp"
+#include "../../inc/config_classes/ConfigParser.hpp"
+
+#include <stdexcept>            // std::runtime_error
+#include <iostream>             // std::cout
+#include <fstream>              // std::ifstream
+#include <sstream>              // std::stringstream
+#include <cstdlib>
 
 bool ConfigParser::hasMoreTokens(void)
 {

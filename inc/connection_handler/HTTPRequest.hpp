@@ -6,42 +6,51 @@
 
 class HTTPRequest
 {
-	private:
-		std::string _method;
-		std::string _requestTarget;
-		std::string _hostURL;
-		std::map<std::string, std::string> _headers;
-		std::string _body;
-		//boolean: isReady
+private:
+	std::string _method;
+	std::string _requestTarget;
+	std::string _version;
+	std::map<std::string, std::string> _headers;
+	std::string _body;
 
-		void _setMethod(const std::string &input);
-		void _setRequestTarget(const std::string &input);
-		void _setHostURL(const std::string &input);
-		void _setHeaders(const std::map<std::string, std::string> &input);
-		void _setBody(const std::string &input);
+	size_t _contentLength;  // TODO: check config max lenth
 
-		void _fillHeaders(std::string line);
-		void _printRequest() const;
+	typedef void (HTTPRequest::*ParseFunction)(std::string &line);
+	ParseFunction _currentFunction;
 
-	public:
-		HTTPRequest();
-		HTTPRequest(std::string method,
-				std::string requestTarget,
-				std::string hostURL,
-				const std::map<std::string, std::string> &headers,
-				std::string body);
-		HTTPRequest(const HTTPRequest &other);
-		HTTPRequest &operator=(const HTTPRequest &other);
-		~HTTPRequest();
+	std::string _requestBuffer;
+	bool _isComplete;
 
-		const std::string &getMethod() const;
-		const std::string &getRequestTarget() const;
-		const std::string &getHostURL() const;
-		const std::map<std::string, std::string> &getHeaders() const;
-		const std::string &getHeader(const std::string &key) const;
-		const std::string &getBody() const;
+	size_t _chunkSizeRemaining;
 
-		void reset();
-		bool hasCloseHeader() const;
-		void parseRequest(std::string rawRequest);
+	bool _setchunkSize();
+	bool _addChunkData();
+	void _trimChunked();
+
+	void _setMethod(std::string &line);
+	void _setHeader(std::string &line);
+
+	void _setBody();
+	void _parseChunkedBody();
+
+	void _fillHeaders(std::string line);
+	void _printRequest() const;
+
+public:
+	HTTPRequest();
+	HTTPRequest(const HTTPRequest &other);
+	HTTPRequest &operator=(const HTTPRequest &other);
+	~HTTPRequest();
+
+	const std::string &getMethod() const;
+	const std::string &getRequestTarget() const;
+	const std::string &getHostURL() const;
+	const std::map<std::string, std::string> &getHeaders() const;
+	const std::string &getHeader(const std::string &key) const;
+	const std::string &getBody() const;
+
+	void reset();
+	bool hasCloseHeader() const; // TODO: ?
+	void parseRequest(const char *rawRequest);
+	bool isComplete() const;
 };

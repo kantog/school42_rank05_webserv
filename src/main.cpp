@@ -22,7 +22,7 @@ int main(int argc, char **argv)
         else
         {
             std::cout << "Using default config file" << std::endl;
-            MyConfig::get("default.conf");
+            MyConfig::get("default/default.conf");
         }
     }
     catch (const std::exception &e)

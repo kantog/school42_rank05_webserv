@@ -14,6 +14,7 @@
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
 	_AHTTPAction(NULL),
+	_shouldClose(false),
 	_serverKey(serverKey),
 	_connectionSocketFD(fd)
 { }
@@ -41,30 +42,56 @@ int ConnectionHandler::_getConnectionSocketFD()
 	return (_connectionSocketFD);
 }
 
+void ConnectionHandler::_handleErrorRecv(int bytesRead, bool dataReceived)
+{
+		if (bytesRead == 0) 
+        {
+            std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
+            _shouldClose = true;
+            return;
+        }
+		// bytesRead == -1
+		if (errno == EAGAIN || errno == EWOULDBLOCK) 
+		{
+			if (dataReceived) 
+				std::cout << "Partial request received, waiting for more data..." << std::endl;
+			return;
+		}
+		std::cerr << "Error reading from socket " << _connectionSocketFD 
+					<< ": " << strerror(errno) << std::endl;
+		_shouldClose = true;
+		return;		
+}
+
 void ConnectionHandler::_createRequest()
 {
-	size_t bufferSize = 2048 * 20; // TODO
-	char buffer[bufferSize];
-
-	ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
-
-	if (bytesRead <= 0)
-	{
-		if (bytesRead == 0)
-			std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
-		else if (bytesRead == -1)
-			//TODO: 
-			std::cerr << "Error reading from socket " << _connectionSocketFD << ": " << strerror(errno) << std::endl;
-		// TODO: set flag to trigger isAutoclose()
-		return;
-	}
-
-	buffer[bytesRead] = '\0';
-
-	// std::cout << "Received " << bytesRead << " bytes from connection " << _connectionSocketFD << std::endl;
-	// std::cout << "Request: " << rawRequest.substr(0, 100) << "..." << std::endl;
-	
-	_request.parseRequest(buffer);
+//    const size_t bufferSize = 10;
+    const size_t bufferSize = 4096;
+    char buffer[bufferSize];
+    bool dataReceived = false;
+    
+    while (true) 
+    {
+        ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
+        
+        if (bytesRead > 0) 
+        {
+            buffer[bytesRead] = '\0';
+            _request.parseRequest(buffer);
+            dataReceived = true;
+            
+            if (_request.isComplete()) 
+            {
+                std::cout << "Complete HTTP request received!" << std::endl;
+                return;
+            }
+        }
+		else
+		{
+			this->_handleErrorRecv(bytesRead, dataReceived);
+			return;
+		}
+    }
 }
 
 void ConnectionHandler::_sendResponse()
@@ -81,7 +108,7 @@ void ConnectionHandler::_sendResponse()
 
 bool ConnectionHandler::shouldClose() 
 {
-	return (this->_request.hasCloseHeader());
+	return (this->_request.hasCloseHeader() || this->_shouldClose);
 	// ....
 }
 
@@ -110,6 +137,10 @@ void ConnectionHandler::handleHTTP()
 	_response.reset();
 	// make new Action, based on type of request
 
+	// if (this->_serverConfig->isReturn())
+	// 	this->_serverConfig->getCurentRoute().redirectPath;
+	// if (!this->_serverConfig->isAllowedMethod(this->_request.getMethod()))
+	// 	this->generateErrorResponse(405);
 	// action
 	this->_sendResponse();
 

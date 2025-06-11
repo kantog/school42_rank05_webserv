@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/10 19:59:27 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:26:38 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 #include <sstream>
 #include <iostream>
 
-HTTPRequest::HTTPRequest() {
+HTTPRequest::HTTPRequest()
+{
     _isComplete = false;
     _currentFunction = &HTTPRequest::_setMethod;
+    _chunkSizeRemaining = 0;
 }
 
 HTTPRequest::HTTPRequest(const HTTPRequest &other)
@@ -136,87 +138,133 @@ void HTTPRequest::_setHeader(std::string &line)
         }
         if (_contentLength == 0)
             this->_isComplete = true; // TODO: check
-        this->_currentFunction = &HTTPRequest::_setBody;
+        this->_currentFunction = NULL;
         return;
     }
     this->_fillHeaders(line);
 }
 
-const std::string HTTPRequest::decodeChunkedBody(const std::string &chunkedBody)
+bool HTTPRequest::_setchunkSize()
 {
+    size_t pos = _requestBuffer.find('\n');
+    if (pos == std::string::npos)
+        return (false); // Need more data
 
-    static size_t chunkSize = 0;
-    static bool done = false;
+    std::string sizeLine = _requestBuffer.substr(0, pos);
+    if (!sizeLine.empty() && sizeLine[sizeLine.length() - 1] == '\r')
+        sizeLine.erase(sizeLine.length() - 1);
 
-    if (!chunkSize && !done)
+    std::stringstream hexStream(sizeLine);
+    hexStream >> std::hex >> _chunkSizeRemaining;
+
+    _requestBuffer.erase(0, pos + 1);
+
+    if (_chunkSizeRemaining == 0)
     {
-        std::stringstream hexStream(chunkedBody);
-        hexStream >> std::hex >> chunkSize;
-        if (chunkSize == 0)
-            done = true; // TODO: check
-        return "";
-    }
-    else if (done)
-    {
-        done = false;
         _isComplete = true;
-        return "";
+        return (false);
     }
-    return chunkedBody;
+    return (true);
 }
 
-void HTTPRequest::_setBody(std::string &line)
+void HTTPRequest::_trimChunked()
 {
+    if (_chunkSizeRemaining)
+        return;
+    if (_requestBuffer.length() >= 2 &&
+        _requestBuffer.substr(0, 2) == "\r\n")
+        _requestBuffer.erase(0, 2);
+    else if (_requestBuffer.length() >= 1 &&
+             _requestBuffer[0] == '\n')
+        _requestBuffer.erase(0, 1);
+}
 
-    if (this->getHeader("Content-Length") == "0")
+bool HTTPRequest::_addChunkData()
+{
+    size_t availableBytes = _requestBuffer.length();
+    size_t bytesToCopy = std::min(_chunkSizeRemaining, availableBytes);
+
+    if (bytesToCopy > 0)
     {
-        this->_isComplete = true;
+        _body.append(_requestBuffer.substr(0, bytesToCopy));
+        _requestBuffer.erase(0, bytesToCopy);
+        _chunkSizeRemaining -= bytesToCopy;
+
+        _trimChunked();
+        return (true);
+    }
+    return (false); // Need more data
+}
+
+void HTTPRequest::_parseChunkedBody()
+{
+    while (!_requestBuffer.empty() && !_isComplete)
+    {
+        if (_chunkSizeRemaining == 0)
+        {
+            if (!_setchunkSize())
+                break;
+        }
+        else
+        {
+            if (!_addChunkData())
+                break;
+        }
+    }
+}
+
+void HTTPRequest::_setBody()
+{
+    if (this->getHeader("Transfer-Encoding") == "chunked")
+    {
+        _parseChunkedBody();
         return;
     }
-    else if (this->getHeader("Transfer-Encoding") == "chunked")
-    {
-        _addLineToBody(decodeChunkedBody(line));
-    }
-    else
-    {
-        _addLineToBody(line);
-        if (_contentLength == _body.length())
-            this->_isComplete = true;
-        // TODO : is er niet te veel in de body?
-    }
-    if (_contentLength > _body.length())
-        this->_isComplete = true; // TODO: check
-    
-}
 
-void HTTPRequest::_addLineToBody(std::string line)
-{
-    _body += line;
+    size_t neededBytes = _contentLength - _body.length();
+    size_t availableBytes = _requestBuffer.length();
+    size_t bytesToCopy = std::min(neededBytes, availableBytes);
+
+    if (bytesToCopy > 0)
+    {
+        _body.append(_requestBuffer.substr(0, bytesToCopy));
+        _requestBuffer.erase(0, bytesToCopy);
+    }
+
+    if (_body.length() >= _contentLength)
+        _isComplete = true;
 }
 
 void HTTPRequest::parseRequest(const char *rawRequest)
 {
     _requestBuffer.append(rawRequest);
     std::cout << "requestBuffer: " << _requestBuffer << std::endl;
-    std::string processedBuffer;
+
+    if (_currentFunction == NULL)
+    {
+        _setBody();
+        return;
+    }
+
     std::string line;
     size_t pos = 0;
 
-    while ((pos = _requestBuffer.find('\n')) != std::string::npos && !_isComplete)
+    while ((pos = _requestBuffer.find('\n')) != std::string::npos)
     {
         line = _requestBuffer.substr(0, pos);
 
         if (!line.empty() && line[line.length() - 1] == '\r')
-        {
             line.erase(line.length() - 1);
-        }
 
         (this->*_currentFunction)(line);
         _requestBuffer.erase(0, pos + 1);
+
+        if (_currentFunction == NULL)
+            break;
     }
 
-#ifdef DEBUG
-    std::cout << "\n";
-    this->_printRequest();
-#endif
+    // #ifdef DEBUG
+    //     std::cout << "\n";
+    //     this->_printRequest();
+    // #endif
 }

@@ -1,0 +1,18 @@
+<!-- test.html -->
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Test POST Request</h1>
+    <button onclick="send()">Stuur request</button>
+
+    <script>
+      function send() {
+        fetch("http://localhost:8080", {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: "Hallo vanaf de browser!\n Meer data."
+        }).then(res => console.log("Response:", res.status));
+      }
+    </script>
+  </body>
+</html>

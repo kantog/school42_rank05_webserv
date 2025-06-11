@@ -31,6 +31,8 @@ class ServerConfig
         
 	public:
 
+        ServerConfig();
+
     	std::string host;
 		std::string port;
 		std::string root;
@@ -51,4 +53,5 @@ class ServerConfig
         std::string getServerKey(void) const;
         std::string getFullPath(const std::string &path, const std::string &file) const;
         const std::string &getFullCgiPath(const std::string &fullPath) const;
+        const std::string getErrorPagePath(int code) const;
 };

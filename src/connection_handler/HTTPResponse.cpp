@@ -19,7 +19,8 @@ void HTTPResponse::reset()
     _responseString.clear();
 
     // setHeader("Content-Length", "0");
-    setBodyFromFile("tempFile.html");
+    setBodyFromFile("tests/test.html");
+    // setBodyFromFile("tempFile.html");
 }
 
 void HTTPResponse::setStatusCode(int code)

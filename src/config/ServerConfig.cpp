@@ -2,6 +2,10 @@
 #include "../../inc/config_classes/ServerConfig.hpp"
 #include <sstream>
 
+ServerConfig::ServerConfig():
+    client_max_body_size(4096) // TODO
+{}
+
 const Route *ServerConfig::_findRoute(const std::string &path) const
 {
     const Route* bestMatch = NULL;
@@ -77,4 +81,11 @@ const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) con
 {
     // TODO can een exception worden gegooid als path niet bestaat
     return _curentRoute->cgiExtensions.at(fullPath.substr(fullPath.find_last_of(".") + 1));
+}
+
+const std::string ServerConfig::getErrorPagePath(int code) const
+{
+    if (this->error_pages.find(code) != this->error_pages.end())
+        return this->error_pages.at(code);
+    return ""; // TODO: define in haeder?
 }

@@ -25,5 +25,5 @@ class MyConfig
 		std::map<std::string, std::vector<ServerConfig> > _servers;
 
 		static ServerConfig const *getServerConfig(const std::string &serverKey, const std::string &hostURL);
-		const ServerConfig *findServerConfig(const std::string &serverKey, const std::string &hostURL) const;
+		const ServerConfig *findServerConfig(const std::string &serverKey, const std::string &hostURL) const; // TODO
 };

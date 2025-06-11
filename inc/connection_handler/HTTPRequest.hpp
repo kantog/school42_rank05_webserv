@@ -13,7 +13,7 @@ private:
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 
-	size_t _contentLength;
+	size_t _contentLength;  // TODO: check config max lenth
 
 	typedef void (HTTPRequest::*ParseFunction)(std::string &line);
 	ParseFunction _currentFunction;
@@ -21,12 +21,17 @@ private:
 	std::string _requestBuffer;
 	bool _isComplete;
 
+	size_t _chunkSizeRemaining;
+
+	bool _setchunkSize();
+	bool _addChunkData();
+	void _trimChunked();
+
 	void _setMethod(std::string &line);
 	void _setHeader(std::string &line);
-	void _setBody(std::string &line);
-	void _addLineToBody(std::string line);
 
-	const std::string decodeChunkedBody(const std::string &chunkedBody);
+	void _setBody();
+	void _parseChunkedBody();
 
 	void _fillHeaders(std::string line);
 	void _printRequest() const;

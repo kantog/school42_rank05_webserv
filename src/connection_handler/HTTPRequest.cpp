@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/11 18:26:38 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/11 18:45:21 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ void HTTPRequest::_setBody()
 void HTTPRequest::parseRequest(const char *rawRequest)
 {
     _requestBuffer.append(rawRequest);
-    std::cout << "requestBuffer: " << _requestBuffer << std::endl;
+    // std::cout << "requestBuffer: " << _requestBuffer << std::endl;
 
     if (_currentFunction == NULL)
     {
@@ -261,6 +261,11 @@ void HTTPRequest::parseRequest(const char *rawRequest)
 
         if (_currentFunction == NULL)
             break;
+    }
+    if (_currentFunction == NULL)
+    {
+        _setBody();
+        return;
     }
 
     // #ifdef DEBUG

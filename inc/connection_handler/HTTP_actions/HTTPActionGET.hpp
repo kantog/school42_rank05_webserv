@@ -2,19 +2,25 @@
 #pragma once 
 
 #include <string>
-#include "AHTTPAction.hpp"
+#include "AMethod.hpp"
 
-class	HTTPActionGET : public AHTTPAction {
+class ServerConfig;
+class HTTPRequest;
+class HTTPResponse;
+
+class	HTTPActionGET : public AMethod {
 	private:
+		// virtual void _runCGI();//runt een script en zet output in _response.body:
+		// void fetchFile();
 
 	public:
 		HTTPActionGET();
-		HTTPActionGET(const HTTPActionGET &other);
-		HTTPActionGET &operator=(const HTTPActionGET &other);
 		~HTTPActionGET();
 
-		virtual void runCGI();//runt een script en zet output in _response.body:
-		void fetchFile();
+		static AMethod *create();
+		void implementMethod(HTTPRequest &request,
+						HTTPResponse & response, 
+						const ServerConfig &serverConfig);
 
 		//GCI: CGI is executed and
 };

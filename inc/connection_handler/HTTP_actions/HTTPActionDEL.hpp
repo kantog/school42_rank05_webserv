@@ -2,19 +2,24 @@
 #pragma once 
 
 #include <string>
-#include "AHTTPAction.hpp"
+#include "AMethod.hpp"
 
-class	HTTPActionDEL : public AHTTPAction {
+class ServerConfig;
+class HTTPRequest;
+class HTTPResponse;
+
+class	HTTPActionDEL : public AMethod {
 	private:
+		// void _deleteFile();
 
 	public:
 		HTTPActionDEL();
-		HTTPActionDEL(const HTTPActionDEL &other);
-		HTTPActionDEL &operator=(const HTTPActionDEL &other);
 		~HTTPActionDEL();
 
-		void deleteFile();
-
+		static AMethod *create();
+		void implementMethod(HTTPRequest &request,
+						HTTPResponse & response, 
+						const ServerConfig &serverConfig);
 
 		//GCI: if server allows it, CGI can also be executed
 };

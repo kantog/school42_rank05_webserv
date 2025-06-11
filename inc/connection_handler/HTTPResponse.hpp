@@ -30,6 +30,7 @@ class HTTPResponse
 		std::string _statusText;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
+		bool _error;
 
 		std::string _responseString;
 

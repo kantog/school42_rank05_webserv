@@ -1,5 +1,6 @@
 
 #include "../inc/connection_handler/ConnectionHandler.hpp"
+#include "../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>
@@ -11,22 +12,14 @@
 // } // doet moelijk met &_serverKey
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
-	_AHTTPAction(NULL),
 	_serverKey(serverKey),
 	_connectionSocketFD(fd)
 { }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
-	_AHTTPAction(NULL),
 	_serverKey(other._serverKey),//dit ok? 
 	_connectionSocketFD(other._connectionSocketFD)
 { }
-
-// ConnectionHandler &ConnectionHandler::operator=(const ConnectionHandler &other)
-// {
-// 	_connectionSocketFD = other._connectionSocketFD;
-// 	return (*this);
-// }
 
 ConnectionHandler::~ConnectionHandler()
 {
@@ -98,11 +91,14 @@ void ConnectionHandler::_setServerConfig()
 
 void ConnectionHandler::handleHTTP()
 {
-	_response.reset();
-	// make new Action, based on type of request
+	// _response.reset();
+
 	this->_createRequest();
 	this->_setServerConfig();
-	// if !(_response.error)
-		//TODO: use fitting Action
+	
+	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//? niet nieuw maken 
+	_HTTPAction->run();
+	delete _HTTPAction;
+
 	this->_sendResponse();
 }

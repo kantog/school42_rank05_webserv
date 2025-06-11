@@ -2,17 +2,23 @@
 #pragma once 
 
 #include <string>
-#include "AHTTPAction.hpp"
+#include "AMethod.hpp"
 
-class	HTTPActionPOST : public AHTTPAction {
+class ServerConfig;
+class HTTPRequest;
+class HTTPResponse;
+
+class	HTTPActionPOST : public AMethod {
 	private:
+		// virtual void _runCGI();//runt een script en zet output in _response.body:
+		// void post();
 
 	public:
 		HTTPActionPOST();
-		HTTPActionPOST(const HTTPActionPOST &other);
-		HTTPActionPOST &operator=(const HTTPActionPOST &other);
 		~HTTPActionPOST();
-		
-		virtual void runCGI();//runt een script en zet output in _response.body:
-		void post();
+
+		static AMethod *create();
+		void implementMethod(HTTPRequest &request,
+						HTTPResponse & response, 
+						const ServerConfig &serverConfig);
 };

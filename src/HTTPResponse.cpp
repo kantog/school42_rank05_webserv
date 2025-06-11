@@ -6,7 +6,9 @@
 #include <sstream>
 #include <stdexcept>
 
-HTTPResponse::HTTPResponse() {}
+HTTPResponse::HTTPResponse(): 
+	_error(false)
+{}
 
 HTTPResponse::~HTTPResponse() {}
 
@@ -17,9 +19,10 @@ void HTTPResponse::reset()
     _headers.clear();
     _body.clear();
     _responseString.clear();
+	_error = false;
 
     // setHeader("Content-Length", "0");
-    setBodyFromFile("tempFile.html");
+    setBodyFromFile("tempFile.html");//TODO: delete hardcode 
 }
 
 void HTTPResponse::setStatusCode(int code)

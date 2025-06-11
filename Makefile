@@ -17,7 +17,9 @@ endif
 
 SRCS = main.cpp HTTPServer.cpp ConnectionHandler.cpp \
 		ConfigParser.cpp MyConfig.cpp \
-		HTTPRequest.cpp HTTPResponse.cpp
+		HTTPRequest.cpp HTTPResponse.cpp \
+		HTTPActionDEL.cpp HTTPActionPOST.cpp HTTPActionGET.cpp \
+		MethodRegistry.cpp HTTPAction.cpp
 
 SRC_DIRS = src/
 

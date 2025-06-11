@@ -5,14 +5,14 @@
 #include "../config_classes/MyConfig.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
-#include "HTTP_actions/AHTTPAction.hpp"
+#include "HTTP_actions/HTTPAction.hpp"
 
 class	ConnectionHandler 
 {
 	private:
 		HTTPRequest _request; //nog handlen: onvolledige requests binnenkrijgen, check wat recv doet exact
 		HTTPResponse _response;
-		AHTTPAction *_AHTTPAction;
+		HTTPAction *_HTTPAction;
 		// MyConfig &_myConfig;
 
 		std::string &_serverKey;

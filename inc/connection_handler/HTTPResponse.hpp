@@ -6,6 +6,17 @@
 
 class HTTPResponse
 {	
+	private:
+		int _statusCode;
+		std::string _statusText;
+		std::map<std::string, std::string> _headers;
+		std::string _body;
+		bool _error;
+
+		std::string _responseString;
+
+		void _setStatusMessage(int code);
+
 	public:
 		HTTPResponse();
 		~HTTPResponse();
@@ -23,16 +34,4 @@ class HTTPResponse
 		void setRedirect(const std::string &location, int code = 302);
 
 		void setBodySize(); // public?
-
-	private:
-
-		int _statusCode;
-		std::string _statusText;
-		std::map<std::string, std::string> _headers;
-		std::string _body;
-		bool _error;
-
-		std::string _responseString;
-
-		void _setStatusMessage(int code);
 };

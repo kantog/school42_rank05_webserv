@@ -41,7 +41,6 @@ class HTTPRequest
 		const std::string &getHeader(const std::string &key) const;
 		const std::string &getBody() const;
 
-
 		void reset();
 		bool hasCloseHeader() const;
 		void parseRequest(std::string rawRequest);

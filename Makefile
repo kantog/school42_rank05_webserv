@@ -24,13 +24,12 @@ SRCS = \
 	src/connection_handler/HTTPResponse.cpp \
 	src/config/ConfigParser.cpp \
 	src/config/MyConfig.cpp \
-	src/config/ServerConfig.cpp
-
-# src/connection_handler/HTTP_actions/AHTTPAction.cpp \
-# src/connection_handler/HTTP_actions/HTTPActionDEL.cpp \
-# src/connection_handler/HTTP_actions/HTTPActionGET.cpp \
-# src/connection_handler/HTTP_actions/HTTPActionPost.cpp \
-# src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
+	src/config/ServerConfig.cpp \
+	src/connection_handler/HTTP_actions/HTTPAction.cpp \
+	src/connection_handler/HTTP_actions/HTTPActionDEL.cpp \
+	src/connection_handler/HTTP_actions/HTTPActionGET.cpp \
+	src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
+	src/connection_handler/HTTP_actions/MethodRegistry.cpp \
 
 # Zet object-bestanden in obj/ met dezelfde mappenstructuur
 OBJECTS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))

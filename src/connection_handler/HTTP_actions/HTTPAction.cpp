@@ -1,12 +1,11 @@
 
-#include "../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
-#include "../inc/connection_handler/HTTP_actions/AMethod.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
-#include "../inc/connection_handler/HTTPRequest.hpp"
-#include "../inc/connection_handler/HTTPResponse.hpp"
-#include "../inc/config_classes/MyConfig.hpp"//TODO: change to ServerConfig
+#include "../../../inc/connection_handler/HTTP_actions/AMethod.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
+#include "../../../inc/connection_handler/HTTPRequest.hpp"
+#include "../../../inc/connection_handler/HTTPResponse.hpp"
 
 HTTPAction::HTTPAction(HTTPRequest & request,
 						HTTPResponse & response, 

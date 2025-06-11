@@ -1,9 +1,8 @@
 
-#include "../inc/connection_handler/HTTP_actions/MethodRegistry.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
-#include <new>
+#include "../../../inc/connection_handler/HTTP_actions/MethodRegistry.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
 
 MethodRegistry::MethodRegistry() 
 {

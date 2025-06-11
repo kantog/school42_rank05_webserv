@@ -13,14 +13,14 @@
 // } // doet moelijk met &_serverKey
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
-	_AHTTPAction(NULL),
+	_HTTPAction(NULL),
 	_shouldClose(false),
 	_serverKey(serverKey),
 	_connectionSocketFD(fd)
 { }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
-	_AHTTPAction(NULL),
+	_HTTPAction(NULL),
 	_serverKey(other._serverKey),//dit ok? 
 	_connectionSocketFD(other._connectionSocketFD)
 { }
@@ -44,54 +44,54 @@ int ConnectionHandler::_getConnectionSocketFD()
 
 void ConnectionHandler::_handleErrorRecv(int bytesRead, bool dataReceived)
 {
-		if (bytesRead == 0) 
-        {
-            std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
-            _shouldClose = true;
-            return;
-        }
-		// bytesRead == -1
-		if (errno == EAGAIN || errno == EWOULDBLOCK) 
-		{
-			if (dataReceived) 
-				std::cout << "Partial request received, waiting for more data..." << std::endl;
-			return;
-		}
-		std::cerr << "Error reading from socket " << _connectionSocketFD 
-					<< ": " << strerror(errno) << std::endl;
+	if (bytesRead == 0) 
+	{
+		std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
 		_shouldClose = true;
-		return;		
+		return;
+	}
+	// bytesRead == -1
+	if (errno == EAGAIN || errno == EWOULDBLOCK) 
+	{
+		if (dataReceived) 
+			std::cout << "Partial request received, waiting for more data..." << std::endl;
+		return;
+	}
+	std::cerr << "Error reading from socket " << _connectionSocketFD 
+		<< ": " << strerror(errno) << std::endl;
+	_shouldClose = true;
+	return;		
 }
 
 void ConnectionHandler::_createRequest()
 {
-//    const size_t bufferSize = 10;
-    const size_t bufferSize = 4096;
-    char buffer[bufferSize];
-    bool dataReceived = false;
-    
-    while (true) 
-    {
-        ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
-        
-        if (bytesRead > 0) 
-        {
-            buffer[bytesRead] = '\0';
-            _request.parseRequest(buffer);
-            dataReceived = true;
-            
-            if (_request.isComplete()) 
-            {
-                std::cout << "Complete HTTP request received!" << std::endl;
-                return;
-            }
-        }
+	//    const size_t bufferSize = 10;
+	const size_t bufferSize = 4096;
+	char buffer[bufferSize];
+	bool dataReceived = false;
+
+	while (true) 
+	{
+		ssize_t bytesRead = recv(_connectionSocketFD, buffer, bufferSize - 1, 0);
+
+		if (bytesRead > 0) 
+		{
+			buffer[bytesRead] = '\0';
+			_request.parseRequest(buffer);
+			dataReceived = true;
+
+			if (_request.isComplete()) 
+			{
+				std::cout << "Complete HTTP request received!" << std::endl;
+				return;
+			}
+		}
 		else
 		{
 			this->_handleErrorRecv(bytesRead, dataReceived);
 			return;
 		}
-    }
+	}
 }
 
 void ConnectionHandler::_sendResponse()
@@ -133,15 +133,14 @@ void ConnectionHandler::handleHTTP()
 		return;
 
 	this->_setServerConfig();
-	
-	_response.reset();
-	// make new Action, based on type of request
 
-	// if (this->_serverConfig->isReturn())
-	// 	this->_serverConfig->getCurentRoute().redirectPath;
-	// if (!this->_serverConfig->isAllowedMethod(this->_request.getMethod()))
-	// 	this->generateErrorResponse(405);
-	// action
+	_response.reset();
+
+	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//? niet nieuw maken 
+	_HTTPAction->run();
+	delete _HTTPAction;
+
+
 	this->_sendResponse();
 
 	this->_request.reset(); // TODO ?

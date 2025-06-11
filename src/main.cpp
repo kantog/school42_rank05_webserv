@@ -1,7 +1,9 @@
 
 #include "../inc/config_classes/MyConfig.hpp"
 #include "../inc/HTTPServer.hpp"
+
 #include <signal.h>
+#include <iostream>
 
 HTTPServer *globalServerPtr = NULL;
 

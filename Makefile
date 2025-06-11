@@ -23,7 +23,8 @@ SRCS = \
 	src/connection_handler/HTTPRequest.cpp \
 	src/connection_handler/HTTPResponse.cpp \
 	src/config/ConfigParser.cpp \
-	src/config/MyConfig.cpp
+	src/config/MyConfig.cpp \
+	src/config/ServerConfig.cpp
 
 # src/connection_handler/HTTP_actions/AHTTPAction.cpp \
 # src/connection_handler/HTTP_actions/HTTPActionDEL.cpp \

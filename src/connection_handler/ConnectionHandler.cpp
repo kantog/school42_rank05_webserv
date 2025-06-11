@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>
+#include <iostream>
+#include <cerrno>
 
 // ConnectionHandler::ConnectionHandler()
 // {
@@ -94,6 +96,7 @@ bool ConnectionHandler::shouldClose()
 void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
+	_serverConfig->setCorectRoute(this->_request.getRequestTarget());
 }
 
 void ConnectionHandler::handleHTTP()

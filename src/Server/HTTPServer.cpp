@@ -8,6 +8,7 @@
 #include <sys/epoll.h>  // for epoll
 #include <unistd.h>     // for close, read, write
 #include <cerrno>       // for errno
+#include <iostream>
 
 
 void HTTPServer::_createNewConnection(int fd)

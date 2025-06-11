@@ -1,6 +1,8 @@
 
 #include "../../inc/HTTPServer.hpp"
 
+#include <iostream>
+
 #include <asm-generic/socket.h> // SO_REUSEADDR, ...
 #include <stdexcept>            // std::runtime_error
 #include <sys/socket.h>         // socket

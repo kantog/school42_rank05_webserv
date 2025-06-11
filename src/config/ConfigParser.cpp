@@ -5,6 +5,7 @@
 #include <iostream>             // std::cout
 #include <fstream>              // std::ifstream
 #include <sstream>              // std::stringstream
+#include <cstdlib>
 
 bool ConfigParser::hasMoreTokens(void)
 {

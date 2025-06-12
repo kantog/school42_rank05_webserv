@@ -88,5 +88,5 @@ const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
         return this->error_pages.at(code);
-    return ""; // TODO: define in haeder?
+    return "default/defaultError.html"; // TODO: define in haeder?
 }

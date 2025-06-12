@@ -26,7 +26,9 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 		.setBodyFromFile(serverConfig
 				.getFullPath(request
 					.getRequestTarget()));
-	//TODO: als file niet bestaat, eerst kijken of er een index bestaat? of enkel als laatste teken van path / is?
+	//TODO: als index gespecifieerd is de indexfile fetchen bij /
+	//TODO: als die niet bestaat checken of autoindex off is
+	//TODO: anders error 404 
 }
 
 void HTTPActionGET::implementMethod(HTTPRequest &request,

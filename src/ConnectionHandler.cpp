@@ -1,6 +1,6 @@
 
-#include "../inc/connection_handler/ConnectionHandler.hpp"
-#include "../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
+#include "ConnectionHandler.hpp"
+#include "HTTPAction.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>

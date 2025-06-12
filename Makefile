@@ -2,14 +2,18 @@ NAME = webserv
 
 MODE ?= release
 
+INCLUDES = -I./inc -I./inc/config_classes -I./inc/connection_handler -I./inc/connection_handler/HTTP_actions
+
+FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow $(INCLUDES)
+
 ifeq ($(MODE),debug)
 	CC = g++
-	FLAGS = -DDEBUG -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow
+	FLAGS += -DDEBUG 
 	DEBUG_FLAGS =
 	JSON_FLAG =
 else
 	CC = clang++
-	FLAGS = -DDEBUG -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow --target=x86_64-pc-linux-gnu
+	FLAGS += --target=x86_64-pc-linux-gnu
 	DEBUG_FLAGS =
 	JSON_FLAG = -MJ $@.json
 endif

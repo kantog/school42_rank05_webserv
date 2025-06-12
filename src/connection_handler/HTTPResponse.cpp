@@ -2,11 +2,15 @@
 
 #include "../../inc/connection_handler/HTTPResponse.hpp"
 
+#include <cerrno>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
-HTTPResponse::HTTPResponse() {}
+HTTPResponse::HTTPResponse() : 
+	_statusCode(0), 
+	_statusText("")
+{ }
 
 HTTPResponse::~HTTPResponse() {}
 
@@ -19,8 +23,6 @@ void HTTPResponse::reset()
     _responseString.clear();
 
     // setHeader("Content-Length", "0");
-    setBodyFromFile("tests/test.html");
-    // setBodyFromFile("tempFile.html");
 }
 
 void HTTPResponse::setStatusCode(int code)
@@ -57,11 +59,23 @@ void HTTPResponse::setBodySize()
 void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::string &contentType)
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
+		
     if (!file.is_open())
     {
-        throw std::runtime_error("Unable to open file: " + filePath);
+		int error = errno;
+		if (file.bad())
+			this->setStatusCode(500);
+		else if (file.bad())
+		{
+			if (error == EACCES)	
+				this->setStatusCode(403);
+			if (error == ENOENT)	
+			this->setStatusCode(404);
+		}
+		else 
+			this->setStatusCode(400);
+		return;
     }
-
     std::ostringstream buffer;
     buffer << file.rdbuf();
     file.close();
@@ -74,6 +88,11 @@ void HTTPResponse::setRedirect(const std::string &location, int code)
     setStatusCode(code);
     setHeader("Location", location);
     setHeader("Content-Length", "0");
+}
+
+const int &HTTPResponse::getStatusCode() const
+{
+	return _statusCode;
 }
 
 const std::string &HTTPResponse::getResponseString() const

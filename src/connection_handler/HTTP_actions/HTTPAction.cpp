@@ -43,10 +43,13 @@ void HTTPAction::run()
 	AMethod *HTTPMethod 
 		= _methodRegistry.createMethodInstance(_request.getMethod());
 	HTTPMethod->implementMethod(_request, _response, _serverConfig);
+	if (_response.getStatusCode() <= 200 || _response.getStatusCode() >= 226)
+		this->generateErrorResponse(_response.getStatusCode());
 	delete HTTPMethod;
 	
 
 }
+
 //e.g.
 // void run ()
 // {

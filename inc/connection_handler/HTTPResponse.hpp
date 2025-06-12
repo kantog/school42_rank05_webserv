@@ -11,7 +11,6 @@ class HTTPResponse
 		std::string _statusText;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
-		// bool _error;
 
 		std::string _responseString;
 
@@ -25,6 +24,7 @@ class HTTPResponse
 		void buildResponse();
 
 		const std::string &getResponseString() const;
+		const int &getStatusCode() const;
 
 		void setStatusCode(int code);
 		void setStatusMessage(const std::string &message);

@@ -2,6 +2,7 @@
 #pragma once 
 
 #include "MethodRegistry.hpp"
+#include <exception>
 #include <string>
 #include <vector>
 

@@ -144,7 +144,7 @@ void HTTPRequest::_setHeader(std::string &line)
     this->_fillHeaders(line);
 }
 
-bool HTTPRequest::_setchunkSize()
+bool HTTPRequest::_setChunkSize()
 {
     size_t pos = _requestBuffer.find('\n');
     if (pos == std::string::npos)
@@ -202,7 +202,7 @@ void HTTPRequest::_parseChunkedBody()
     {
         if (_chunkSizeRemaining == 0)
         {
-            if (!_setchunkSize())
+            if (!_setChunkSize())
                 break;
         }
         else

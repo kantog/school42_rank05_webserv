@@ -3,7 +3,8 @@
 #include <sstream>
 
 ServerConfig::ServerConfig():
-    client_max_body_size(4096) // TODO
+	root("."),
+    client_max_body_size(4096)// TODO
 {}
 
 const Route *ServerConfig::_findRoute(const std::string &path) const

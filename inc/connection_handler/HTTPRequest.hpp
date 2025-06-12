@@ -23,7 +23,7 @@ private:
 
 	size_t _chunkSizeRemaining;
 
-	bool _setchunkSize();
+	bool _setChunkSize();
 	bool _addChunkData();
 	void _trimChunked();
 

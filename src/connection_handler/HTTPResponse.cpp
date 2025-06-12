@@ -101,6 +101,21 @@ void HTTPResponse::_setStatusMessage(int code)
     }
 }
 
+void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
+{
+    setStatusCode(code);
+    setBodyFromFile(filePath);
+    buildResponse();
+}
+
+void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
+{
+    setStatusCode(code);
+    setHeader("Location", filePath);
+    setHeader("Content-Length", "0");
+    buildResponse();
+}
+
 void HTTPResponse::buildResponse()
 {
     std::ostringstream responsStream;

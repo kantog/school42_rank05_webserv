@@ -23,6 +23,8 @@ class HTTPResponse
 
 		void reset();
 		void buildResponse();
+		void buildErrorPage(int code, const std::string &filePath);
+		void buildReturnPage(int code, const std::string &filePath);
 
 		const std::string &getResponseString() const;
 

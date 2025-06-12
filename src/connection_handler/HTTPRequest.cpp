@@ -268,8 +268,8 @@ void HTTPRequest::parseRequest(const char *rawRequest)
         return;
     }
 
-    // #ifdef DEBUG
-    //     std::cout << "\n";
-    //     this->_printRequest();
-    // #endif
+    #ifdef DEBUG
+        std::cout << "\n";
+        this->_printRequest();
+    #endif
 }

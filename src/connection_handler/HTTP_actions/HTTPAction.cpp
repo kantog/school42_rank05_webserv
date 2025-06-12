@@ -6,6 +6,8 @@
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
+#include "../../../inc/config_classes/ServerConfig.hpp"
+#include <iostream>
 
 HTTPAction::HTTPAction(HTTPRequest & request,
 						HTTPResponse & response, 
@@ -43,10 +45,15 @@ void HTTPAction::run()
 	AMethod *HTTPMethod 
 		= _methodRegistry.createMethodInstance(_request.getMethod());
 	HTTPMethod->implementMethod(_request, _response, _serverConfig);
-	if (_response.getStatusCode() <= 200 || _response.getStatusCode() >= 226)
-		this->generateErrorResponse(_response.getStatusCode());
+
+	int errorCode = _response.getStatusCode();
+	std::cout << errorCode << std::endl;//test
+	std::cout << _serverConfig.getErrorPagePath(errorCode) << std::endl;//test
+	if (errorCode < 200 || errorCode > 226)
+		_response.buildErrorPage(errorCode, 
+				_serverConfig.getErrorPagePath(errorCode));
+
 	delete HTTPMethod;
-	
 
 }
 

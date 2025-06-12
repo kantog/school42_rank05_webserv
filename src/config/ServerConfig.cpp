@@ -3,7 +3,7 @@
 #include <sstream>
 
 ServerConfig::ServerConfig():
-	root("."),
+	root(""),
     client_max_body_size(4096)// TODO
 {}
 
@@ -71,11 +71,11 @@ std::string ServerConfig::getServerKey(void) const
     return ss.str();
 }
 
-std::string ServerConfig::getFullPath(const std::string &path, const std::string &file) const
+std::string ServerConfig::getFullPath(const std::string &path) const
 {
     if (_curentRoute->root != "")
-        return _curentRoute->root + "/" + path + "/" + file;
-    return this->root + "/" + path + "/" + file;
+        return "." + _curentRoute->root + path;
+    return "." + this->root + path;
 }
 
 const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) const
@@ -87,6 +87,6 @@ const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) con
 const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
-        return this->error_pages.at(code);
-    return "default/defaultError.html"; // TODO: define in haeder?
+        return ("." + this->root + this->error_pages.at(code));
+    return ("./default/defaultError.html"); // TODO: define in haeder?
 }

@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <fstream>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 
 HTTPActionGET::HTTPActionGET()
 { }
@@ -17,20 +19,27 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 		HTTPResponse & response, 
 		const ServerConfig &serverConfig)
 {
-	std::cout << "PATH: " << serverConfig.root + request.getRequestTarget() << std::endl;// test
-	response.setBodyFromFile(serverConfig.root + request.getRequestTarget());
+	std::cout << "PATH: " 
+		<< serverConfig.getFullPath(request.getRequestTarget()) 
+		<< std::endl;// test
+	response
+		.setBodyFromFile(serverConfig
+				.getFullPath(request
+					.getRequestTarget()));
+	//TODO: als file niet bestaat, eerst kijken of er een index bestaat? of enkel als laatste teken van path / is?
 }
 
 void HTTPActionGET::implementMethod(HTTPRequest &request,
 		HTTPResponse & response, 
 		const ServerConfig &serverConfig)
 {	
-	this->_fetchFile(request, response, serverConfig);
-	
-    // response.setBodyFromFile("tempFile.html");//test
-	(void)request;//test
-	(void)response;//test
-	(void)serverConfig;//test
+	// if (std::find(serverConfig.getCurentRoute().allowedMethods.begin(),
+	// 			serverConfig.getCurentRoute().allowedMethods.end(), "GET") 
+	// 			== serverConfig.getCurentRoute().allowedMethods.end())
+	if (!serverConfig.isAllowedMethod("GET"))
+		response.setStatusCode(405);
+	else
+		this->_fetchFile(request, response, serverConfig);
 }
 
 AMethod *HTTPActionGET::create()

@@ -65,7 +65,7 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::strin
 		int error = errno;
 		if (file.bad())
 			this->setStatusCode(500);
-		else if (file.bad())
+		else if (file.fail())
 		{
 			if (error == EACCES)	
 				this->setStatusCode(403);

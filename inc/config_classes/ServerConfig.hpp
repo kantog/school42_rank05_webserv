@@ -45,11 +45,11 @@ class ServerConfig
 		bool isAllowedMethod(const std::string &method) const;
 		bool isReturn(void) const;
 
-		const std::string &getCurentRoutePath(void) const { return _curentRoutePath; }
+		// const std::string &getCurentRoutePath(void) const { return _curentRoutePath; }
 		const Route &getCurentRoute(void) const { return *_curentRoute; }
 
 		std::string getServerKey(void) const;
-		std::string getFullPath(const std::string &path, const std::string &file) const;
+		std::string getFullPath(const std::string &path) const;
 		const std::string &getFullCgiPath(const std::string &fullPath) const;
 		const std::string getErrorPagePath(int code) const;
 };

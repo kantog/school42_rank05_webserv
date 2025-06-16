@@ -70,6 +70,10 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	}
 	ConnectionHandler *connectionHandler = it->second;
 	connectionHandler->handleHTTP();
+
+	// if connectionHandler->isRunnigCgi()
+	// cgis.append (fd);
+
 	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(connectionFd);

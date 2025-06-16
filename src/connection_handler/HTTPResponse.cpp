@@ -70,7 +70,8 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::strin
 			if (error == EACCES)	
 				this->setStatusCode(403);
 			if (error == ENOENT)	
-			this->setStatusCode(404);
+			    this->setStatusCode(404);
+            // TODO: error kan ook 20 zijn
 		}
 		else 
 			this->setStatusCode(400);
@@ -133,6 +134,17 @@ void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
     setHeader("Location", filePath);
     setHeader("Content-Length", "0");
     buildResponse();
+}
+
+void HTTPResponse::buildDirectoryPage(const std::string &filePath)
+{
+    (void)filePath;
+    //TODO opendir, readdir and closedir.
+}
+void HTTPResponse::buildCgiPage(const std::string &cgiString)
+{
+    (void)cgiString;
+    // TODO
 }
 
 void HTTPResponse::buildResponse()

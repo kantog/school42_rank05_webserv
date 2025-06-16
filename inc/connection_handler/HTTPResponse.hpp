@@ -25,6 +25,7 @@ class HTTPResponse
 		void buildErrorPage(int code, const std::string &filePath);
 		void buildReturnPage(int code, const std::string &filePath);
 		void buildDirectoryPage(const std::string &filePath);//TODO
+		void buildCgiPage(const std::string &cgiString);
 
 		const std::string &getResponseString() const;
 		const int &getStatusCode() const;

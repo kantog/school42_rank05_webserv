@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/11 18:45:21 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/16 11:48:24 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,8 @@ void HTTPRequest::_setMethod(std::string &line)
     std::istringstream startLine(line);
 
     startLine >> _method >> _requestTarget >> _version;
+
+    
     // TODO: version check error?
     this->_currentFunction = &HTTPRequest::_setHeader;
 }
@@ -239,6 +241,8 @@ void HTTPRequest::parseRequest(const char *rawRequest)
 {
     _requestBuffer.append(rawRequest);
     // std::cout << "requestBuffer: " << _requestBuffer << std::endl;
+
+    // TODO: client_max_body_size wat te doen?
 
     if (_currentFunction == NULL)
     {

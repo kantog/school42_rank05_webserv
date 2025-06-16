@@ -44,6 +44,7 @@ void ServerConfig::setCorectRoute(const std::string &path) const
 
 bool ServerConfig::isAllowedCgi(const std::string &fullPath) const
 {
+    // vb "./www/cgi/slow.py/extra.v1/info?foo=bar&name=jan"
     return _curentRoute->cgiExtensions.find(fullPath.substr(fullPath.find_last_of(".") + 1)) != _curentRoute->cgiExtensions.end();
 }
 
@@ -73,6 +74,12 @@ std::string ServerConfig::getServerKey(void) const
 
 std::string ServerConfig::getFullPath(const std::string &path) const
 {
+    /* TODO
+        Define a directory or file where the requested file should be located (e.g.,
+        if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
+        /tmp/www/pouic/toto/pouet).
+    */
+
     if (_curentRoute->root != "")
         return "." + _curentRoute->root + path;
     return "." + this->root + path;

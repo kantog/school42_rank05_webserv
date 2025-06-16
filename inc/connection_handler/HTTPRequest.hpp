@@ -9,11 +9,13 @@ class HTTPRequest
 private:
 	std::string _method;
 	std::string _requestTarget;
+	std::string _pathInfo;
+	std::string _query;
 	std::string _version;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 
-	size_t _contentLength;  // TODO: check config max lenth
+	size_t _contentLength; // TODO: check config max lenth
 
 	typedef void (HTTPRequest::*ParseFunction)(std::string &line);
 	ParseFunction _currentFunction;

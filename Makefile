@@ -2,7 +2,8 @@ NAME = webserv
 
 MODE ?= release
 
-INCLUDES = -I./inc -I./inc/config_classes -I./inc/connection_handler -I./inc/connection_handler/HTTP_actions
+INCLUDES = -I./inc -I./inc/config_classes -I./inc/connection_handler -I./inc/connection_handler/HTTP_actions \
+	-I./inc/CGI
 
 FLAGS = -O0 -Wall -Wextra -Werror -std=c++98 -g3 -Wshadow $(INCLUDES)
 
@@ -34,6 +35,7 @@ SRCS = \
 	src/connection_handler/HTTP_actions/HTTPActionGET.cpp \
 	src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
 	src/connection_handler/HTTP_actions/MethodRegistry.cpp \
+	src/CGI/Cgi.cpp
 
 # Zet object-bestanden in obj/ met dezelfde mappenstructuur
 OBJECTS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))
@@ -58,6 +60,8 @@ obj:
 	@mkdir -p obj/connection_handler
 	@mkdir -p obj/connection_handler/HTTP_actions
 	@mkdir -p obj/Server
+	@mkdir -p obj/CGI
+
 
 # Compileer per source file met correcte pad
 obj/%.o: src/%.cpp | obj

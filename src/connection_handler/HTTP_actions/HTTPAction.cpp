@@ -6,7 +6,7 @@
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
-#include "../../../inc/config_classes/ServerConfig.hpp"
+#include "ServerConfig.hpp"
 #include <iostream>
 
 HTTPAction::HTTPAction(HTTPRequest & request,

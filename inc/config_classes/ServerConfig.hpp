@@ -17,9 +17,9 @@ struct Route
 	std::map<std::string, std::string> cgiExtensions;//CGI arguments zitten ook hiern, nog te parsen
 	bool uploadAllowed;
 	std::string uploadPath;
-	// TODO 		size_t client_max_body_size;
+	size_t client_max_body_size;
 
-	Route() : isDirectoryListing(false), uploadAllowed(false) {}
+	Route() : isDirectoryListing(false), uploadAllowed(false), client_max_body_size(-1) {}
 };
 
 class ServerConfig
@@ -53,4 +53,5 @@ class ServerConfig
 		std::string getFullPath(const std::string &path) const;
 		const std::string &getFullCgiPath(const std::string &fullPath) const;
 		const std::string getErrorPagePath(int code) const;
+		size_t getClientMaxBodySize(void) const;
 };

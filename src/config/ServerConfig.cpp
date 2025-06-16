@@ -4,7 +4,7 @@
 
 ServerConfig::ServerConfig():
 	root(""),
-    client_max_body_size(4096)// TODO
+    client_max_body_size(-1)
 {}
 
 const Route *ServerConfig::_findRoute(const std::string &path) const
@@ -83,6 +83,13 @@ std::string ServerConfig::getFullPath(const std::string &path) const
     if (_curentRoute->root != "")
         return "." + _curentRoute->root + path;
     return "." + this->root + path;
+}
+
+size_t ServerConfig::getClientMaxBodySize(void) const
+{
+    if (_curentRoute->client_max_body_size != 0)
+        return _curentRoute->client_max_body_size;
+    return this->client_max_body_size;
 }
 
 const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) const

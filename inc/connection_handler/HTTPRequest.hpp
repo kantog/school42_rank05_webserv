@@ -8,6 +8,7 @@ class HTTPRequest
 {
 private:
 	std::string _method;
+	std::string _rawPath;
 	std::string _requestTarget;
 	std::string _pathInfo;
 	std::string _query;
@@ -15,9 +16,10 @@ private:
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 
-	size_t _contentLength; // TODO: check config max lenth
+	size_t _contentLength;
+	size_t _maxContentLength;
 
-	typedef void (HTTPRequest::*ParseFunction)(std::string &line);
+	typedef void (HTTPRequest::*ParseFunction)(std::string &line, const std::string &serverKey);
 	ParseFunction _currentFunction;
 
 	std::string _requestBuffer;
@@ -29,14 +31,17 @@ private:
 	bool _addChunkData();
 	void _trimChunked();
 
-	void _setMethod(std::string &line);
-	void _setHeader(std::string &line);
+	void _setMethod(std::string &line, const std::string &serverKey);
+	void _setHeader(std::string &line, const std::string &serverKey);
 
 	void _setBody();
 	void _parseChunkedBody();
 
 	void _fillHeaders(std::string line);
 	void _printRequest() const;
+
+	void _parsePath();
+	void _setMaxBodySize(const std::string &serverKey);
 
 public:
 	HTTPRequest();
@@ -53,6 +58,6 @@ public:
 
 	void reset();
 	bool hasCloseHeader() const; // TODO: ?
-	void parseRequest(const char *rawRequest);
+	void parseRequest(const char *rawRequest, const std::string &serverKey);
 	bool isComplete() const;
 };

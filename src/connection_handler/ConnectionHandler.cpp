@@ -77,7 +77,7 @@ void ConnectionHandler::_createRequest()
 		if (bytesRead > 0) 
 		{
 			buffer[bytesRead] = '\0';
-			_request.parseRequest(buffer);
+			_request.parseRequest(buffer, _serverKey);
 			dataReceived = true;
 
 			if (_request.isComplete()) 
@@ -124,7 +124,7 @@ void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
 	_serverConfig->setCorectRoute(this->_request.getRequestTarget());
-}
+} // TODO: setCorectRoute niet meer nodig
 
 void ConnectionHandler::handleHTTP()
 {

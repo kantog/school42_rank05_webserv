@@ -6,13 +6,16 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/16 11:48:24 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/16 12:30:08 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../inc/connection_handler/HTTPRequest.hpp"
+#include "ServerConfig.hpp"
+#include "MyConfig.hpp"
 #include <sstream>
 #include <iostream>
+#include <unistd.h>
 
 HTTPRequest::HTTPRequest()
 {
@@ -117,18 +120,50 @@ bool HTTPRequest::isComplete() const
     return _isComplete;
 }
 
-void HTTPRequest::_setMethod(std::string &line)
+void HTTPRequest::_parsePath()
 {
+    // vb /cgi-bin/script.py/extra.v1/info?foo=bar&name=jan
+    size_t qmark = _rawPath.find('?');
+    if (qmark != std::string::npos)
+    {
+        _query = _rawPath.substr(qmark + 1);
+        _rawPath = _rawPath.substr(0, qmark);
+    }
+
+    for (int i = _rawPath.length(); i >= 0; --i)
+    {
+        if (_rawPath[i] == '/')
+        {
+            _requestTarget = _rawPath.substr(0, i);
+            if (access(_rawPath.c_str(), F_OK) == 0)
+            {
+                _pathInfo = _rawPath.substr(i);
+                return;
+            }
+        }
+    }
+}
+
+void HTTPRequest::_setMaxBodySize(const std::string &serverKey)
+{
+    ServerConfig const *_serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
+    _serverConfig->setCorectRoute(this->getRequestTarget());
+    _maxContentLength = _serverConfig->getClientMaxBodySize();
+}
+
+void HTTPRequest::_setMethod(std::string &line, const std::string &serverKey)
+{
+    (void)serverKey;
     std::istringstream startLine(line);
+    std::string path;
 
-    startLine >> _method >> _requestTarget >> _version;
+    startLine >> _method >> path >> _version;
 
-    
     // TODO: version check error?
     this->_currentFunction = &HTTPRequest::_setHeader;
 }
 
-void HTTPRequest::_setHeader(std::string &line)
+void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
 {
     if (line == "\r" || line.empty())
     {
@@ -140,6 +175,10 @@ void HTTPRequest::_setHeader(std::string &line)
         }
         if (_contentLength == 0)
             this->_isComplete = true; // TODO: check
+
+        this->_parsePath();
+        this->_setMaxBodySize(serverKey);
+
         this->_currentFunction = NULL;
         return;
     }
@@ -237,7 +276,7 @@ void HTTPRequest::_setBody()
         _isComplete = true;
 }
 
-void HTTPRequest::parseRequest(const char *rawRequest)
+void HTTPRequest::parseRequest(const char *rawRequest, const std::string &serverKey)
 {
     _requestBuffer.append(rawRequest);
     // std::cout << "requestBuffer: " << _requestBuffer << std::endl;
@@ -260,7 +299,7 @@ void HTTPRequest::parseRequest(const char *rawRequest)
         if (!line.empty() && line[line.length() - 1] == '\r')
             line.erase(line.length() - 1);
 
-        (this->*_currentFunction)(line);
+        (this->*_currentFunction)(line, serverKey);
         _requestBuffer.erase(0, pos + 1);
 
         if (_currentFunction == NULL)
@@ -272,8 +311,8 @@ void HTTPRequest::parseRequest(const char *rawRequest)
         return;
     }
 
-    #ifdef DEBUG
-        std::cout << "\n";
-        this->_printRequest();
-    #endif
-}
+#ifdef DEBUG
+    std::cout << "\n";
+    this->_printRequest();
+#endif
+} // TODO: split file parser

@@ -84,41 +84,13 @@ Cgi::Cgi(const HTTPRequest &request, const ServerConfig &serverConfig) :
 _request(request),
 _serverConfig(serverConfig)
 {
-    this->_parsePath();
-    this->_checkAccess(); // TODO denk dat dit weg mag
-}
-
-void Cgi::_parsePath()
-{
-    // vb /cgi-bin/script.py/extra.v1/info?foo=bar&name=jan
-	std::string path = _serverConfig.getFullPath(_request.getRequestTarget());
-
-    size_t qmark = path.find('?');
-    if (qmark != std::string::npos)
-    {
-        _query = path.substr(qmark + 1);
-        path = path.substr(0, qmark);
-    }
-
-    for (int i = path.length(); i >= 0; --i)
-    {
-        if (path[i] == '/')
-        {
-            _path = path.substr(0, i);
-            this->_checkAccess();
-            if (_statusCode == 200)
-            {
-                _pathInfo = path.substr(i);
-                return;
-            }
-        }
-    }
+    this->_checkAccess();
 }
 
 void Cgi::_checkAccess()
 {
     struct stat sb;
-    if (stat(_path.c_str(), &sb) == 0)
+    if (stat(_request.getRequestTarget().c_str(), &sb) == 0)
     {
         if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
             _statusCode = 200;

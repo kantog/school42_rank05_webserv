@@ -11,9 +11,6 @@ class Cgi
         const HTTPRequest &_request;
         const ServerConfig &_serverConfig;
 
-        std::string _path;
-
-
         std::string _rawOutput;
 	    std::map<std::string, std::string> _headers;
         std::string _body;

@@ -115,6 +115,15 @@ bool ConfigParser::setRoot(ServerConfig &server, const std::string &token)
     return true;
 }
 
+bool ConfigParser::setClientMaxBodySize(Route &route, const std::string &token)
+{
+    if (token != "client_max_body_size")
+        return false;
+    route.client_max_body_size = std::atoi(getNextToken().c_str());
+    expectToken(";");
+    return true;
+}
+
 bool ConfigParser::setRoot(Route &route, const std::string &token)
 {
     if (token != "root")
@@ -279,6 +288,8 @@ bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
         else if (this->setCgi(route, token))
             continue;
         else if (this->setReturn(route, token))
+            continue;
+        else if (this->setClientMaxBodySize(route, token))
             continue;
         else
         {

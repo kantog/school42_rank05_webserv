@@ -6,7 +6,7 @@
 /*   By: kvanden- <kvanden-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/06/16 12:30:08 by kvanden-         ###   ########.fr       */
+/*   Updated: 2025/06/16 15:15:07 by kvanden-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,26 @@ const std::string &HTTPRequest::getBody() const
     return _body;
 }
 
+const std::string &HTTPRequest::getPathInfo() const
+{
+    return _pathInfo;
+}
+
+const std::string &HTTPRequest::getQuery() const
+{
+    return _query;
+}
+
+const std::string &HTTPRequest::getVersion() const
+{
+    return _version;
+}
+
+const std::string &HTTPRequest::getRequestFile() const
+{
+    return _requestFile;
+}
+
 const std::string &HTTPRequest::getHeader(const std::string &key) const
 {
     static const std::string empty = "";
@@ -120,34 +140,46 @@ bool HTTPRequest::isComplete() const
     return _isComplete;
 }
 
-void HTTPRequest::_parsePath()
+void HTTPRequest::_parsePath(const std::string &serverKey)
 {
     // vb /cgi-bin/script.py/extra.v1/info?foo=bar&name=jan
-    size_t qmark = _rawPath.find('?');
-    if (qmark != std::string::npos)
+    ServerConfig const *serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
+    serverConfig->setCorectRoute(this->_rawPath);
+    std::string prefix = serverConfig->getPath();
+
+    size_t queryPos = _rawPath.find('?');
+    if (queryPos != std::string::npos)
     {
-        _query = _rawPath.substr(qmark + 1);
-        _rawPath = _rawPath.substr(0, qmark);
+        _query = _rawPath.substr(queryPos + 1);
+        _rawPath = _rawPath.substr(0, queryPos);
     }
 
-    for (int i = _rawPath.length(); i >= 0; --i)
+    _pathInfo = "/";
+    if (access((prefix + _rawPath).c_str(), F_OK) == 0)
+        _requestTarget = _rawPath;
+    else
     {
-        if (_rawPath[i] == '/')
+        for (int i = _rawPath.length(); i >= 0; --i)
         {
-            _requestTarget = _rawPath.substr(0, i);
-            if (access(_rawPath.c_str(), F_OK) == 0)
+            if (_rawPath[i] == '/')
             {
-                _pathInfo = _rawPath.substr(i);
-                return;
+                _requestTarget = _rawPath.substr(0, i);
+                if (access((prefix + _requestTarget).c_str(), F_OK) == 0)
+                {
+                    _pathInfo = _rawPath.substr(i);
+                    break;
+                    ;
+                }
             }
         }
     }
+    _requestFile = _requestTarget.substr(_requestTarget.find_last_of("/") + 1);
 }
 
 void HTTPRequest::_setMaxBodySize(const std::string &serverKey)
 {
     ServerConfig const *_serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
-    _serverConfig->setCorectRoute(this->getRequestTarget());
+    _serverConfig->setCorectRoute(this->_requestTarget);
     _maxContentLength = _serverConfig->getClientMaxBodySize();
 }
 
@@ -155,9 +187,8 @@ void HTTPRequest::_setMethod(std::string &line, const std::string &serverKey)
 {
     (void)serverKey;
     std::istringstream startLine(line);
-    std::string path;
 
-    startLine >> _method >> path >> _version;
+    startLine >> _method >> _rawPath >> _version;
 
     // TODO: version check error?
     this->_currentFunction = &HTTPRequest::_setHeader;
@@ -176,7 +207,7 @@ void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
         if (_contentLength == 0)
             this->_isComplete = true; // TODO: check
 
-        this->_parsePath();
+        this->_parsePath(serverKey);
         this->_setMaxBodySize(serverKey);
 
         this->_currentFunction = NULL;

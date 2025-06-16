@@ -51,7 +51,8 @@ class ServerConfig
 
 		std::string getServerKey(void) const;
 		std::string getFullPath(const std::string &path) const;
-		const std::string &getFullCgiPath(const std::string &fullPath) const;
+		const std::string getCgiInterpreter(const std::string &fullPath) const;
 		const std::string getErrorPagePath(int code) const;
+		const std::string getPath(void) const;
 		size_t getClientMaxBodySize(void) const;
 };

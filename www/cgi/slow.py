@@ -7,7 +7,7 @@ print("Content-Type: text/html\n")
 
 print("<html><body>")
 print("<h1>Start...</h1>")
-time.sleep(10)  # Simuleer trage CGI
+# time.sleep(10)  # Simuleer trage CGI
 method = os.environ.get("REQUEST_METHOD", "")
 
 if method == "GET":
@@ -22,5 +22,5 @@ elif method == "POST":
 else:
     print(f"<p>Method: {method}</p><p>Niet ondersteund.</p>")
 
-print("<h1>...Klaar!</h1>")
+print("<h1>Fack yeah!</h1>")
 print("</body></html>")

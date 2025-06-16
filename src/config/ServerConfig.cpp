@@ -45,7 +45,9 @@ void ServerConfig::setCorectRoute(const std::string &path) const
 bool ServerConfig::isAllowedCgi(const std::string &fullPath) const
 {
     // vb "./www/cgi/slow.py/extra.v1/info?foo=bar&name=jan"
-    return _curentRoute->cgiExtensions.find(fullPath.substr(fullPath.find_last_of(".") + 1)) != _curentRoute->cgiExtensions.end();
+    const std::string extension = fullPath.substr(fullPath.find_last_of(".") + 1);
+    return (_curentRoute->cgiExtensions.find(extension) != _curentRoute->cgiExtensions.end()
+        || _curentRoute->cgiExtensions.find("." + extension) != _curentRoute->cgiExtensions.end());
 }
 
 bool ServerConfig::isAllowedMethod(const std::string &method) const
@@ -72,6 +74,13 @@ std::string ServerConfig::getServerKey(void) const
     return ss.str();
 }
 
+const std::string ServerConfig::getPath(void) const
+{
+    if (_curentRoute->root != "")
+        return "." + _curentRoute->root;
+    return "." + this->root;
+}
+
 std::string ServerConfig::getFullPath(const std::string &path) const
 {
     /* TODO
@@ -79,10 +88,7 @@ std::string ServerConfig::getFullPath(const std::string &path) const
         if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
         /tmp/www/pouic/toto/pouet).
     */
-
-    if (_curentRoute->root != "")
-        return "." + _curentRoute->root + path;
-    return "." + this->root + path;
+    return getPath() + path;
 }
 
 size_t ServerConfig::getClientMaxBodySize(void) const
@@ -92,10 +98,19 @@ size_t ServerConfig::getClientMaxBodySize(void) const
     return this->client_max_body_size;
 }
 
-const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) const
+const std::string ServerConfig::getCgiInterpreter(const std::string &fullPath) const
 {
-    // TODO can een exception worden gegooid als path niet bestaat
-    return _curentRoute->cgiExtensions.at(fullPath.substr(fullPath.find_last_of(".") + 1));
+    const std::string extension = fullPath.substr(fullPath.find_last_of(".") + 1);
+    std::map<std::string, std::string>::const_iterator it;
+    it = _curentRoute->cgiExtensions.find(extension);
+    if (it != _curentRoute->cgiExtensions.end())
+        return it->second;
+
+    it = _curentRoute->cgiExtensions.find("." + extension);
+    if (it != _curentRoute->cgiExtensions.end())
+        return it->second;
+
+    return ""; // TODO
 }
 
 const std::string ServerConfig::getErrorPagePath(int code) const

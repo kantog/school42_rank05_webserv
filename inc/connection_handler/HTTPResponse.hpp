@@ -33,7 +33,8 @@ class HTTPResponse
 		void setStatusCode(int code);
 		void setStatusMessage(const std::string &message);
 		void setHeader(const std::string &key, const std::string &value);
-		void setBody(const std::string &body, const std::string &contentType = "text/plain");
+		void setHeaders(const std::string &headers);
+		void setBody(const std::string &body, const std::string &contentType = "text/html");
 		void setBodyFromFile(const std::string &filePath, const std::string &contentType = "text/html");
 		void setRedirect(const std::string &location, int code = 302);
 

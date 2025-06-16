@@ -33,13 +33,13 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 	if (serverConfig.isAllowedCgi(path))
 	{
 		Cgi cgi(request, serverConfig);
+		cgi.startCgi();
 		int code = cgi.getStatusCode();
 		if (code != 200)
-			response.setStatusCode(code);
-		cgi.run();
-		code = cgi.getStatusCode();
-		if (code != 200)
-			response.setStatusCode(code);
+		{
+			response.buildErrorPage(code, serverConfig.getErrorPagePath(code));
+			return;
+		}
 		response.buildCgiPage(cgi.getBody());
 	}
 	else

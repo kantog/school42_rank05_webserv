@@ -7,10 +7,10 @@
 #include <sstream>
 #include <stdexcept>
 
-HTTPResponse::HTTPResponse() : 
-	_statusCode(0), 
-	_statusText("")
-{ }
+HTTPResponse::HTTPResponse() : _statusCode(0),
+                               _statusText("")
+{
+}
 
 HTTPResponse::~HTTPResponse() {}
 
@@ -41,6 +41,45 @@ void HTTPResponse::setHeader(const std::string &key, const std::string &value)
     _headers[key] = value;
 }
 
+void HTTPResponse::setHeaders(const std::string &headers)
+{
+    std::istringstream headersStream(headers);
+    std::string line;
+
+    while (std::getline(headersStream, line))
+    {
+        // TODO kijk hoe ik dat hier voor heb gedaan
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
+
+        if (line.empty())
+            return;
+
+        size_t colon = line.find(':');
+        if (colon != std::string::npos)
+        {
+            std::string key = line.substr(0, colon);
+            std::string value = line.substr(colon + 1);
+            while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
+                value.erase(0, 1);
+
+            if (key == "Status")
+            {
+                // vb "Status: 200 OK"
+                int statusCode;
+                std::string statusMessage;
+                std::istringstream statusStream(value);
+
+                statusStream >> statusCode >> statusMessage;
+                this->setStatusCode(statusCode);
+                this->setStatusMessage(statusMessage);
+            }
+            else
+                this->setHeader(key, value);
+        }
+    }
+}
+
 void HTTPResponse::setBody(const std::string &body, const std::string &contentType)
 {
     _body = body;
@@ -59,23 +98,23 @@ void HTTPResponse::setBodySize()
 void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::string &contentType)
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
-		
+
     if (!file.is_open())
     {
-		int error = errno;
-		if (file.bad())
-			this->setStatusCode(500);
-		else if (file.fail())
-		{
-			if (error == EACCES)	
-				this->setStatusCode(403);
-			if (error == ENOENT)	
-			    this->setStatusCode(404);
+        int error = errno;
+        if (file.bad())
+            this->setStatusCode(500);
+        else if (file.fail())
+        {
+            if (error == EACCES)
+                this->setStatusCode(403);
+            if (error == ENOENT)
+                this->setStatusCode(404);
             // TODO: error kan ook 20 zijn
-		}
-		else 
-			this->setStatusCode(400);
-		return;
+        }
+        else
+            this->setStatusCode(400);
+        return;
     }
     std::ostringstream buffer;
     buffer << file.rdbuf();
@@ -93,7 +132,7 @@ void HTTPResponse::setRedirect(const std::string &location, int code)
 
 const int &HTTPResponse::getStatusCode() const
 {
-	return _statusCode;
+    return _statusCode;
 }
 
 const std::string &HTTPResponse::getResponseString() const
@@ -139,12 +178,28 @@ void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
 void HTTPResponse::buildDirectoryPage(const std::string &filePath)
 {
     (void)filePath;
-    //TODO opendir, readdir and closedir.
+    // TODO opendir, readdir and closedir.
 }
 void HTTPResponse::buildCgiPage(const std::string &cgiString)
 {
-    (void)cgiString;
-    // TODO
+    std::string headers;
+    std::string body;
+    size_t header_end = cgiString.find("\r\n\r\n");
+    if (header_end == std::string::npos)
+        header_end = cgiString.find("\n\n");
+
+    if (header_end != std::string::npos)
+    {
+        headers = cgiString.substr(0, header_end);
+        body = cgiString.substr(header_end + (cgiString[header_end] == '\r' ? 4 : 2));
+    }
+    else
+        body = cgiString;
+
+    setStatusCode(200);
+    setHeaders(headers);
+    setBody(body);
+    buildResponse();
 }
 
 void HTTPResponse::buildResponse()

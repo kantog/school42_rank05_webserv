@@ -10,7 +10,7 @@ class HTTPResponse;
 
 class	HTTPActionGET : public AMethod {
 	private:
-		// virtual void _runCGI();//runt een script en zet output in _response.body:
+		void _runCGI();//runt een script en zet output in _response.body:
 		void _fetchFile(HTTPRequest &request,
 		HTTPResponse & response, 
 		const ServerConfig &serverConfig);

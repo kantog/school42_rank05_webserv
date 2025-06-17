@@ -96,8 +96,6 @@ void ConnectionHandler::_createRequest()
 
 void ConnectionHandler::_sendResponse()
 {
-	//TODO: check if a response also has a max length
-	_response.buildResponse(); // TODO niet doen?
 	const std::string &responseString = _response.getResponseString();
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test

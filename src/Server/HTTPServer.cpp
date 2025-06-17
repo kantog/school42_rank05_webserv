@@ -60,8 +60,6 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
-
-
 	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
 	if (it == _connectionHandlers.end())
 	{
@@ -142,7 +140,7 @@ void HTTPServer::start()
 
 	while (!this->_gotStopSignal)
 	{
-		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1); // 10 second timeout?
+		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1);
 		if (eventCount == -1)
 		{
 			if (errno == EINTR)

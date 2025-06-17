@@ -76,6 +76,7 @@ std::string ServerConfig::getServerKey(void) const
 
 const std::string ServerConfig::getPath(void) const
 {
+	//TODO: welk path komt overeen met een location?
     if (_curentRoute->root != "")
         return "." + _curentRoute->root;
     return "." + this->root;

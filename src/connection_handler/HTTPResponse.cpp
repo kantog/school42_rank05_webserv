@@ -82,7 +82,7 @@ void HTTPResponse::setHeaders(const std::string &headers)
 
 void HTTPResponse::setBody(const std::string &body, const std::string &contentType)
 {
-    _body = body;
+    _body = body + "\n\r";
 
     setBodySize();
     setHeader("Content-Type", contentType);

@@ -43,7 +43,7 @@ void HTTPResponse::setHeader(const std::string &key, const std::string &value)
 
 void HTTPResponse::setBody(const std::string &body, const std::string &contentType)
 {
-    _body = body;
+    _body = body + "\n\r";
 
     setBodySize();
     setHeader("Content-Type", contentType);
@@ -70,7 +70,7 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::strin
 			if (error == EACCES)	
 				this->setStatusCode(403);
 			if (error == ENOENT)	
-			this->setStatusCode(404);
+				this->setStatusCode(404);
 		}
 		else 
 			this->setStatusCode(400);

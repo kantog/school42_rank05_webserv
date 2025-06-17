@@ -10,8 +10,10 @@ class HTTPResponse;
 
 class	HTTPActionPOST : public AMethod {
 	private:
-		// virtual void _runCGI();//runt een script en zet output in _response.body:
-		// void post();
+		// void _runCGI();//runt een script en zet output in _response.body:
+		void post(HTTPRequest &request,
+						HTTPResponse & response, 
+						const ServerConfig &serverConfig);
 
 	public:
 		HTTPActionPOST();

@@ -1,7 +1,7 @@
 
 #include "../../../inc/connection_handler/HTTP_actions/AMethod.hpp"
-#include "../../../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
@@ -38,22 +38,29 @@ HTTPAction::~HTTPAction()
 
 void HTTPAction::run()
 {
-	//internal HTTPAction logic
 	
-	
-	//specific method logic
-	AMethod *HTTPMethod 
-		= _methodRegistry.createMethodInstance(_request.getMethod());
-	HTTPMethod->implementMethod(_request, _response, _serverConfig);
+	if (!_serverConfig.isAllowedMethod(_request.getMethod()))
+		_response.setStatusCode(405);
 
+	else
+	{
+		//specific method logic
+		AMethod *HTTPMethod 
+			= _methodRegistry.createMethodInstance(_request.getMethod());
+		HTTPMethod->implementMethod(_request, _response, _serverConfig);
+		delete HTTPMethod;
+	}
+
+	//internal HTTPAction logic
 	int errorCode = _response.getStatusCode();
-	std::cout << errorCode << std::endl;//test
-	std::cout << _serverConfig.getErrorPagePath(errorCode) << std::endl;//test
+	// std::cout << errorCode << std::endl;//test
+	// std::cout << _serverConfig.getErrorPagePath(errorCode) << std::endl;//test
 	if (errorCode < 200 || errorCode > 226)
 		_response.buildErrorPage(errorCode, 
 				_serverConfig.getErrorPagePath(errorCode));
+	else
+		_response.buildResponse();
 
-	delete HTTPMethod;
 
 }
 

@@ -58,10 +58,10 @@ void HTTPAction::run()
 	if (errorCode < 200 || errorCode > 226)
 		_response.buildErrorPage(errorCode, 
 				_serverConfig.getErrorPagePath(errorCode));
+	//TODO: hier autoindex optie aan toevoegen?
+	//TODO: hier return page optie aan toevoegen?
 	else
 		_response.buildResponse();
-
-
 }
 
 //e.g.

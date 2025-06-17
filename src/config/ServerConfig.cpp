@@ -73,9 +73,10 @@ std::string ServerConfig::getServerKey(void) const
 
 std::string ServerConfig::getFullPath(const std::string &path) const
 {
+	//TODO: welk path komt overeen met een location?
     if (_curentRoute->root != "")
         return "." + _curentRoute->root + path;
-    return "." + this->root + path;
+    return "." + this->root + path;//in de path shit aanpassen en wegsnijden 
 }
 
 const std::string &ServerConfig::getFullCgiPath(const std::string &fullPath) const

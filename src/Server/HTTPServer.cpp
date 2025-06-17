@@ -71,13 +71,30 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	ConnectionHandler *connectionHandler = it->second;
 	connectionHandler->handleHTTP();
 
-	// if connectionHandler->isRunnigCgi()
-	// cgis.append (fd);
+	// if (connectionHandler->cgiIsRunning())
+		// for fd in connectionHandler.getFds()
+		// cgis.append (fd, handler);
 
 	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(connectionFd);
 }
+
+/*
+
+handleCgi(fd)
+{
+	handler = cgis[fd];
+	handler.processCgi();
+	if (handler.isFinished())
+	{
+		handler.closeCgi();
+		fds = handler.getFsd();
+		cgis.erase(fds);
+	}
+}
+
+*/
 
 void HTTPServer::_closeConnection(int connectionFd)
 {
@@ -138,6 +155,10 @@ void HTTPServer::start()
 
 			if (_isListeningSocket(fd))
 				_createNewConnection(fd);
+			// else if (_iscgiWriteable(fd))
+			// 	_cgiWrite(fd);
+			// else if (_isCgireadable(fd))
+			// 	_cgiRead(fd);
 			else
 			{
 				uint32_t events = localEpollEvents[i].events;

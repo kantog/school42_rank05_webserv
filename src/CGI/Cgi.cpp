@@ -94,11 +94,53 @@ HTTP_HOST=localhost
 En de POST-body (name=jan&city=gent) stuur je via stdin naar het CGI-proces.
 */
 
+static void closeFd(int *fd)
+{
+    if (*fd == -1)
+        return;
+    close(*fd);
+    *fd = -1;
+}
+
+static void closePipe(int *pipe)
+{
+    closeFd(&pipe[0]);
+    closeFd(&pipe[1]);
+}
+
 Cgi::Cgi(const HTTPRequest &request, const ServerConfig &serverConfig) : _request(request),
                                                                          _serverConfig(serverConfig),
                                                                          _statusCode(200)
 {
     _path = _serverConfig.getFullPath(_request.getRequestTarget());
+    _pipeIn[0] = -1;
+    _pipeIn[1] = -1;
+    _pipeOut[0] = -1;
+    _pipeOut[1] = -1;
+    _pid = -1;
+    _isRunning = false;
+}
+
+Cgi::~Cgi()
+{
+    closePipe(_pipeIn);
+    closePipe(_pipeOut);
+    if (_pid > 0)
+        kill(_pid, SIGKILL);
+    /* TODO:
+    if (_pid > 0) {
+    kill(_pid, SIGTERM);  // Try graceful termination first
+
+    // Give it a moment to terminate gracefully
+    int status;
+    if (waitpid(_pid, &status, WNOHANG) == 0) {
+        // Still running, force kill
+        std::cerr << "CGI process " << _pid << " didn't terminate gracefully, killing..." << std::endl;
+        kill(_pid, SIGKILL);
+        waitpid(_pid, &status, 0); // Wait for it to die
+    }
+    _pid = -1;
+    */
 }
 
 bool Cgi::_checkAccess()
@@ -118,7 +160,20 @@ bool Cgi::_checkAccess()
 
 bool Cgi::_initPipes()
 {
-    if (pipe(_pipeIn) < 0 || pipe(_pipeOut) < 0)
+    if (pipe(_pipeIn) < 0)
+        _statusCode = 500;
+    if (pipe(_pipeOut) < 0)
+    {
+        closePipe(_pipeIn);
+        _statusCode = 500;
+    }
+    return _statusCode == 200;
+}
+
+bool Cgi::_makeNonBlocking()
+{
+    if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
+        fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
         _statusCode = 500;
     return _statusCode == 200;
 }
@@ -127,18 +182,19 @@ bool Cgi::_forkCgi()
 {
     _pid = fork();
     if (_pid < 0)
-        _statusCode = 500; // TODO: check
+        _statusCode = 500;
     return _statusCode == 200;
 }
 
 void Cgi::_initEnv()
 {
     // TODO: check list
-    _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
-    _envStrings.push_back("SCRIPT_FILENAME=" + _request.getRequestFile());
+    // TODO: coocies
     _envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
     _envStrings.push_back("REQUEST_METHOD=" + _request.getMethod());
     _envStrings.push_back("SERVER_PROTOCOL=" + _request.getVersion());
+    _envStrings.push_back("SCRIPT_FILENAME=" + _request.getRequestFile());
+    _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
 
     _envStrings.push_back("HTTP_HOST=" + _request.getHeader("Host"));
     _envStrings.push_back("HTTP_USER_AGENT=" + _request.getHeader("User-Agent"));
@@ -169,70 +225,180 @@ void Cgi::_initEnv()
 
 void Cgi::_runCgi()
 {
-    this->_initEnv();
-    
-    std::cerr << "debug: _path: " << _path << std::endl;
-    const std::string interpreter = _serverConfig.getCgiInterpreter(_path); // bijv "/usr/bin/python3"
-    std::cerr << "debug: interpreter: " << interpreter << std::endl;
-    char *argv[] = {
-        const_cast<char *>(interpreter.c_str()),  // argv[0] = "/usr/bin/python3"
-        const_cast<char *>(_path.c_str()),        // argv[1] = "/home/user/webroot/test.py"
-        NULL
-    };
-
-    dup2(_pipeIn[0], STDIN_FILENO);
-    dup2(_pipeOut[1], STDOUT_FILENO);
-
-    close(_pipeIn[1]);
-    close(_pipeOut[0]);
-
-    std::cerr << "debug: Running " << interpreter << " " << _path << "..." << std::endl;
-    execve(interpreter.c_str(), argv, _env.data());  // Voer Python uit, niet het script
-
-    // TODO mag die errno?
-    std::cerr << "execve failed: " << strerror(errno) << std::endl;
-    exit(EXIT_FAILURE);
-}
-
-void Cgi::readOutput()
-{
-    char buffer[1024];
-    ssize_t bytes;
-    while ((bytes = read(_pipeOut[0], buffer, sizeof(buffer))) > 0)
+    if (dup2(_pipeIn[0], STDIN_FILENO) < 0)
     {
-        _rawOutput.append(buffer, bytes);
+        std::cerr << "dup2 stdin failed: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(_pipeOut[1], STDOUT_FILENO) < 0)
+    {
+        std::cerr << "dup2 stdout failed: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
     }
 
-    close(_pipeOut[0]);
+    closePipe(_pipeIn);
+    closePipe(_pipeOut);
+
+    this->_initEnv();
+    std::string interpreter = _serverConfig.getCgiInterpreter(_path);
+    if (interpreter.empty())
+    {
+        std::cerr << "No interpreter found for: " << _path << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    char *argv[] = {
+        const_cast<char *>(interpreter.c_str()),
+        const_cast<char *>(_path.c_str()),
+        NULL};
+
+    execve(interpreter.c_str(), argv, _env.data());
+
+    std::cerr << "execve failed: " << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
 }
 
 // TODO: fiks name
 void Cgi::lol()
 {
-    close(_pipeIn[0]);
-    close(_pipeOut[1]);
+    closeFd(&_pipeIn[0]);
+    closeFd(&_pipeOut[1]);
 
-    if (_request.getMethod() == "POST" && !_request.getBody().empty())
-        write(_pipeIn[1], _request.getBody().c_str(), _request.getBody().size());
+    if (_request.getMethod() == "POST")
+        this->_currentFunction = &Cgi::_writeInput;
+    else
+    {
+        closeFd(&_pipeIn[1]);
+        this->_currentFunction = &Cgi::_readOutput;
+    }
+    _isRunning = true; // TODO ?
+    // if (_request.getMethod() == "POST" && !_request.getBody().empty())
+    //     write(_pipeIn[1], _request.getBody().c_str(), _request.getBody().size());
 
-    close(_pipeIn[1]);
+    // close(_pipeIn[1]);
 
-    this->readOutput(); // TODO: naar eepol
-    int status;
-    waitpid(_pid, &status, 0);
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+    // this->readOutput(); // TODO: naar eepol
+    // int status;
+    // waitpid(_pid, &status, 0);
+    // if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+    //     _statusCode = 500;
+}
+
+bool Cgi::_isWriteDone(const std::string &body)
+{
+    if (_bytesWritten >= body.size())
+    {
+        closeFd(&_pipeIn[0]);
+
+        _currentFunction = &Cgi::_readOutput;
+        return true;
+    }
+    return false;
+}
+
+void Cgi::_writeInput()
+{
+    const std::string &body = _request.getBody();
+
+    if (_isWriteDone(body))
+        return;
+
+    ssize_t bytesToWrite = body.size() - _bytesWritten;
+    ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
+
+    if (written < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return; // more data to write
+        std::cerr << "CGI write error: " << strerror(errno) << std::endl;
         _statusCode = 500;
+        return;
+    }
+    _bytesWritten += written;
+    _isWriteDone(body);
+}
+
+void Cgi::_readOutput()
+{
+    char buffer[4096];
+    ssize_t bytesRead = read(_pipeOut[0], buffer, sizeof(buffer));
+
+    if (bytesRead < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return; // more data to read
+        std::cerr << "CGI read error: " << strerror(errno) << std::endl;
+        _statusCode = 500;
+        return;
+    }
+
+    if (bytesRead == 0)
+    {
+        closeFd(&_pipeOut[0]);
+        _finishCgi();
+        return;
+    }
+    _rawOutput.append(buffer, bytesRead);
+}
+
+void Cgi::_finishCgi()
+{
+    int status;
+    pid_t result = waitpid(_pid, &status, WNOHANG);
+
+    if (result > 0)
+    {
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+            _statusCode = 500;
+    }
+    // else if (result == 0) TODO Zombie
+    //     // save pis?
+    else
+        _statusCode = 500;
+    _isRunning = false;
 }
 
 void Cgi::startCgi()
 {
     if (!this->_checkAccess() ||
         !this->_initPipes() ||
+        !this->_makeNonBlocking() ||
         !this->_forkCgi())
         return;
 
     if (_pid == 0)
         this->_runCgi();
-    else
-        this->lol();
+    this->lol();
 }
+
+bool Cgi::processCgi()
+{
+    (this->*_currentFunction)();
+
+    if (_statusCode != 200)
+        return false;
+    return _isRunning;
+}
+
+/* server:
+if (!processCgi())
+{
+    handelr.procesCGi()
+    removeCgi();
+    return;
+}
+
+handelr.procesCGi()
+{
+    if (_statusCode != 200)
+        buildErrorPage();
+    else
+        buildCgiPage();
+}
+
+removeCgi()
+{
+    verijd uit eepl
+    verwijder cgi
+    verwijder map
+}
+*/

@@ -22,9 +22,24 @@ private:
     std::vector<char *> _env;
 
     int _statusCode;
+    bool _isRunning;
+
+    typedef void (Cgi::*ProcessFunction)(void);
+	ProcessFunction _currentFunction;
+
+    void _writeInput(void);
+    void _readOutput(void);
+
+    size_t _bytesWritten;
+    size_t _bytesRead;
+
+    void _finishCgi(void);
+
+    bool _isWriteDone(const std::string &body);
 
     bool _checkAccess(void);
     bool _initPipes(void);
+    bool _makeNonBlocking(void);
     bool _forkCgi(void);
 
     void _initEnv(void);
@@ -33,9 +48,10 @@ private:
 
 public:
     Cgi(const HTTPRequest &request, const ServerConfig &serverConfig);
+    ~Cgi();
 
-    void startCgi();
-    void readOutput();
+    void startCgi(void);
+    bool processCgi(void);
 
     int getStatusCode() const { return _statusCode; }
     const std::string &getBody() const { return _rawOutput; }

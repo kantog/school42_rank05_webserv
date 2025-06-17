@@ -10,6 +10,34 @@
 #include <cerrno>       // for errno
 #include <iostream>
 
+void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
+{
+	Cgi *cgi = connectionHandler->getCgi();
+	const int *fd = cgi->getCgiFds();
+
+	while (*fd)
+	{
+		this->_addFDToEpoll(*fd);
+		_cgis[*fd] = connectionHandler;
+		fd++;
+	}
+}
+
+void HTTPServer::_prossesCgi(ConnectionHandler *connectionHandler)
+{
+	Cgi *cgi = connectionHandler->getCgi();
+	if (cgi->processCgi())
+		return;
+	
+	// connectionHandler->sendCgiResponse();
+
+	// this->_removeFDFromEpoll(cgi->getCgiFds()[0]);
+	// this->_removeFDFromEpoll(cgi->getCgiFds()[1]);
+	// this->_removeFDFromEpoll(cgi->getCgiFds()[2]);
+
+	// verwijderen uit de map
+	delete cgi;
+}
 
 void HTTPServer::_createNewConnection(int fd)
 {
@@ -56,20 +84,35 @@ void HTTPServer::_setNewHandler(int newSocketFD)
 	_connAmount++;
 }
 
+ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd)
+{
+	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
+	if (it == _connectionHandlers.end())
+		return NULL;
+	return it->second;
+}
+
 void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
-	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
-	if (it == _connectionHandlers.end())
+	ConnectionHandler *connectionHandler = _getConnectionHandler(_cgis, connectionFd);
+	if (connectionHandler)
+	{
+		_prossesCgi(connectionHandler);
+		return;
+	}
+	connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
+	if (!connectionHandler)
 	{
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
 		return;
 	}
-	ConnectionHandler *connectionHandler = it->second;
 	connectionHandler->handleHTTP();
 
-	// if (connectionHandler->cgiIsRunning())
+	if (connectionHandler->isCgiRunning())
+		_addCgi(connectionHandler);
+
 		// for fd in connectionHandler.getFds()
 		// cgis.append (fd, handler);
 
@@ -153,10 +196,6 @@ void HTTPServer::start()
 
 			if (_isListeningSocket(fd))
 				_createNewConnection(fd);
-			// else if (_iscgiWriteable(fd))
-			// 	_cgiWrite(fd);
-			// else if (_isCgireadable(fd))
-			// 	_cgiRead(fd);
 			else
 			{
 				uint32_t events = localEpollEvents[i].events;

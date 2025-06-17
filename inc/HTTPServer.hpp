@@ -17,6 +17,8 @@ class HTTPServer
 		int _epollFD;
 		int _connAmount;
 		std::map<int, ConnectionHandler *> _connectionHandlers;
+		std::map<int, ConnectionHandler *> _cgis;
+
 		static const int _maxEpollEvents = 32;
 		bool _gotStopSignal;
 
@@ -34,6 +36,11 @@ class HTTPServer
 		bool _isListeningSocket(int fd);
 		void _setNewHandler(int newSocketFD);
 
+		ConnectionHandler *_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd);
+
+		void _addCgi(ConnectionHandler *connectionHandler);
+		void _prossesCgi(ConnectionHandler *connectionHandler);
+
 	public:
 		// HTTPServer(const MyConfig &_myConfig);
 		HTTPServer(); // test
@@ -45,4 +52,5 @@ class HTTPServer
 
 		void start();
 		void stop(int signal);
+
 };

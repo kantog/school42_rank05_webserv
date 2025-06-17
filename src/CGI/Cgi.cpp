@@ -263,8 +263,14 @@ void Cgi::lol()
     closeFd(&_pipeIn[0]);
     closeFd(&_pipeOut[1]);
 
+    _cgiFds[0] = _pipeOut[0];
+    _cgiFds[1] = 0;
+    _cgiFds[2] = 0;
     if (_request.getMethod() == "POST")
+    {
+        _cgiFds[1] = _pipeIn[1];
         this->_currentFunction = &Cgi::_writeInput;
+    }
     else
     {
         closeFd(&_pipeIn[1]);

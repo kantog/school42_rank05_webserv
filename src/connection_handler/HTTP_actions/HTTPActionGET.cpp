@@ -22,24 +22,6 @@ HTTPActionGET::~HTTPActionGET()
 {
 }
 
-
-/* TODO: fiks locatie
-	if (serverConfig.isAllowedCgi(path))
-	{
-		Cgi cgi(request, serverConfig);
-		cgi.startCgi();
-		int code = cgi.getStatusCode();
-		if (code != 200)
-		{
-			response.buildErrorPage(code, serverConfig.getErrorPagePath(code));
-			return;
-		}
-		response.buildCgiPage(cgi.getBody());
-	}
-	else
-		response.setBodyFromFile(path);
-*/
-
 void HTTPActionGET::_fetchFile(HTTPRequest &request,
 							   HTTPResponse &response,
 							   const ServerConfig &serverConfig)

@@ -18,6 +18,7 @@ private:
     int _pipeIn[2];
     int _pipeOut[2];
     int _pid;
+    int _cgiFds[3];
     std::vector<std::string> _envStrings;
     std::vector<char *> _env;
 
@@ -55,4 +56,5 @@ public:
 
     int getStatusCode() const { return _statusCode; }
     const std::string &getBody() const { return _rawOutput; }
+    const int *getCgiFds() const { return _cgiFds; }
 };

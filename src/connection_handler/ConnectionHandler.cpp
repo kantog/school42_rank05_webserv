@@ -16,7 +16,9 @@ ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd):
 	_HTTPAction(NULL),
 	_shouldClose(false),
 	_serverKey(serverKey),
-	_connectionSocketFD(fd)
+	_connectionSocketFD(fd),
+	_serverConfig(NULL),
+	_cgi(NULL)
 { }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other):
@@ -136,8 +138,12 @@ void ConnectionHandler::handleHTTP()
 
 	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//? niet nieuw maken 
 	_HTTPAction->run();
+	if (_HTTPAction->isCgiRunning())
+		_cgi = _HTTPAction->getCgi();
 	delete _HTTPAction;
 
+	if (this->_cgi)
+		return;
 
 	this->_sendResponse();
 

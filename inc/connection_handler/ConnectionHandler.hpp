@@ -6,6 +6,7 @@
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
 #include "HTTP_actions/HTTPAction.hpp"
+#include "Cgi.hpp"
 
 class	ConnectionHandler 
 {
@@ -20,6 +21,7 @@ class	ConnectionHandler
 		int _connectionSocketFD;
 		const ServerConfig *_serverConfig;
 
+		Cgi *_cgi;
 		// ConnectionHandler();
 		ConnectionHandler(const ConnectionHandler &other);
 		ConnectionHandler &operator=(const ConnectionHandler &other);
@@ -39,4 +41,7 @@ class	ConnectionHandler
 
 		void handleHTTP();
 		bool shouldClose();
+
+		bool isCgiRunning() { return (this->_cgi != NULL); }
+		Cgi *getCgi() { return (this->_cgi); }
 };

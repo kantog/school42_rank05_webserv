@@ -2,6 +2,7 @@
 #pragma once 
 
 #include "MethodRegistry.hpp"
+#include "Cgi.hpp"
 #include <exception>
 #include <string>
 #include <vector>
@@ -13,7 +14,8 @@ class SessionManager;
 class ErrorManager;
 
 
-class	HTTPAction {
+class	HTTPAction
+{
 	private:
 		HTTPAction(); 
 
@@ -23,6 +25,8 @@ class	HTTPAction {
 		MethodRegistry _methodRegistry;
 		// SessionManager &_sessionManager //TODO: 
 		// ErrorManager &_errorManager //TODO;
+
+		Cgi *_cgi; // BASILL
 
 	public:
 		HTTPAction(HTTPRequest & _request, 
@@ -34,4 +38,7 @@ class	HTTPAction {
 		// void sessionManager();//TODO: wat moet dit doen? 
 		// void generateErrorResponse(int errorCode);//sets status code and body and returns
 		void run();
+
+		bool isCgiRunning();
+		Cgi *getCgi();
 };

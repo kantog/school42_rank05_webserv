@@ -29,13 +29,12 @@ void HTTPServer::_prossesCgi(ConnectionHandler *connectionHandler)
 	if (cgi->processCgi())
 		return;
 	
-	// connectionHandler->sendCgiResponse();
+	connectionHandler->sendCgiResponse();
 
-	// this->_removeFDFromEpoll(cgi->getCgiFds()[0]);
-	// this->_removeFDFromEpoll(cgi->getCgiFds()[1]);
-	// this->_removeFDFromEpoll(cgi->getCgiFds()[2]);
-
-	// verwijderen uit de map
+	const int *fd = cgi->getCgiFds();
+	this->_closeConnection(_cgis, fd[0]);
+	if (fd[1])
+		this->_closeConnection(_cgis, fd[1]);
 	delete cgi;
 }
 
@@ -87,7 +86,7 @@ void HTTPServer::_setNewHandler(int newSocketFD)
 ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd)
 {
 	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
-	if (it == _connectionHandlers.end())
+	if (it == map.end())
 		return NULL;
 	return it->second;
 }
@@ -113,12 +112,9 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);
 
-		// for fd in connectionHandler.getFds()
-		// cgis.append (fd, handler);
-
 	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
-		_closeConnection(connectionFd);
+		_closeConnection(_connectionHandlers, connectionFd);
 }
 
 /*
@@ -137,19 +133,21 @@ handleCgi(fd)
 
 */
 
-void HTTPServer::_closeConnection(int connectionFd)
+void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
 {
-	epoll_ctl(_epollFD, EPOLL_CTL_DEL, connectionFd, NULL);
+	epoll_ctl(_epollFD, EPOLL_CTL_DEL, fd, NULL);
 
-	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
-	if (it != _connectionHandlers.end())
+	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
+	if (it != map.end())
 	{
-		delete it->second;
-		_connectionHandlers.erase(it);
-		_connAmount--;
+		map.erase(it);
+		if (map == _connectionHandlers)
+		{
+			_connAmount--;
+			delete it->second;
+			std::cout << "Connection " << fd << " closed" << std::endl;
+		}
 	}
-
-	std::cout << "Connection " << connectionFd << " closed" << std::endl;
 }
 
 bool HTTPServer::_isListeningSocket(int fd)
@@ -166,8 +164,14 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
+        ConnectionHandler* cgiHandler = _getConnectionHandler(_cgis, fd);
+        if (cgiHandler)
+		{
+            _prossesCgi(cgiHandler);
+            return;
+        }
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
-		_closeConnection(fd);
+		_closeConnection(_connectionHandlers, fd);
 	}
 	else if (events & EPOLLIN)
 	{

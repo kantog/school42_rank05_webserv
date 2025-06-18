@@ -149,3 +149,10 @@ void ConnectionHandler::handleHTTP()
 
 	this->_request.reset(); // TODO ?
 }
+
+void ConnectionHandler::sendCgiResponse()
+{
+	this->_response.buildCgiPage(_cgi->getBody());
+	this->_sendResponse();
+	_cgi = NULL;
+}

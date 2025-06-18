@@ -40,6 +40,7 @@ class	ConnectionHandler
 		~ConnectionHandler();
 
 		void handleHTTP();
+		void sendCgiResponse();
 		bool shouldClose();
 
 		bool isCgiRunning() { return (this->_cgi != NULL); }

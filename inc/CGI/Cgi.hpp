@@ -45,7 +45,7 @@ private:
 
     void _initEnv(void);
     void _runCgi(void);
-    void lol(void);
+    void _setupParentPipes(void);
 
 public:
     Cgi(const HTTPRequest &request, const ServerConfig &serverConfig);

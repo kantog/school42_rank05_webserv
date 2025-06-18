@@ -30,7 +30,7 @@ class HTTPServer
 		int _makeNewListeningSocket(const std::string &ip, const std::string &port);
 		
 		void _createNewConnection(int fd);
-		void _closeConnection(int connectionFd);
+		void _closeConnection(std::map<int, ConnectionHandler *> &map, int fd);
 		void _delegateToConnectionHandler(int connectionFd);
 		void _handleConnectionEvent(int connectionFd, uint32_t events);
 		bool _isListeningSocket(int fd);

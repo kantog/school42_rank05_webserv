@@ -119,6 +119,7 @@ Cgi::Cgi(const HTTPRequest &request, const ServerConfig &serverConfig) : _reques
     _pipeOut[1] = -1;
     _pid = -1;
     _isRunning = false;
+    _bytesWritten = 0;
 }
 
 Cgi::~Cgi()
@@ -140,6 +141,24 @@ Cgi::~Cgi()
         waitpid(_pid, &status, 0); // Wait for it to die
     }
     _pid = -1;
+
+    of 
+        if (_pid > 0) {
+        kill(_pid, SIGTERM);  // Try graceful termination first
+        
+        // Give it a moment to terminate gracefully
+        int status;
+        struct timespec ts = {0, 100000000}; // 100ms
+        nanosleep(&ts, NULL);
+        
+        if (waitpid(_pid, &status, WNOHANG) == 0) {
+            // Still running, force kill
+            kill(_pid, SIGKILL);
+            waitpid(_pid, &status, 0);
+        }
+        _pid = -1;
+    }
+}
     */
 }
 
@@ -258,7 +277,7 @@ void Cgi::_runCgi()
 }
 
 // TODO: fiks name
-void Cgi::lol()
+void Cgi::_setupParentPipes()
 {
     closeFd(&_pipeIn[0]);
     closeFd(&_pipeOut[1]);
@@ -293,8 +312,7 @@ bool Cgi::_isWriteDone(const std::string &body)
 {
     if (_bytesWritten >= body.size())
     {
-        closeFd(&_pipeIn[0]);
-
+        closeFd(&_pipeIn[1]);
         _currentFunction = &Cgi::_readOutput;
         return true;
     }
@@ -317,6 +335,8 @@ void Cgi::_writeInput()
             return; // more data to write
         std::cerr << "CGI write error: " << strerror(errno) << std::endl;
         _statusCode = 500;
+        closeFd(&_pipeIn[1]);
+        _currentFunction = &Cgi::_readOutput;
         return;
     }
     _bytesWritten += written;
@@ -334,6 +354,8 @@ void Cgi::_readOutput()
             return; // more data to read
         std::cerr << "CGI read error: " << strerror(errno) << std::endl;
         _statusCode = 500;
+        closeFd(&_pipeOut[0]);
+        _finishCgi();
         return;
     }
 
@@ -357,7 +379,7 @@ void Cgi::_finishCgi()
             _statusCode = 500;
     }
     // else if (result == 0) TODO Zombie
-    //     // save pis?
+    //     // save pids?
     else
         _statusCode = 500;
     _isRunning = false;
@@ -373,7 +395,15 @@ void Cgi::startCgi()
 
     if (_pid == 0)
         this->_runCgi();
-    this->lol();
+
+    int status;
+    if (waitpid(_pid, &status, WNOHANG) > 0)
+    {
+        _statusCode = 500;
+        return;
+    }
+
+    this->_setupParentPipes();
 }
 
 bool Cgi::processCgi()

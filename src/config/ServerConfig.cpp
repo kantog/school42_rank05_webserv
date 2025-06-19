@@ -74,22 +74,23 @@ std::string ServerConfig::getServerKey(void) const
     return ss.str();
 }
 
-const std::string ServerConfig::getPath(void) const
-{
-	//TODO: welk path komt overeen met een location?
-    if (_curentRoute->root != "")
-        return "." + _curentRoute->root;
-    return "." + this->root;
+std::string ServerConfig::getFullFilesystemPath(const std::string &requestPath) const
+{    
+    Path documentRoot = getDocumentRoot();
+    Path request(requestPath);
+    Path routePath(_curentRoute->path);
+    
+    Path relativePath = request.removePrefix(routePath);
+    Path fullPath = documentRoot.join(relativePath);    
+    return fullPath.makeRelative().toString();
 }
 
-std::string ServerConfig::getFullPath(const std::string &path) const
+Path ServerConfig::getDocumentRoot(void) const
 {
-    /* TODO
-        Define a directory or file where the requested file should be located (e.g.,
-        if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
-        /tmp/www/pouic/toto/pouet).
-    */
-    return getPath() + path;
+    if (!_curentRoute->root.empty()) {
+        return Path(_curentRoute->root);
+    }
+    return Path(this->root);
 }
 
 size_t ServerConfig::getClientMaxBodySize(void) const

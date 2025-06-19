@@ -27,7 +27,7 @@ void HTTPActionGET::_checkForIndexFiles(HTTPResponse & response,
 		response.reset();
 		response //index file not found 
 			.setBodyFromFile(serverConfig
-					.getFullPath("/" + *it));
+					.getFullFilesystemPath(*it));
 		if (response.getStatusCode() == 200)
 			break ;
 	}
@@ -37,7 +37,7 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 							   HTTPResponse &response,
 							   const ServerConfig &serverConfig)
 {
-	std::string filePath = serverConfig.getFullPath(request.getRequestTarget());
+	std::string filePath = serverConfig.getFullFilesystemPath(request.getRequestTarget());
 
 	struct stat fileInfo; 
 	if (stat(filePath.c_str(), &fileInfo) == -1)
@@ -52,7 +52,7 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 			this->_checkForIndexFiles(response, serverConfig);
 		if (serverConfig.getCurentRoute().isDirectoryListing)
 		{
-			response.buildDirectoryPage(serverConfig.getFullPath(
+			response.buildDirectoryPage(serverConfig.getFullFilesystemPath(
 						serverConfig.getCurentRoute().path));
 		}
 	}

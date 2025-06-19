@@ -24,7 +24,7 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 		return ;
 	}
 
-	std::ofstream fileToPost(serverConfig.getFullPath(request.getRequestTarget()).c_str());// die . gwn in ReqTarget zetten?
+	std::ofstream fileToPost(serverConfig.getFullFilesystemPath(request.getRequestTarget()).c_str());// die . gwn in ReqTarget zetten?
 	if (!fileToPost.is_open())
 	{
 		std::cerr << "Error: couldn't open file" << std::endl;

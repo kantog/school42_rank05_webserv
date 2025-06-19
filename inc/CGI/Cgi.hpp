@@ -32,7 +32,6 @@ private:
     void _readOutput(void);
 
     size_t _bytesWritten;
-    size_t _bytesRead;
 
     void _finishCgi(void);
 

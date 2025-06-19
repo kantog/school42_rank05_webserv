@@ -177,7 +177,7 @@ std::string HTTPResponse::_createDirString(const std::string &directoryPath,
 	std::string bodyToSet = "\n";
 
 	DIR *directory = opendir(directoryPath.c_str());
-	std::cout << "dir Path: " << directoryPath << std::endl;//test
+	// std::cout << "dir Path: " << directoryPath << std::endl;//test
 	if (!directory)
 		throw std::runtime_error("Error: couldn't open directory");
 
@@ -197,10 +197,10 @@ std::string HTTPResponse::_createDirString(const std::string &directoryPath,
 				&& static_cast<std::string>(directoryInfo->d_name) != "..")
 		{
 			bodyToSet.append(appendString);
-			bodyToSet.append(directoryInfo->d_name);//test
-			// bodyToSet.append("<a href=\"" 
-			// 		+ directoryPath + directoryInfo->d_name + "\">" 
-			// 		+ directoryInfo->d_name + "</a>");
+	        // bodyToSet.append(directoryInfo->d_name);//test
+			bodyToSet.append("<a href=\"" 
+					+ directoryPath + directoryInfo->d_name + "\">" 
+					+ directoryInfo->d_name + "</a>");
 			bodyToSet.append("\n");
 		}
 		directoryInfo = readdir(directory);
@@ -210,7 +210,7 @@ std::string HTTPResponse::_createDirString(const std::string &directoryPath,
 	if (errorCode == -1)
 		throw std::runtime_error("Error while closing directory");
 
-	std::cout << "body to set:" << bodyToSet << std::endl;//test
+	// std::cout << "body to set:" << bodyToSet << std::endl;//test
 	return (bodyToSet);
 }
 
@@ -229,11 +229,6 @@ void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
 	buildResponse();
 }
 
-void HTTPResponse::buildDirectoryPage(const std::string &filePath)
-{
-    (void)filePath;
-    // TODO opendir, readdir and closedir.
-}
 void HTTPResponse::buildCgiPage(const std::string &cgiString)
 {
     std::string headers;

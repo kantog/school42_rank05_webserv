@@ -150,7 +150,7 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
     // vb /cgi-bin/script.py/extra.v1/info?foo=bar&name=jan
     ServerConfig const *serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
     serverConfig->setCorectRoute(this->_rawPath);
-    std::string prefix = serverConfig->getPath();
+    Path prefix = serverConfig->getDocumentRoot();
     std::string striptPath = _rawPath;
 
     size_t queryPos = _rawPath.find('?');
@@ -161,7 +161,7 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
     }
 
     _pathInfo = "/";
-    if (access((prefix + striptPath).c_str(), F_OK) == 0)
+    if (access((prefix + striptPath).makeRelative().c_str(), F_OK) == 0)
         _requestTarget = striptPath;
     else
     {
@@ -174,7 +174,6 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
                 {
                     _pathInfo = striptPath.substr(i);
                     break;
-                    ;
                 }
             }
         }

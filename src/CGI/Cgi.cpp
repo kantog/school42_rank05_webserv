@@ -38,7 +38,7 @@ Cgi::Cgi(const HTTPRequest &request, const ServerConfig &serverConfig) : _reques
                                                                          _serverConfig(serverConfig),
                                                                          _statusCode(200)
 {
-    _path = _serverConfig.getFullPath(_request.getRequestTarget());
+    _path = _serverConfig.getFullFilesystemPath(_request.getRequestTarget());
     _pipeIn[0] = -1;
     _pipeIn[1] = -1;
     _pipeOut[0] = -1;

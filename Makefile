@@ -22,6 +22,7 @@ endif
 # Lijst van alle bronbestanden mét hun submappen
 SRCS = \
 	src/main.cpp \
+	src/Path.cpp \
 	src/Server/HTPPServerInit.cpp \
 	src/Server/HTTPServer.cpp \
 	src/connection_handler/ConnectionHandler.cpp \

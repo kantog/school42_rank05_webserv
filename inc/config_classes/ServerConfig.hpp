@@ -1,6 +1,8 @@
 
 # pragma once
 
+#include "Path.hpp"
+
 #include <string>
 #include <vector>
 #include <map>
@@ -47,12 +49,18 @@ class ServerConfig
 		bool isReturn(void) const;
 
 		// const std::string &getCurentRoutePath(void) const { return _curentRoutePath; }
-		const Route &getCurentRoute(void) const { return *_curentRoute; }
+		const Route &getCurentRoute(void) const { return *_curentRoute; };
+
+		std::string getFullFilesystemPath(const std::string &requestPath) const;
+		// std::string getFullFilesystemPath(const Path &requestPath) const;
+		// Path getFullFilesystemPath(const std::string &requestPath) const;
+		// Path getFullFilesystemPath(const Path &requestPath) const;
+
+		Path getDocumentRoot(void) const;
+
 
 		std::string getServerKey(void) const;
-		std::string getFullPath(const std::string &path) const;
 		const std::string getCgiInterpreter(const std::string &fullPath) const;
 		const std::string getErrorPagePath(int code) const;
-		const std::string getPath(void) const;
 		size_t getClientMaxBodySize(void) const;
 };

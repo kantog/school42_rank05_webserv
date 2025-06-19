@@ -22,7 +22,7 @@ void HTTPActionDEL::implementMethod(HTTPRequest &request,
 		return;
 	}
 	errno = 0;
-	int exitCode = std::remove(serverConfig.getFullPath(request.getRequestTarget()).c_str());
+	int exitCode = std::remove(serverConfig.getFullFilesystemPath(request.getRequestTarget()).c_str());
 	if (exitCode != 0)
 	{
 		switch (errno)

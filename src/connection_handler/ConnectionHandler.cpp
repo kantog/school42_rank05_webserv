@@ -136,7 +136,7 @@ void ConnectionHandler::handleHTTP()
 
 	_response.reset();
 
-	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//? niet nieuw maken 
+	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//TODO:? niet nieuw maken 
 	_HTTPAction->run();
 	if (_HTTPAction->isCgiRunning())
 		_cgi = _HTTPAction->getCgi();
@@ -155,4 +155,5 @@ void ConnectionHandler::sendCgiResponse()
 	this->_response.buildCgiPage(_cgi->getBody());
 	this->_sendResponse();
 	_cgi = NULL;
+	this->_request.reset(); // TODO ?
 }

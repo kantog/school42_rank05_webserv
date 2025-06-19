@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CGI Form (POST)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Run CGI via formulier (POST)</h1>
-  <form action="/slow.py" method="post">
-    <input type="text" name="name" placeholder="Typ je naam">
-    <button type="submit">Verstuur</button>
-  </form>
+  <nav>
+    <ul>
+      <li><a href="get.html">GET Formulier</a></li>
+      <li><a href="post.html" class="active">POST Formulier</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>Voer je naam in (POST)</h1>
+    <form action="/slow.py" method="post" class="form">
+      <input type="text" name="name" placeholder="Typ je naam" required />
+      <button type="submit">Verstuur</button>
+    </form>
+  </main>
 </body>
 </html>

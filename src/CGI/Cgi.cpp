@@ -142,15 +142,15 @@ Cgi::~Cgi()
     }
     _pid = -1;
 
-    of 
+    of
         if (_pid > 0) {
         kill(_pid, SIGTERM);  // Try graceful termination first
-        
+
         // Give it a moment to terminate gracefully
         int status;
         struct timespec ts = {0, 100000000}; // 100ms
         nanosleep(&ts, NULL);
-        
+
         if (waitpid(_pid, &status, WNOHANG) == 0) {
             // Still running, force kill
             kill(_pid, SIGKILL);
@@ -287,8 +287,27 @@ void Cgi::_setupParentPipes()
     _cgiFds[2] = 0;
     if (_request.getMethod() == "POST")
     {
-        _cgiFds[1] = _pipeIn[1];
-        this->_currentFunction = &Cgi::_writeInput;
+        const std::string &body = _request.getBody();
+        if (body.size() <= 4096)
+        {
+            ssize_t written = write(_pipeIn[1], body.c_str(), body.size());
+            if (written == static_cast<ssize_t>(body.size()))
+            {
+                closeFd(&_pipeIn[1]);
+                this->_currentFunction = &Cgi::_readOutput;
+            }
+            else
+            {
+                _cgiFds[1] = _pipeIn[1];
+                _bytesWritten = (written > 0) ? written : 0;
+                this->_currentFunction = &Cgi::_writeInput;
+            }
+        }
+        else
+        {
+            _cgiFds[1] = _pipeIn[1];
+            this->_currentFunction = &Cgi::_writeInput;
+        }
     }
     else
     {
@@ -326,9 +345,20 @@ void Cgi::_writeInput()
     if (_isWriteDone(body))
         return;
 
-    ssize_t bytesToWrite = body.size() - _bytesWritten;
-    ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
+    int status;
+    if (waitpid(_pid, &status, WNOHANG) > 0)
+    {
+        std::cerr << "CGI child process died before we could write all data" << std::endl;
+        _statusCode = 500;
+        closeFd(&_pipeIn[1]);
+        _currentFunction = &Cgi::_readOutput;
+        return;
+    }
 
+    ssize_t bytesToWrite = body.size() - _bytesWritten;
+    std::cout << "bytesToWrite: " << bytesToWrite << " to " << _pipeIn[1] << std::endl;
+    ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
+    std::cout << "written: " << body << std::endl;
     if (written < 0)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -361,11 +391,14 @@ void Cgi::_readOutput()
 
     if (bytesRead == 0)
     {
+        std::cout << "CGI finished, total output: " << _rawOutput.size() << " bytes" << std::endl;
         closeFd(&_pipeOut[0]);
         _finishCgi();
         return;
     }
+    std::cout << "Read " << bytesRead << " bytes from CGI" << std::endl;
     _rawOutput.append(buffer, bytesRead);
+    std::cout << "CGI output so far: [" << _rawOutput << "]" << std::endl;
 }
 
 void Cgi::_finishCgi()

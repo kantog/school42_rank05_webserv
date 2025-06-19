@@ -1,10 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CGI Test (GET)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #0077cc;
+      padding: 1rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      margin: 0 15px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: #ffdd57;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 50px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>Start CGI via GET</h1>
-  <a href="slow.py/extra.v1/info?foo=bar&name=jan">Run sleep CGI</a>
+  <nav>
+    <ul>
+      <li><a href="get.html">GET Formulier</a></li>
+      <li><a href="post.html">POST Formulier</a></li>
+    </ul>
+  </nav>
+
+  <h1>Welkom bij de CGI Testpagina</h1>
 </body>
 </html>

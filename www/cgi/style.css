@@ -1,0 +1,77 @@
+/* Algemene styling */
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+  
+  main {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  /* Navigatie */
+  nav {
+    background-color: #0077cc;
+    padding: 1rem;
+  }
+  
+  nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+  }
+  
+  nav li {
+    margin: 0 15px;
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  nav a:hover,
+  nav a.active {
+    background-color: #005fa3;
+  }
+  
+  /* Formulier */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  
+  .form input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .form button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .form button:hover {
+    background-color: #005fa3;
+  }
+  

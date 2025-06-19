@@ -8,7 +8,7 @@ time.sleep(10)  # Simuleer trage CGI
 print("Content-Type: text/html\n")
 
 print("<html><body>")
-print("<h1>Start...</h1>")
+print("<h1>Start... form python</h1>")
 method = os.environ.get("REQUEST_METHOD", "")
 
 if method == "GET":

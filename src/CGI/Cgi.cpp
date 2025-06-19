@@ -19,80 +19,6 @@
 #include <sys/stat.h>
 // TODO: check list
 
-/*
-| Variable          | Betekenis                                                                     |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `REQUEST_METHOD`  | HTTP-method, zoals `GET` of `POST`                                            |
-| `QUERY_STRING`    | Alles na `?` in de URL, bv `name=John&age=22`                                 |
-| `CONTENT_TYPE`    | Voor POST: bijv. `application/x-www-form-urlencoded` of `multipart/form-data` |
-| `CONTENT_LENGTH`  | Lengte van de body (voor POST/PUT)                                            |
-| `SCRIPT_FILENAME` | Volledig pad naar het script op de schijf                                     |
-| `PATH_INFO`       | Deel van URL na het script pad                                                |
-| `SERVER_PROTOCOL` | Protocol zoals `HTTP/1.1`                                                     |
-| `HTTP_HOST`       | Hostnaam uit de request header                                                |
-| `HTTP_USER_AGENT` | User-Agent header van de client                                               |
-| `HTTP_COOKIE`     | Cookies van de client                                                         |
-| `REMOTE_ADDR`     | IP van de client                                                              |
-
-
-📦 Voorbeeld: GET request naar /cgi/test.py/foo/bar?name=jan
-Stel je configuratie zegt:
-
-conf
-Kopiëren
-Bewerken
-location /cgi {
-    root /home/user/webroot;
-    cgi_extension .py /usr/bin/python3;
-}
-Request:
-
-pgsql
-Kopiëren
-Bewerken
-GET /cgi/test.py/foo/bar?name=jan HTTP/1.1
-Host: localhost:8080
-User-Agent: curl/7.79.1
-Jouw server moet het CGI-script /home/user/webroot/test.py starten en deze environment meegeven:
-
-env
-Kopiëren
-Bewerken
-REQUEST_METHOD=GET
-QUERY_STRING=name=jan
-CONTENT_LENGTH=
-CONTENT_TYPE=
-SCRIPT_FILENAME=/home/user/webroot/test.py
-PATH_INFO=/foo/bar
-SERVER_PROTOCOL=HTTP/1.1
-HTTP_HOST=localhost:8080
-HTTP_USER_AGENT=curl/7.79.1
-🧪 Voorbeeld: POST request met form
-Request:
-
-makefile
-Kopiëren
-Bewerken
-POST /cgi/upload.php HTTP/1.1
-Host: localhost
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 20
-
-name=jan&city=gent
-Dan stel je in:
-
-env
-Kopiëren
-Bewerken
-REQUEST_METHOD=POST
-CONTENT_TYPE=application/x-www-form-urlencoded
-CONTENT_LENGTH=20
-SCRIPT_FILENAME=/home/user/webroot/upload.php
-PATH_INFO=
-SERVER_PROTOCOL=HTTP/1.1
-HTTP_HOST=localhost
-En de POST-body (name=jan&city=gent) stuur je via stdin naar het CGI-proces.
-*/
 
 static void closeFd(int *fd)
 {
@@ -168,23 +94,23 @@ bool Cgi::_checkAccess()
     if (stat(_path.c_str(), &sb) == 0)
     {
         if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
-            _statusCode = 200;
+            _statusCode = 200; 
         else
-            _statusCode = 403;
+            _statusCode = 403; // script not executable
     }
     else
-        _statusCode = 404;
+        _statusCode = 404; // script not found
     return _statusCode == 200;
 }
 
 bool Cgi::_initPipes()
 {
     if (pipe(_pipeIn) < 0)
-        _statusCode = 500;
+        _statusCode = 500;  // internal error
     if (pipe(_pipeOut) < 0)
     {
         closePipe(_pipeIn);
-        _statusCode = 500;
+        _statusCode = 500; // internal error
     }
     return _statusCode == 200;
 }
@@ -193,7 +119,7 @@ bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
-        _statusCode = 500;
+        _statusCode = 500;  // internal error // TODO: defins maken
     return _statusCode == 200;
 }
 
@@ -207,16 +133,19 @@ bool Cgi::_forkCgi()
 
 void Cgi::_initEnv()
 {
-    // TODO: check list
-    // TODO: coocies
+    // TODO: sanitization?
+    _envStrings.push_back("HTTP_COOKIE=" + _request.getHeader("Cookie"));
     _envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
     _envStrings.push_back("REQUEST_METHOD=" + _request.getMethod());
     _envStrings.push_back("SERVER_PROTOCOL=" + _request.getVersion());
     _envStrings.push_back("SCRIPT_FILENAME=" + _request.getRequestFile());
     _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
-
+    _envStrings.push_back("SERVER_NAME=" + _request.getHeader("Host"));
     _envStrings.push_back("HTTP_HOST=" + _request.getHeader("Host"));
+    _envStrings.push_back("SERVER_PORT=" + _serverConfig.port);
+    _envStrings.push_back("REMOTE_ADDR=" + _serverConfig.host);
     _envStrings.push_back("HTTP_USER_AGENT=" + _request.getHeader("User-Agent"));
+    _envStrings.push_back("HTTP_ACCEPT=" + _request.getHeader("Accept"));
 
     if (_request.getMethod() == "GET")
     {
@@ -260,7 +189,7 @@ void Cgi::_runCgi()
 
     this->_initEnv();
     std::string interpreter = _serverConfig.getCgiInterpreter(_path);
-    if (interpreter.empty())
+    if (interpreter.empty()) // normally this should never happen
     {
         std::cerr << "No interpreter found for: " << _path << std::endl;
         exit(EXIT_FAILURE);
@@ -276,7 +205,6 @@ void Cgi::_runCgi()
     exit(EXIT_FAILURE);
 }
 
-// TODO: fiks name
 void Cgi::_setupParentPipes()
 {
     closeFd(&_pipeIn[0]);
@@ -291,7 +219,7 @@ void Cgi::_setupParentPipes()
         if (body.size() <= 4096)
         {
             ssize_t written = write(_pipeIn[1], body.c_str(), body.size());
-            if (written == static_cast<ssize_t>(body.size()))
+            if (written == static_cast<ssize_t>(body.size())) // everything written
             {
                 closeFd(&_pipeIn[1]);
                 this->_currentFunction = &Cgi::_readOutput;
@@ -314,17 +242,7 @@ void Cgi::_setupParentPipes()
         closeFd(&_pipeIn[1]);
         this->_currentFunction = &Cgi::_readOutput;
     }
-    _isRunning = true; // TODO ?
-    // if (_request.getMethod() == "POST" && !_request.getBody().empty())
-    //     write(_pipeIn[1], _request.getBody().c_str(), _request.getBody().size());
-
-    // close(_pipeIn[1]);
-
-    // this->readOutput(); // TODO: naar eepol
-    // int status;
-    // waitpid(_pid, &status, 0);
-    // if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-    //     _statusCode = 500;
+    _isRunning = true;
 }
 
 bool Cgi::_isWriteDone(const std::string &body)
@@ -356,9 +274,7 @@ void Cgi::_writeInput()
     }
 
     ssize_t bytesToWrite = body.size() - _bytesWritten;
-    std::cout << "bytesToWrite: " << bytesToWrite << " to " << _pipeIn[1] << std::endl;
     ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
-    std::cout << "written: " << body << std::endl;
     if (written < 0)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -391,14 +307,11 @@ void Cgi::_readOutput()
 
     if (bytesRead == 0)
     {
-        std::cout << "CGI finished, total output: " << _rawOutput.size() << " bytes" << std::endl;
         closeFd(&_pipeOut[0]);
         _finishCgi();
         return;
     }
-    std::cout << "Read " << bytesRead << " bytes from CGI" << std::endl;
     _rawOutput.append(buffer, bytesRead);
-    std::cout << "CGI output so far: [" << _rawOutput << "]" << std::endl;
 }
 
 void Cgi::_finishCgi()
@@ -406,14 +319,15 @@ void Cgi::_finishCgi()
     int status;
     pid_t result = waitpid(_pid, &status, WNOHANG);
 
-    if (result > 0)
+    if (result > 0) // child is done
     {
+        // if (!normal exit || exit code != 0)
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
             _statusCode = 500;
     }
     // else if (result == 0) TODO Zombie
     //     // save pids?
-    else
+    else // error
         _statusCode = 500;
     _isRunning = false;
 }
@@ -429,7 +343,7 @@ void Cgi::startCgi()
     if (_pid == 0)
         this->_runCgi();
 
-    int status;
+    int status; // if child is all dead
     if (waitpid(_pid, &status, WNOHANG) > 0)
     {
         _statusCode = 500;
@@ -446,28 +360,4 @@ bool Cgi::processCgi()
     if (_statusCode != 200)
         return false;
     return _isRunning;
-}
-
-/* server:
-if (!processCgi())
-{
-    handelr.procesCGi()
-    removeCgi();
-    return;
-}
-
-handelr.procesCGi()
-{
-    if (_statusCode != 200)
-        buildErrorPage();
-    else
-        buildCgiPage();
-}
-
-removeCgi()
-{
-    verijd uit eepl
-    verwijder cgi
-    verwijder map
-}
-*/
+}  // TODO check if child crashed

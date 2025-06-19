@@ -202,7 +202,7 @@ int HTTPServer::_makeNewListeningSocket(const std::string &ip, const std::string
         throw std::runtime_error("Error: Failed to bind to any address");
     }
 
-std::cout << "Listening on http://" << (ip.empty() ? "0.0.0.0" : ip) << ":" << port << std::endl;
+    std::cout << "Listening on http://" << (ip.empty() ? "0.0.0.0" : ip) << ":" << port << std::endl;
 
     _startListening(socketFD);
     return socketFD;

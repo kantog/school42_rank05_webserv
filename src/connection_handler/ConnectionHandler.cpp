@@ -44,7 +44,7 @@ int ConnectionHandler::_getConnectionSocketFD()
 	return (_connectionSocketFD);
 }
 
-void ConnectionHandler::_handleErrorRecv(int bytesRead, bool dataReceived)
+void ConnectionHandler::_handleErrorRecv(int bytesRead)
 {
 	if (bytesRead == 0) 
 	{
@@ -54,11 +54,7 @@ void ConnectionHandler::_handleErrorRecv(int bytesRead, bool dataReceived)
 	}
 	// bytesRead == -1
 	if (errno == EAGAIN || errno == EWOULDBLOCK) 
-	{
-		if (dataReceived) 
-			std::cout << "Partial request received, waiting for more data..." << std::endl;
 		return;
-	}
 	std::cerr << "Error reading from socket " << _connectionSocketFD 
 		<< ": " << strerror(errno) << std::endl;
 	_shouldClose = true;
@@ -70,7 +66,6 @@ void ConnectionHandler::_createRequest()
 	//    const size_t bufferSize = 10;
 	const size_t bufferSize = 4096;
 	char buffer[bufferSize];
-	bool dataReceived = false;
 
 	while (true) 
 	{
@@ -80,17 +75,13 @@ void ConnectionHandler::_createRequest()
 		{
 			buffer[bytesRead] = '\0';
 			_request.parseRequest(buffer, _serverKey);
-			dataReceived = true;
 
 			if (_request.isComplete()) 
-			{
-				std::cout << "Complete HTTP request received!" << std::endl;
 				return;
-			}
 		}
 		else
 		{
-			this->_handleErrorRecv(bytesRead, dataReceived);
+			this->_handleErrorRecv(bytesRead);
 			return;
 		}
 	}
@@ -98,6 +89,9 @@ void ConnectionHandler::_createRequest()
 
 void ConnectionHandler::_sendResponse()
 {
+
+	std::cout << _request.getMethod() << " " <<  _request.getRawPath() << ": " << _response.getStatusCode() << std::endl;
+ 
 	const std::string &responseString = _response.getResponseString();
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test
@@ -128,6 +122,9 @@ void ConnectionHandler::_setServerConfig()
 
 void ConnectionHandler::handleHTTP()
 {
+	if (this->_cgi) // TODO: leze niks mee doen?
+		return;
+
 	this->_createRequest();
 	if (!this->_request.isComplete())
 		return;
@@ -135,6 +132,7 @@ void ConnectionHandler::handleHTTP()
 	this->_setServerConfig();
 
 	_response.reset();
+	_response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig);//TODO:? niet nieuw maken 
 	_HTTPAction->run();
@@ -152,6 +150,7 @@ void ConnectionHandler::handleHTTP()
 
 void ConnectionHandler::sendCgiResponse()
 {
+	// TODO: error checking
 	this->_response.buildCgiPage(_cgi->getBody());
 	this->_sendResponse();
 	_cgi = NULL;

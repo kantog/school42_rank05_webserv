@@ -85,3 +85,5 @@ aclean: fclean
 re: fclean all
 
 .PHONY: all clean fclean re aclean obj
+
+# TODO: make toont niks van al set 

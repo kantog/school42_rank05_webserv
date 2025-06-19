@@ -33,7 +33,7 @@ class	ConnectionHandler
 		void _sendResponse();
 		void _setServerConfig();
 
-		void _handleErrorRecv(int bytesRead, bool dataReceived);
+		void _handleErrorRecv(int bytesRead);
 
 	public:
 		ConnectionHandler(std::string &serverKey, int fd);

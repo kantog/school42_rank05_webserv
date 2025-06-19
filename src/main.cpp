@@ -17,9 +17,12 @@ int main(int argc, char **argv)
 {
     try
     {
-        // TODO: all erro trow, lijst prineten met wat wel mag
+        // TODO: als eror trow, lijst prineten met wat wel mag
         if (argc > 1)
+        {
             MyConfig::get(argv[1]); // TODO: check if file exists ? .conf?
+            std::cout << "Using config file " << argv[1] << std::endl;
+        }
         else
         {
             std::cout << "Using default config file" << std::endl;

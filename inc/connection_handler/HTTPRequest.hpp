@@ -60,6 +60,7 @@ public:
 	const std::string &getQuery() const;
 	const std::string &getVersion() const;
 	const std::string &getRequestFile() const;
+	const std::string &getRawPath() const;
 
 	void reset();
 	bool hasCloseHeader() const; // TODO: ?

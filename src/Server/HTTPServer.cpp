@@ -12,7 +12,7 @@
 
 void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
 {
-	Cgi *cgi = connectionHandler->getCgi();
+	Cgi *cgi = connectionHandler->getCgi(); // BASIL
 	const int *fd = cgi->getCgiFds();
 
 	while (*fd)
@@ -93,12 +93,10 @@ ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHan
 
 void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
-	std::cout << "Handling connection " << connectionFd << std::endl;
-
 	ConnectionHandler *connectionHandler = _getConnectionHandler(_cgis, connectionFd);
 	if (connectionHandler)
 	{
-		_prossesCgi(connectionHandler);
+		_prossesCgi(connectionHandler); // BASIL
 		return;
 	}
 	connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
@@ -116,22 +114,6 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 										 //IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(_connectionHandlers, connectionFd);
 }
-
-/*
-
-handleCgi(fd)
-{
-	handler = cgis[fd];
-	handler.processCgi();
-	if (handler.isFinished())
-	{
-		handler.closeCgi();
-		fds = handler.getFsd();
-		cgis.erase(fds);
-	}
-}
-
-*/
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
 {
@@ -164,7 +146,7 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-        ConnectionHandler* cgiHandler = _getConnectionHandler(_cgis, fd);
+        ConnectionHandler* cgiHandler = _getConnectionHandler(_cgis, fd); // BASIL
         if (cgiHandler)
 		{
             _prossesCgi(cgiHandler);

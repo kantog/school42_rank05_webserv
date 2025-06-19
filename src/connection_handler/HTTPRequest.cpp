@@ -53,6 +53,11 @@ void HTTPRequest::reset()
     _currentFunction = &HTTPRequest::_setMethod;
 }
 
+const std::string &HTTPRequest::getRawPath() const
+{
+    return _rawPath;
+}
+
 const std::string &HTTPRequest::getMethod() const
 {
     return _method;
@@ -146,27 +151,28 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
     ServerConfig const *serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
     serverConfig->setCorectRoute(this->_rawPath);
     std::string prefix = serverConfig->getPath();
+    std::string striptPath = _rawPath;
 
     size_t queryPos = _rawPath.find('?');
     if (queryPos != std::string::npos)
     {
         _query = _rawPath.substr(queryPos + 1);
-        _rawPath = _rawPath.substr(0, queryPos);
+        striptPath = _rawPath.substr(0, queryPos);
     }
 
     _pathInfo = "/";
-    if (access((prefix + _rawPath).c_str(), F_OK) == 0)
-        _requestTarget = _rawPath;
+    if (access((prefix + striptPath).c_str(), F_OK) == 0)
+        _requestTarget = striptPath;
     else
     {
-        for (int i = _rawPath.length(); i >= 0; --i)
+        for (int i = striptPath.length(); i >= 0; --i)
         {
-            if (_rawPath[i] == '/')
+            if (striptPath[i] == '/')
             {
-                _requestTarget = _rawPath.substr(0, i);
+                _requestTarget = striptPath.substr(0, i);
                 if (access((prefix + _requestTarget).c_str(), F_OK) == 0)
                 {
-                    _pathInfo = _rawPath.substr(i);
+                    _pathInfo = striptPath.substr(i);
                     break;
                     ;
                 }
@@ -342,8 +348,4 @@ void HTTPRequest::parseRequest(const char *rawRequest, const std::string &server
         return;
     }
 
-#ifdef DEBUG
-    std::cout << "\n";
-    this->_printRequest();
-#endif
 } // TODO: split file parser

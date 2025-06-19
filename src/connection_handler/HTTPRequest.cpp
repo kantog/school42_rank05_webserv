@@ -170,7 +170,7 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
             if (striptPath[i] == '/')
             {
                 _requestTarget = striptPath.substr(0, i);
-                if (access((prefix + _requestTarget).c_str(), F_OK) == 0)
+                if (access((prefix + striptPath).makeRelative().c_str(), F_OK) == 0)
                 {
                     _pathInfo = striptPath.substr(i);
                     break;
@@ -178,6 +178,8 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
             }
         }
     }
+    if (_requestTarget.empty())
+        _requestTarget = striptPath;
     _requestFile = _requestTarget.substr(_requestTarget.find_last_of("/") + 1);
 }
 

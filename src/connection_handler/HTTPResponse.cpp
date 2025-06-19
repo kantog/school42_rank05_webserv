@@ -216,7 +216,7 @@ std::string HTTPResponse::_createDirString(const std::string &directoryPath,
 
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
 {
-	this->setBody("INDEX\n" + this->_createDirString(directoryPath));//optionele parameter html, al aangepast bij kobe
+	this->setBody("INDEX\n" + this->_createDirString(directoryPath));
 	if (_body.empty())//test
 		std::cout << "empty body!" << std::endl;//test
 }

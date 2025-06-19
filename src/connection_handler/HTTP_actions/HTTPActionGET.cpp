@@ -39,8 +39,21 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 {
 	std::string filePath = serverConfig.getFullFilesystemPath(request.getRequestTarget());
 
+
+	/*
+	struct stat sb;
+    if (stat(_path.c_str(), &sb) == 0)
+    {
+        if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
+            _statusCode = 200; 
+        else
+            _statusCode = 403; // script not executable
+    }
+    else
+        _statusCode = 404; // script not found
+	*/
 	struct stat fileInfo; 
-	if (stat(filePath.c_str(), &fileInfo) == -1)
+	if (stat(filePath.c_str(), &fileInfo) == -1)  //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
 		throw std::runtime_error("Error calling stat()");
 
 	// Checking if file exists, else checking index files or auto-index

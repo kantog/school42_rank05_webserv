@@ -1,11 +1,15 @@
 
 
 #include "../../inc/connection_handler/HTTPResponse.hpp"
+#include "ServerConfig.hpp"
 
 #include <cerrno>
+#include <cstddef>
 #include <fstream>
 #include <sstream>
+#include <dirent.h>
 #include <stdexcept>
+#include <iostream>
 
 HTTPResponse::HTTPResponse() : 
 	_statusCode(0), 
@@ -59,7 +63,7 @@ void HTTPResponse::setBodySize()
 void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::string &contentType)
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
-		
+
     if (!file.is_open())
     {
 		int error = errno;
@@ -127,26 +131,76 @@ void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
     buildResponse();
 }
 
+std::string HTTPResponse::_createDirString(const std::string &directoryPath,
+		const std::string &appendString)
+{
+	std::string bodyToSet = "\n";
+
+	DIR *directory = opendir(directoryPath.c_str());
+	std::cout << "dir Path: " << directoryPath << std::endl;//test
+	if (!directory)
+		throw std::runtime_error("Error: couldn't open directory");
+
+	struct dirent * directoryInfo = readdir(directory);
+	while (directoryInfo)
+	{
+		if (directoryInfo->d_type == DT_DIR 
+				&& (static_cast<std::string>(directoryInfo->d_name)
+					.find_first_of(".") == static_cast<size_t>(-1)))
+		{
+			bodyToSet.append(directoryInfo->d_name);
+			bodyToSet.append("\\");
+			bodyToSet.append(_createDirString(directoryPath 
+						+ directoryInfo->d_name, "  "));
+		}
+		else if (static_cast<std::string>(directoryInfo->d_name) != "."
+				&& static_cast<std::string>(directoryInfo->d_name) != "..")
+		{
+			bodyToSet.append(appendString);
+			bodyToSet.append(directoryInfo->d_name);//test
+			// bodyToSet.append("<a href=\"" 
+			// 		+ directoryPath + directoryInfo->d_name + "\">" 
+			// 		+ directoryInfo->d_name + "</a>");
+			bodyToSet.append("\n");
+		}
+		directoryInfo = readdir(directory);
+	}
+
+	int errorCode = closedir(directory);
+	if (errorCode == -1)
+		throw std::runtime_error("Error while closing directory");
+
+	std::cout << "body to set:" << bodyToSet << std::endl;//test
+	return (bodyToSet);
+}
+
+void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
+{
+	this->setBody("INDEX\n" + this->_createDirString(directoryPath));//optionele parameter html, al aangepast bij kobe
+	if (_body.empty())//test
+		std::cout << "empty body!" << std::endl;//test
+}
+
 void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
 {
-    setStatusCode(code);
-    setHeader("Location", filePath);
-    setHeader("Content-Length", "0");
-    buildResponse();
+	setStatusCode(code);
+	setHeader("Location", filePath);
+	setHeader("Content-Length", "0");
+	buildResponse();
 }
 
 void HTTPResponse::buildResponse()
 {
-    std::ostringstream responsStream;
+	std::ostringstream responsStream;
 
-    responsStream << "HTTP/1.1 " << _statusCode << " " << _statusText << "\r\n";
-    for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-    {
-        responsStream << it->first << ": " << it->second << "\r\n";
-    }
-    responsStream << "\r\n";
-    if (_body.size() > 0)
-        responsStream << _body;
+	responsStream << "HTTP/1.1 " << _statusCode << " " << _statusText << "\r\n";
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+	{
+		responsStream << it->first << ": " << it->second << "\r\n";
+	}
+	responsStream << "\r\n";
+	if (_body.size() > 0)
+		responsStream << _body;
 
-    _responseString = responsStream.str();
+	_responseString = responsStream.str();
 }

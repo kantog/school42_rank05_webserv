@@ -60,6 +60,7 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 	std::cout << "Handling connection " << connectionFd << std::endl;
 
+
 	std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.find(connectionFd);
 	if (it == _connectionHandlers.end())
 	{

@@ -98,7 +98,7 @@ void ConnectionHandler::_sendResponse()
 {
 	const std::string &responseString = _response.getResponseString();
 
-	// std::cout << "Sent back by server: " << responseString << std::endl; //test
+	std::cout << "Sent back by server: " << responseString << std::endl; //test
 
 	send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
 }

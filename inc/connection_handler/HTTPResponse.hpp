@@ -15,6 +15,8 @@ class HTTPResponse
 		std::string _responseString;
 
 		void _setStatusMessage(int code);
+		std::string _createDirString(const std::string &directoryPath,
+				const std::string &appendString = "");
 
 	public:
 		HTTPResponse();

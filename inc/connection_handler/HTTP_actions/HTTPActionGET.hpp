@@ -12,8 +12,10 @@ class	HTTPActionGET : public AMethod {
 	private:
 		void _runCGI();//runt een script en zet output in _response.body:
 		void _fetchFile(HTTPRequest &request,
-		HTTPResponse & response, 
-		const ServerConfig &serverConfig);
+				HTTPResponse & response, 
+				const ServerConfig &serverConfig);
+		void _checkForIndexFiles(HTTPResponse & response, 
+				const ServerConfig &serverConfig);
 
 	public:
 		HTTPActionGET();

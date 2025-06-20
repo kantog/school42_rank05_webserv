@@ -97,8 +97,14 @@ void ConnectionHandler::_sendResponse()
 	const std::string &responseString = _response.getResponseString();
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test
-
-	send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+	if (bytesWritten == -1)
+	{
+		std::cerr << "Error writing to socket " << _connectionSocketFD
+				  << ": " << strerror(errno) << std::endl;
+		_shouldClose = true;
+		return; // TODO: doen?
+	}
 }
 
 bool ConnectionHandler::shouldClose()
@@ -118,8 +124,8 @@ bool ConnectionHandler::shouldClose()
 void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
-	_serverConfig->setCorectRoute(this->_request.getRequestTarget());
-} // TODO: setCorectRoute niet meer nodig
+	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
+} // TODO: setCorrectRoute niet meer nodig
 
 void ConnectionHandler::handleHTTP()
 {
@@ -133,7 +139,7 @@ void ConnectionHandler::handleHTTP()
 	this->_setServerConfig();
 
 	_response.reset();
-	_response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
+	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig); // TODO:? niet nieuw maken
 	_HTTPAction->run();

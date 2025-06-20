@@ -42,7 +42,7 @@ class ServerConfig
 		size_t client_max_body_size;
 		std::vector<Route> routes;
 
-		void setCorectRoute(const std::string &path) const;
+		void setCorrectRoute(const std::string &path) const;
 
 		bool isAllowedCgi(const std::string &fullPath) const;
 		bool isAllowedMethod(const std::string &method) const;

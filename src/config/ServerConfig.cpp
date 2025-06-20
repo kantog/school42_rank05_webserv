@@ -34,7 +34,7 @@ const Route *ServerConfig::_findRoute(const std::string &path) const
     return bestMatch;
 }
 
-void ServerConfig::setCorectRoute(const std::string &path) const
+void ServerConfig::setCorrectRoute(const std::string &path) const
 {
     if (_curentRoutePath == path)
         return;
@@ -119,5 +119,5 @@ const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
         return ("." + this->root + this->error_pages.at(code));
-    return ("./default/defaultError.html"); // TODO: define in haeder?
+    return ("./users/evilcorp/default/defaultError.html"); // TODO: define in haeder?
 }

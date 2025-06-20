@@ -54,7 +54,11 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 	*/
 	struct stat fileInfo; 
 	if (stat(filePath.c_str(), &fileInfo) == -1)  //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
-		throw std::runtime_error("Error calling stat()");
+		{
+			response.setStatusCode(404);
+			return;
+		}
+		// throw std::runtime_error("Error calling stat()");
 
 	// Checking if file exists, else checking index files or auto-index
 	if (!S_ISDIR(fileInfo.st_mode))

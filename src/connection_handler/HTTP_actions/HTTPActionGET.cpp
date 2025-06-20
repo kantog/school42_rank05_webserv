@@ -52,11 +52,15 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
     else
         _statusCode = 404; // script not found
 	*/
-	struct stat fileInfo; 
-	if (stat(filePath.c_str(), &fileInfo) == -1)  //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
-		throw std::runtime_error("Error calling stat()");
 
 	// Checking if file exists, else checking index files or auto-index
+	struct stat fileInfo; 
+	if (stat(filePath.c_str(), &fileInfo) == -1)  //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
+	{
+		response.setStatusCode(404);
+		return;
+	}
+
 	if (!S_ISDIR(fileInfo.st_mode))
 		response.setBodyFromFile(filePath);
 	else

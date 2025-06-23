@@ -52,7 +52,6 @@ void HTTPResponse::setHeaders(const std::string &headers)
 
     while (std::getline(headersStream, line))
     {
-        // TODO kijk hoe ik dat hier voor heb gedaan
         if (!line.empty() && line[line.size() - 1] == '\r')
             line.erase(line.size() - 1);
 
@@ -204,7 +203,6 @@ const std::string &HTTPResponse::getResponseString() const
 
 void HTTPResponse::_setStatusMessage(int code)
 {
-    /// @todo
     switch (code)
     {
     case 200:
@@ -217,6 +215,7 @@ void HTTPResponse::_setStatusMessage(int code)
         _statusText = "Internal Server Error";
         break;
     default:
+        throw std::runtime_error("Unknown status code"); // TODO: test
         _statusText = "Unknown";
         break;
     }

@@ -119,7 +119,6 @@ void ConnectionHandler::killCgi()
 bool ConnectionHandler::shouldClose()
 {
 	return (this->_request.hasCloseHeader() || this->_shouldClose);
-	// .... TODO: check
 }
 
 void ConnectionHandler::_setServerConfig()

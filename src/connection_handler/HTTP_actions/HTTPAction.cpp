@@ -5,6 +5,7 @@
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
 #include "ServerConfig.hpp"
 #include "Cgi.hpp"
+#include <iostream>
 
 HTTPAction::HTTPAction(HTTPRequest & request,
 						const ServerConfig &serverConfig):
@@ -39,14 +40,15 @@ Cgi *HTTPAction::getCgi()
 	return _cgi;
 }
 
-std::string HTTPAction::getFullCgiResponseString() 
+std::string HTTPAction::getFullCgiResponseString(const Cgi &cgi) 
 {
-	this->_response.buildCgiPage(_cgi->getBody());
+	this->_response.buildCgiPage(cgi.getBody());
 	return (_response.getResponseString());
 }
 
 std::string HTTPAction::getFullResponseString() 
 {
+	std::cout << _request.getMethod() << " " << _request.getRawPath() << "(" << _serverConfig.getFullFilesystemPath(_request.getRequestTarget()) << "): " << _response.getStatusCode() << std::endl;
 	return (_response.getResponseString());
 }
 

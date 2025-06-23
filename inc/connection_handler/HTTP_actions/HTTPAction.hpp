@@ -35,6 +35,6 @@ class	HTTPAction
 
 		bool isCgiRunning();
 		Cgi *getCgi();
-		std::string getFullResponseString();
-		std::string getFullCgiResponseString();
+		std::string getFullResponseString(); // TODO: waarom geen const &?
+		std::string getFullCgiResponseString(const Cgi &cgi);
 };

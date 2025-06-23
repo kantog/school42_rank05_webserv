@@ -84,16 +84,9 @@ void ConnectionHandler::_createRequest()
 void ConnectionHandler::_sendResponse(const std::string &responseString)
 {
 
-<<<<<<< HEAD
-	std::cout << _serverKey << ": "
-			  << _request.getMethod() << " " << _request.getRawPath()
-			  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget()) << "): "
-			  << _response.getStatusCode() << std::endl;
-=======
 	// std::cout << _request.getMethod() << " " << _request.getRawPath()
 	// 		  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
 	// 		  << _response.getStatusCode() << std::endl;
->>>>>>> origin/refactoring-and-decoupling
 
 	// const std::string &responseString = _response.getResponseString();
 
@@ -127,66 +120,60 @@ void ConnectionHandler::_setServerConfig()
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
 }
 
-<<<<<<< HEAD
-bool ConnectionHandler::handleHTTP()
-=======
+
+// void ConnectionHandler::sendCgiResponse()
+// {
+// 	if (_cgi->getStatusCode() != 200) // TODO: 200
+// 		this->_response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
+// 	else
+// 		this->_response.buildCgiPage(_cgi->getBody());
+// 	this->_sendResponse();
+// 	_cgi = NULL;
+// 	this->_request.reset();
+// }
 void ConnectionHandler::sendCgiResponse()
 {
 	HTTPAction Action(_request, *_serverConfig);
 
 	// TODO: error checking
 	// this->_response.buildCgiPage(_cgi->getBody());
-	this->_sendResponse(Action.getFullCgiResponseString());
+	this->_sendResponse(Action.getFullCgiResponseString(*_cgi));
 	_cgi = NULL;
 	this->_request.reset(); // TODO ?
 }
 
-void ConnectionHandler::handleHTTP()
->>>>>>> origin/refactoring-and-decoupling
+bool ConnectionHandler::handleHTTP()
 {
-	if (this->_cgi)
-	{
-		this->_createRequest();
-		_response.reset();
-		_response.setStatusCode(503);
-		_response.setHeader("Retry-After", "5");
-		_response.setBody("Server busy processing request");
-		_response.buildResponse();
-		this->_sendResponse();
-		return (false);
-	}
+	// if (this->_cgi)
+	// {
+	// 	this->_createRequest();
+	// 	_response.reset();
+	// 	_response.setStatusCode(503);
+	// 	_response.setHeader("Retry-After", "5");
+	// 	_response.setBody("Server busy processing request");
+	// 	_response.buildResponse();
+	// 	this->_sendResponse();
+	// 	return (false);
+	// }
 
 	this->_createRequest();
-	if (this->_request.isError())
-	{	// TODO: test met grote files
-		this->_setServerConfig();
-		this->_response.buildErrorPage(this->_request.getErrorCode(), this->_serverConfig->getErrorPagePath(this->_request.getErrorCode()));
-		this->_sendResponse();
-		this->_shouldClose = true;
-		return (true);
-	}
+	// if (this->_request.isError())
+	// {	// TODO: test met grote files
+	// 	this->_setServerConfig();
+	// 	this->_response.buildErrorPage(this->_request.getErrorCode(), this->_serverConfig->getErrorPagePath(this->_request.getErrorCode()));
+	// 	this->_sendResponse();
+	// 	this->_shouldClose = true;
+	// 	return (true);
+	// }
 	if (!this->_request.isComplete())
 		return (false);
 
 	this->_setServerConfig();
 
-<<<<<<< HEAD
-	_response.reset();
-
-	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig); // TODO:? heap/stack?
-	_HTTPAction->run();
-	if (_HTTPAction->isCgiRunning())
-		_cgi = _HTTPAction->getCgi();
-	delete _HTTPAction;
-=======
-	// _response.reset();
-	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
-
 	HTTPAction Action(_request, *_serverConfig);
 	Action.run();
 	if (Action.isCgiRunning())
 		_cgi = Action.getCgi();
->>>>>>> origin/refactoring-and-decoupling
 
 	if (this->_cgi)
 		return (true);
@@ -197,16 +184,3 @@ void ConnectionHandler::handleHTTP()
 	return (true);
 }
 
-<<<<<<< HEAD
-void ConnectionHandler::sendCgiResponse()
-{
-	if (_cgi->getStatusCode() != 200) // TODO: 200
-		this->_response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
-	else
-		this->_response.buildCgiPage(_cgi->getBody());
-	this->_sendResponse();
-	_cgi = NULL;
-	this->_request.reset();
-}
-=======
->>>>>>> origin/refactoring-and-decoupling

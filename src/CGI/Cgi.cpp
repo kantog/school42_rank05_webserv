@@ -96,7 +96,7 @@ bool Cgi::_checkAccess()
         if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
             _statusCode = 200; 
         else
-            _statusCode = 403; // script not executable
+            _statusCode = 500; // script not executable
     }
     else
         _statusCode = 404; // script not found
@@ -138,7 +138,7 @@ void Cgi::_initEnv()
     _envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
     _envStrings.push_back("REQUEST_METHOD=" + _request.getMethod());
     _envStrings.push_back("SERVER_PROTOCOL=" + _request.getVersion());
-    _envStrings.push_back("SCRIPT_FILENAME=" + _request.getRequestFile());
+    _envStrings.push_back("SCRIPT_FILENAME=" + _path);
     _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
     _envStrings.push_back("SERVER_NAME=" + _request.getHeader("Host"));
     _envStrings.push_back("HTTP_HOST=" + _request.getHeader("Host"));
@@ -146,6 +146,9 @@ void Cgi::_initEnv()
     _envStrings.push_back("REMOTE_ADDR=" + _serverConfig.host);
     _envStrings.push_back("HTTP_USER_AGENT=" + _request.getHeader("User-Agent"));
     _envStrings.push_back("HTTP_ACCEPT=" + _request.getHeader("Accept"));
+
+
+    _envStrings.push_back("REDIRECT_STATUS=200"); // for php
 
     if (_request.getMethod() == "GET")
     {

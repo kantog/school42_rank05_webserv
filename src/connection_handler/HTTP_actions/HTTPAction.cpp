@@ -39,7 +39,6 @@ HTTPAction::~HTTPAction()
 //
 // }
 
-// BASILL
 bool HTTPAction::isCgiRunning()
 {
 	return (_cgi != NULL);

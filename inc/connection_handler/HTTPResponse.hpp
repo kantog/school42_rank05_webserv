@@ -39,9 +39,9 @@ class HTTPResponse
 		void setHeader(const std::string &key, const std::string &value);
 		void setHeaders(const std::string &headers);
 		void setBody(const std::string &body, const std::string &contentType = "text/html");
-		void setBodyFromFile(const std::string &filePath, const std::string &contentType = "text/html");
+		void setBodyFromFile(const std::string &filePath);
 		void setRedirect(const std::string &location, int code = 302);
 		
-		void setContentType(void);
+		const std::string getContentTypeFromFile(const std::string &filePath);
 		void setBodySize(); // public?
 };

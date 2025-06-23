@@ -84,41 +84,40 @@ void HTTPResponse::setHeaders(const std::string &headers)
     }
 }
 
-// void HTTPResponse::setContentType(const std::string &_filePath)
-// {
-//     std::string contentType = "text/plain"; // default fallback
+const std::string HTTPResponse::getContentTypeFromFile(const std::string &filePath)
+{
+    std::string contentType = "text/plain";
 
-//     size_t dot = _filePath.find_last_of(".");
-//     if (dot != std::string::npos)
-//     {
-//         std::string ext = filePath.substr(dot + 1);
+    size_t dot = filePath.find_last_of(".");
+    if (dot != std::string::npos)
+    {
+        std::string ext = filePath.substr(dot + 1);
 
-//         if (ext == "html" || ext == "htm")
-//             contentType = "text/html";
-//         else if (ext == "css")
-//             contentType = "text/css";
-//         else if (ext == "js")
-//             contentType = "application/javascript";
-//         else if (ext == "png")
-//             contentType = "image/png";
-//         else if (ext == "jpg" || ext == "jpeg")
-//             contentType = "image/jpeg";
-//         else if (ext == "gif")
-//             contentType = "image/gif";
-//         else if (ext == "svg")
-//             contentType = "image/svg+xml";
-//         else if (ext == "ico")
-//             contentType = "image/x-icon";
-//         else if (ext == "json")
-//             contentType = "application/json";
-//         else if (ext == "txt")
-//             contentType = "text/plain";
-//         else
-//             contentType = "application/octet-stream";
-//     }
-
-//     setHeader("Content-Type", contentType);
-// }
+        if (ext == "html" || ext == "htm")
+            contentType = "text/html";
+        else if (ext == "css")
+            contentType = "text/css";
+        else if (ext == "js")
+            contentType = "application/javascript";
+        else if (ext == "png")
+            contentType = "image/png";
+        else if (ext == "jpg" || ext == "jpeg")
+            contentType = "image/jpeg";
+        else if (ext == "gif")
+            contentType = "image/gif";
+        else if (ext == "svg")
+            contentType = "image/svg+xml";
+        else if (ext == "ico")
+            contentType = "image/x-icon";
+        else if (ext == "json")
+            contentType = "application/json";
+        else if (ext == "txt")
+            contentType = "text/plain";
+        else
+            contentType = "application/octet-stream";
+    }
+    return contentType;
+}
 
 void HTTPResponse::setBody(const std::string &body, const std::string &contentType)
 {
@@ -152,10 +151,9 @@ void HTTPResponse::_setCustomErrorBody(const std::string &filePath)
         << "</html>\n";
 
     this->setBody(oss.str());
-    this->setHeader("Content-Type", "text/html");
 }
 
-void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::string &contentType)
+void HTTPResponse::setBodyFromFile(const std::string &filePath)
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
 
@@ -184,7 +182,7 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::strin
     buffer << file.rdbuf();
     file.close();
 
-    setBody(buffer.str(), contentType);
+    setBody(buffer.str(), getContentTypeFromFile(filePath));
 }
 
 void HTTPResponse::setRedirect(const std::string &location, int code)
@@ -234,43 +232,39 @@ void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
 std::string HTTPResponse::_createDirString(const std::string &directoryPath,
                                            const std::string &appendString)
 {
-	std::string bodyToSet = "<br>";
+    std::string bodyToSet = "<br>";
 
-	std::cout << "directory requested: " << directoryPath << std::endl;//test
-	DIR *directory = opendir(directoryPath.c_str());
-	if (!directory)
-		throw std::runtime_error("Error: couldn't open directory");
+    std::cout << "directory requested: " << directoryPath << std::endl; // test
+    DIR *directory = opendir(directoryPath.c_str());
+    if (!directory)
+        throw std::runtime_error("Error: couldn't open directory");
 
-	struct dirent * directoryInfo = readdir(directory);
-	while (directoryInfo)
-	{
-		if (directoryInfo->d_type == DT_DIR 
-				&& (static_cast<std::string>(directoryInfo->d_name)
-					.find_first_of(".") == static_cast<size_t>(-1)))
-		{
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("/");
-			bodyToSet.append(_createDirString(directoryPath + "/"
-						+ directoryInfo->d_name, "&nbsp &nbsp"));
-		}
-		else if (static_cast<std::string>(directoryInfo->d_name) != "."
-				&& static_cast<std::string>(directoryInfo->d_name) != "..")
-		{
-			bodyToSet.append(appendString);
-			bodyToSet.append("<a href=\"");
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("\">");
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("</a> <br>");
-		}
-		directoryInfo = readdir(directory);
-	}
+    struct dirent *directoryInfo = readdir(directory);
+    while (directoryInfo)
+    {
+        if (directoryInfo->d_type == DT_DIR && (static_cast<std::string>(directoryInfo->d_name)
+                                                    .find_first_of(".") == static_cast<size_t>(-1)))
+        {
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("/");
+            bodyToSet.append(_createDirString(directoryPath + "/" + directoryInfo->d_name, "&nbsp &nbsp"));
+        }
+        else if (static_cast<std::string>(directoryInfo->d_name) != "." && static_cast<std::string>(directoryInfo->d_name) != "..")
+        {
+            bodyToSet.append(appendString);
+            bodyToSet.append("<a href=\"");
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("\">");
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("</a> <br>");
+        }
+        directoryInfo = readdir(directory);
+    }
 
     int errorCode = closedir(directory);
     if (errorCode == -1)
         throw std::runtime_error("Error while closing directory");
-
-	return (bodyToSet);
+    return (bodyToSet);
 }
 
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)

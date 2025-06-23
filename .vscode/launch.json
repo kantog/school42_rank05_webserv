@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/webserv",
       "args": [
-        "users/evilcorp/otherConfigs/cgi.conf"
+        "users/myConf.conf"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

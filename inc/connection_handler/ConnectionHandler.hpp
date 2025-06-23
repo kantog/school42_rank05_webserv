@@ -45,4 +45,5 @@ class	ConnectionHandler
 
 		bool isCgiRunning() { return (this->_cgi != NULL); }
 		Cgi *getCgi() { return (this->_cgi); }
+		void killCgi();
 };

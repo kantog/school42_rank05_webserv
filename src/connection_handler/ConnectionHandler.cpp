@@ -91,9 +91,9 @@ void ConnectionHandler::_sendResponse()
 {
 
 	std::cout << _serverKey << ": "
-				<< _request.getMethod() << " " << _request.getRawPath()
-			  	<< "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
-			  	<< _response.getStatusCode() << std::endl;
+			  << _request.getMethod() << " " << _request.getRawPath()
+			  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget()) << "): "
+			  << _response.getStatusCode() << std::endl;
 
 	const std::string &responseString = _response.getResponseString();
 
@@ -108,10 +108,18 @@ void ConnectionHandler::_sendResponse()
 	}
 }
 
+void ConnectionHandler::killCgi()
+{
+	if (!_cgi)
+		return;
+	delete _cgi;
+	_cgi = NULL;
+}
+
 bool ConnectionHandler::shouldClose()
 {
 	return (this->_request.hasCloseHeader() || this->_shouldClose);
-	// ....
+	// .... TODO: check
 }
 
 // void ConnectionHandler::makeResponse(std::string &input)
@@ -130,8 +138,16 @@ void ConnectionHandler::_setServerConfig()
 
 void ConnectionHandler::handleHTTP()
 {
-	if (this->_cgi) // TODO: leze niks mee doen?
+	if (this->_cgi)
+	{
+		_response.reset();
+		_response.setStatusCode(503);
+		_response.setHeader("Retry-After", "5"); // Retry after 5 seconds
+		_response.setBody("Server busy processing request");
+		_response.buildResponse();
+		this->_sendResponse();
 		return;
+	}
 
 	this->_createRequest();
 	if (!this->_request.isComplete())

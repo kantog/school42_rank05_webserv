@@ -2,10 +2,8 @@
 #pragma once 
 
 #include "MethodRegistry.hpp"
+#include "../HTTPResponse.hpp"
 #include "Cgi.hpp"
-#include <exception>
-#include <string>
-#include <vector>
 
 class HTTPRequest;
 class HTTPResponse;
@@ -20,17 +18,15 @@ class	HTTPAction
 		HTTPAction(); 
 
 		HTTPRequest &_request;
-		HTTPResponse &_response;
+		HTTPResponse _response;
 		const ServerConfig & _serverConfig;
 		MethodRegistry _methodRegistry;
 		// SessionManager &_sessionManager //TODO: 
-		// ErrorManager &_errorManager //TODO;
 
-		Cgi *_cgi; // BASILL
+		Cgi *_cgi;
 
 	public:
 		HTTPAction(HTTPRequest & _request, 
-				HTTPResponse  &_response,
 				const ServerConfig  &_serverConfig);
 		HTTPAction(const HTTPAction &other);
 		~HTTPAction();
@@ -41,4 +37,6 @@ class	HTTPAction
 
 		bool isCgiRunning();
 		Cgi *getCgi();
+		std::string getFullResponseString();
+		std::string getFullCgiResponseString();
 };

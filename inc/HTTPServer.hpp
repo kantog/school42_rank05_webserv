@@ -42,7 +42,6 @@ class HTTPServer
 		void _prossesCgi(ConnectionHandler *connectionHandler);
 
 	public:
-		// HTTPServer(const MyConfig &_myConfig);
 		HTTPServer(); // test
 		HTTPServer(const HTTPServer &other);
 		HTTPServer &operator=(const HTTPServer &other);

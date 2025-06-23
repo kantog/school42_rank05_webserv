@@ -1,5 +1,4 @@
 
-
 #include "Cgi.hpp"
 
 #include <sys/stat.h>
@@ -7,7 +6,6 @@
 #include <cerrno>
 
 #include <iostream>
-#include <map>
 #include <string>
 #include <vector>
 #include <cstdlib>

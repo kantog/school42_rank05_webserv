@@ -60,27 +60,35 @@ void HTTPServer::_createNewConnection(int fd)
 
 	this->_setNonBlocking(newSocketFD);
 	this->_addFDToEpoll(newSocketFD);
-	this->_setNewHandler(newSocketFD);
+	this->_setNewHandler(newSocketFD, fd);
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->_delegateToConnectionHandler(newSocketFD);
 }
 
-void HTTPServer::_setNewHandler(int newSocketFD)
+void HTTPServer::_setNewHandler(int newSocketFD, int serverFD)
 {
-	std::string &serverKey = _listeningSockets[0].first;
-	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
-	{
-		if (it->second == newSocketFD)
-		{
-			serverKey = it->first;
-			break;
-		}
-	}
+    std::string serverKey;
+    for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); 
+         it != _listeningSockets.end(); ++it)
+    {
+        if (it->second == serverFD)
+        {
+            serverKey = it->first;
+            break;
+        }
+    }
+    
+    if (serverKey.empty())
+    {
+        std::cerr << "Error: Could not find server key for FD " << serverFD << std::endl;
+        close(newSocketFD);
+        return;
+    }
 
-	ConnectionHandler *newConnection = new ConnectionHandler(serverKey, newSocketFD);
-	_connectionHandlers[newSocketFD] = newConnection;
-	_connAmount++;
+    ConnectionHandler *newConnection = new ConnectionHandler(serverKey, newSocketFD);
+    _connectionHandlers[newSocketFD] = newConnection;
+    _connAmount++;
 }
 
 ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd)

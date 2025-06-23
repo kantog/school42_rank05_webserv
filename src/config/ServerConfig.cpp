@@ -27,7 +27,6 @@ const Route *ServerConfig::_findRoute(const std::string &path) const
         }
     }
 
-    // TODO: check
     if (!bestMatch)
         return &routes[0];
 
@@ -112,12 +111,12 @@ const std::string ServerConfig::getCgiInterpreter(const std::string &fullPath) c
     if (it != _curentRoute->cgiExtensions.end())
         return it->second;
 
-    return ""; // TODO
+    return "";
 }
 
 const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
         return ("." + this->root + this->error_pages.at(code));
-    return ("./users/evilcorp/default/defaultError.html"); // TODO: define in haeder?
+    return ("./default/defaultError.html"); // TODO: define in haeder?
 }

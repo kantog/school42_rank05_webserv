@@ -60,7 +60,7 @@ bool ConfigParser::setListen(ServerConfig &server, const std::string &token)
     else
     {
         server.port = listen_value;
-        server.host = "127.0.0.1"; // TODO
+        server.host = "127.0.0.1";
     }
     expectToken(";");
     return true;
@@ -331,8 +331,8 @@ void ConfigParser::validateRoutes(Route &route)
 {
     if (route.path.empty())
         throw std::runtime_error("Route path is empty");
-    if (route.allowedMethods.empty())
-        throw std::runtime_error("Route allowed methods is empty");
+    // if (route.allowedMethods.empty())
+    //     throw std::runtime_error("Route allowed methods is empty");
 }
 
 void ConfigParser::validateServer(ServerConfig &server)

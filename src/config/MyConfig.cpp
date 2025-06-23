@@ -20,7 +20,7 @@ const MyConfig& MyConfig::get(const char* filename)
 
 const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const
 {
-    std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
+        std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
     if (it == _servers.end())
         return NULL;
     for (std::vector<ServerConfig>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)

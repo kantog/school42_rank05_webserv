@@ -7,8 +7,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/webserv",
       "args": [
-        "users/myConf.conf"
-      ],
+        
+      ], // "users/multipleServers.conf"
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

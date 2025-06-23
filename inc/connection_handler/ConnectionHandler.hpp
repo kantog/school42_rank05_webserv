@@ -17,7 +17,7 @@ class	ConnectionHandler
 		// MyConfig &_myConfig;
 
 		bool _shouldClose;
-		std::string &_serverKey;
+		std::string _serverKey;
 		int _connectionSocketFD;
 		const ServerConfig *_serverConfig;
 

@@ -1,23 +1,17 @@
-
-
 #include "Cgi.hpp"
 
-#include <sys/stat.h>
-#include <sstream>
-#include <cerrno>
-
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-#include <cstdlib>
-#include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-// TODO: check list
+#include <cerrno>
+#include <cstring>
+#include <cstdlib>
+#include <sstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 
 static void closeFd(int *fd)
@@ -106,11 +100,11 @@ bool Cgi::_checkAccess()
 bool Cgi::_initPipes()
 {
     if (pipe(_pipeIn) < 0)
-        _statusCode = 500;  // internal error
+        _statusCode = 500;
     if (pipe(_pipeOut) < 0)
     {
         closePipe(_pipeIn);
-        _statusCode = 500; // internal error
+        _statusCode = 500;
     }
     return _statusCode == 200;
 }
@@ -119,7 +113,7 @@ bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
-        _statusCode = 500;  // internal error // TODO: defins maken
+        _statusCode = 500;
     return _statusCode == 200;
 }
 
@@ -364,4 +358,4 @@ bool Cgi::processCgi()
     if (_statusCode != 200)
         return false;
     return _isRunning;
-}  // TODO check if child crashed
+}

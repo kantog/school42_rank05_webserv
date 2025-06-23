@@ -90,9 +90,10 @@ void ConnectionHandler::_createRequest()
 void ConnectionHandler::_sendResponse()
 {
 
-	std::cout << _request.getMethod() << " " << _request.getRawPath()
-			  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
-			  << _response.getStatusCode() << std::endl;
+	std::cout << _serverKey << ": "
+				<< _request.getMethod() << " " << _request.getRawPath()
+			  	<< "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
+			  	<< _response.getStatusCode() << std::endl;
 
 	const std::string &responseString = _response.getResponseString();
 
@@ -103,7 +104,7 @@ void ConnectionHandler::_sendResponse()
 		std::cerr << "Error writing to socket " << _connectionSocketFD
 				  << ": " << strerror(errno) << std::endl;
 		_shouldClose = true;
-		return; // TODO: doen?
+		return; // TODO: basil error handling in orde?
 	}
 }
 
@@ -125,7 +126,7 @@ void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
-} // TODO: setCorrectRoute niet meer nodig
+}
 
 void ConnectionHandler::handleHTTP()
 {

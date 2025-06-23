@@ -203,6 +203,7 @@ const std::string &HTTPResponse::getResponseString() const
 
 void HTTPResponse::_setStatusMessage(int code)
 {
+
     switch (code)
     {
     case 200:
@@ -214,10 +215,12 @@ void HTTPResponse::_setStatusMessage(int code)
     case 500:
         _statusText = "Internal Server Error";
         break;
-    default:
-        throw std::runtime_error("Unknown status code"); // TODO: test
+    default: // kobe
+        {
+        std::cerr << "Unknown status code: " << code << std::endl;
         _statusText = "Unknown";
         break;
+    }
     }
 }
 

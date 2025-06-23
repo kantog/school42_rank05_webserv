@@ -106,6 +106,8 @@ bool Cgi::_initPipes()
         closePipe(_pipeIn);
         _statusCode = 500;
     }
+    if (_statusCode != 200)
+        std::cerr << "CGI pipes initialized" << std::endl;
     return _statusCode == 200;
 }
 
@@ -113,16 +115,20 @@ bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
+{        
         _statusCode = 500;
-    return _statusCode == 200;
+   std::cerr << "CGI pipes made non-blocking" << std::endl;
+   }   return _statusCode == 200;
 }
 
 bool Cgi::_forkCgi()
 {
     _pid = fork();
     if (_pid < 0)
+    {
         _statusCode = 500;
-    return _statusCode == 200;
+    std::cerr << "CGI process forked" << std::endl;
+    }return _statusCode == 200;
 }
 
 void Cgi::_initEnv()
@@ -314,18 +320,26 @@ void Cgi::_readOutput()
 void Cgi::_finishCgi()
 {
     int status;
-    pid_t result = waitpid(_pid, &status, WNOHANG);
+    pid_t result = waitpid(_pid, &status, 0); // WNOHANG
 
     if (result > 0) // child is done
     {
         // if (!normal exit || exit code != 0)
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        {
             _statusCode = 500;
-    }
-    // else if (result == 0) TODO Zombie
-    //     // save pids?
-    else // error
+        std::cerr << "CGI child process exited with status: " << WEXITSTATUS(status) << std::endl;
+    }}
+    else if (result == 0) // TODO Zombie
+    {
         _statusCode = 500;
+        std::cerr << "CGI child process is still running" << std::endl;
+    }
+    else // error
+    {
+        _statusCode = 500;
+        std::cerr << "CGI child process didn't exit" << std::endl;
+    }
     _isRunning = false;
 }
 
@@ -344,6 +358,7 @@ void Cgi::startCgi()
     if (waitpid(_pid, &status, WNOHANG) > 0)
     {
         _statusCode = 500;
+        std::cerr << "CGI child process died" << std::endl;
         return;
     }
 
@@ -354,7 +369,6 @@ bool Cgi::processCgi()
 {
     (this->*_currentFunction)();
 
-    std::cout << "CGI status code: " << _statusCode << std::endl;
     if (_statusCode != 200)
         return false;
     return _isRunning;

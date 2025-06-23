@@ -21,7 +21,6 @@ class	HTTPAction
 		HTTPResponse _response;
 		const ServerConfig & _serverConfig;
 		MethodRegistry _methodRegistry;
-		// SessionManager &_sessionManager //TODO: 
 
 		Cgi *_cgi;
 
@@ -31,8 +30,6 @@ class	HTTPAction
 		HTTPAction(const HTTPAction &other);
 		~HTTPAction();
 
-		// void sessionManager();//TODO: wat moet dit doen? 
-		// void generateErrorResponse(int errorCode);//sets status code and body and returns
 		void run();
 
 		bool isCgiRunning();

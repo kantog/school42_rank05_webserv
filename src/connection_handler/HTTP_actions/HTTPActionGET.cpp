@@ -71,6 +71,8 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 			response.buildDirectoryPage(serverConfig.getFullFilesystemPath(
 						serverConfig.getCurentRoute().path));
 		}
+		// else 	// TODO error pages?
+
 	}
 }
 

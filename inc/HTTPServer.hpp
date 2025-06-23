@@ -34,7 +34,7 @@ class HTTPServer
 		void _delegateToConnectionHandler(int connectionFd);
 		void _handleConnectionEvent(int connectionFd, uint32_t events);
 		bool _isListeningSocket(int fd);
-		void _setNewHandler(int newSocketFD);
+		void _setNewHandler(int newSocketFD, int serverFD);
 
 		ConnectionHandler *_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd);
 

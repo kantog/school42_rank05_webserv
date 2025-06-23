@@ -91,21 +91,35 @@ void ConnectionHandler::_sendResponse(const std::string &responseString)
 	// const std::string &responseString = _response.getResponseString();
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test
+	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+	if (bytesWritten == -1)
+	{
+		std::cerr << "Error writing to socket " << _connectionSocketFD
+				  << ": " << strerror(errno) << std::endl;
+		_shouldClose = true;
+		return; // TODO: basil error handling in orde?
+	}
+}
 
-	send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+void ConnectionHandler::killCgi()
+{
+	if (!_cgi)
+		return;
+	delete _cgi;
+	_cgi = NULL;
 }
 
 bool ConnectionHandler::shouldClose()
 {
 	return (this->_request.hasCloseHeader() || this->_shouldClose);
-	// ....
+	// .... TODO: check
 }
 
 void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
-	_serverConfig->setCorectRoute(this->_request.getRequestTarget());
-} // TODO: setCorectRoute niet meer nodig
+	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
+}
 
 void ConnectionHandler::sendCgiResponse()
 {
@@ -120,8 +134,16 @@ void ConnectionHandler::sendCgiResponse()
 
 void ConnectionHandler::handleHTTP()
 {
-	if (this->_cgi) // TODO: leze niks mee doen?
+	if (this->_cgi)
+	{
+		// _response.reset(); // al dit is work in progress, werkt post refactor niet meer
+		// _response.setStatusCode(503);
+		// _response.setHeader("Retry-After", "5"); // Retry after 5 seconds
+		// _response.setBody("Server busy processing request");
+		// _response.buildResponse();
+		// this->_sendResponse();
 		return;
+	}
 
 	this->_createRequest();
 	if (!this->_request.isComplete())
@@ -130,6 +152,7 @@ void ConnectionHandler::handleHTTP()
 	this->_setServerConfig();
 
 	// _response.reset();
+
 	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	HTTPAction Action(_request, *_serverConfig);
@@ -145,3 +168,13 @@ void ConnectionHandler::handleHTTP()
 	this->_request.reset(); // TODO ?
 }
 
+// void ConnectionHandler::sendCgiResponse()
+// {
+// 	if (_cgi->getStatusCode() != 200) // TODO: 200
+// 		this->_response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
+// 	else
+// 		this->_response.buildCgiPage(_cgi->getBody());
+// 	this->_sendResponse();
+// 	_cgi = NULL;
+// 	this->_request.reset(); // TODO ?
+// }

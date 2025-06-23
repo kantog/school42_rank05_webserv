@@ -28,14 +28,17 @@ const MyConfig& MyConfig::get(const char* filename)
 
 const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const
 {
-    // TODO mulies servir names?
-    std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
+        std::map<std::string, std::vector<ServerConfig> >::const_iterator it = _servers.find(serverKey);
     if (it == _servers.end())
         return NULL;
     for (std::vector<ServerConfig>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
     {
-        if (it2->host == hostURL)
-            return &(*it2);
+        for (std::vector<std::string>::const_iterator nameIt = it2->server_names.begin();
+             nameIt != it2->server_names.end(); ++nameIt)
+        {
+            if (*nameIt == hostURL)
+                return &(*it2);
+        }
     }
     return &(*it->second.begin()); // default to the first
 }

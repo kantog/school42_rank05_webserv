@@ -3,8 +3,8 @@
 #include <sstream>
 
 ServerConfig::ServerConfig():
-	root(""),
-    client_max_body_size(-1)
+    _curentRoute(NULL),
+    client_max_body_size(0)
 {}
 
 const Route *ServerConfig::_findRoute(const std::string &path) const
@@ -27,14 +27,13 @@ const Route *ServerConfig::_findRoute(const std::string &path) const
         }
     }
 
-    // TODO: check
     if (!bestMatch)
         return &routes[0];
 
     return bestMatch;
 }
 
-void ServerConfig::setCorectRoute(const std::string &path) const
+void ServerConfig::setCorrectRoute(const std::string &path) const
 {
     if (_curentRoutePath == path)
         return;
@@ -112,7 +111,7 @@ const std::string ServerConfig::getCgiInterpreter(const std::string &fullPath) c
     if (it != _curentRoute->cgiExtensions.end())
         return it->second;
 
-    return ""; // TODO
+    return "";
 }
 
 const std::string ServerConfig::getErrorPagePath(int code) const

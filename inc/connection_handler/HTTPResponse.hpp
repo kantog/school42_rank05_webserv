@@ -17,6 +17,8 @@ class HTTPResponse
 		void _setStatusMessage(int code);
 		std::string _createDirString(const std::string &directoryPath,
 				const std::string &appendString = "");
+		
+		void _setCustomErrorBody(const std::string &filePath);
 
 	public:
 		HTTPResponse();
@@ -26,7 +28,7 @@ class HTTPResponse
 		void buildResponse();
 		void buildErrorPage(int code, const std::string &filePath);
 		void buildReturnPage(int code, const std::string &filePath);
-		void buildDirectoryPage(const std::string &filePath);//TODO
+		void buildDirectoryPage(const std::string &filePath);
 		void buildCgiPage(const std::string &cgiString);
 
 		const std::string &getResponseString() const;
@@ -37,8 +39,9 @@ class HTTPResponse
 		void setHeader(const std::string &key, const std::string &value);
 		void setHeaders(const std::string &headers);
 		void setBody(const std::string &body, const std::string &contentType = "text/html");
-		void setBodyFromFile(const std::string &filePath, const std::string &contentType = "text/html");
+		void setBodyFromFile(const std::string &filePath);
 		void setRedirect(const std::string &location, int code = 302);
-
+		
+		const std::string getContentTypeFromFile(const std::string &filePath);
 		void setBodySize(); // public?
 };

@@ -11,17 +11,20 @@ struct Route
 {
 	std::string path;
 	std::vector<std::string> allowedMethods;
-	std::string redirectPath;//?
-	int redirectCode;//?
-	std::string root;//necessary, or is only path enough?
+	std::string redirectPath;
+	int redirectCode;
+	std::string root;
 	bool isDirectoryListing;
 	std::vector<std::string> defaultFiles;
-	std::map<std::string, std::string> cgiExtensions;//CGI arguments zitten ook hiern, nog te parsen
+	std::map<std::string, std::string> cgiExtensions;
 	bool uploadAllowed;
 	std::string uploadPath;
 	size_t client_max_body_size;
 
-	Route() : isDirectoryListing(false), uploadAllowed(false), client_max_body_size(-1) {}
+	Route() :
+		isDirectoryListing(false),
+		uploadAllowed(false),
+		client_max_body_size(-1) {}
 };
 
 class ServerConfig
@@ -42,19 +45,14 @@ class ServerConfig
 		size_t client_max_body_size;
 		std::vector<Route> routes;
 
-		void setCorectRoute(const std::string &path) const;
+		void setCorrectRoute(const std::string &path) const;
 
 		bool isAllowedCgi(const std::string &fullPath) const;
 		bool isAllowedMethod(const std::string &method) const;
 		bool isReturn(void) const;
 
-		// const std::string &getCurentRoutePath(void) const { return _curentRoutePath; }
 		const Route &getCurentRoute(void) const { return *_curentRoute; };
-
 		std::string getFullFilesystemPath(const std::string &requestPath) const;
-		// std::string getFullFilesystemPath(const Path &requestPath) const;
-		// Path getFullFilesystemPath(const std::string &requestPath) const;
-		// Path getFullFilesystemPath(const Path &requestPath) const;
 
 		Path getDocumentRoot(void) const;
 

@@ -149,7 +149,7 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
 {
     // vb /cgi-bin/script.py/extra.v1/info?foo=bar&name=jan
     ServerConfig const *serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
-    serverConfig->setCorectRoute(this->_rawPath);
+    serverConfig->setCorrectRoute(this->_rawPath);
     Path prefix = serverConfig->getDocumentRoot();
     std::string striptPath = _rawPath;
 
@@ -186,7 +186,7 @@ void HTTPRequest::_parsePath(const std::string &serverKey)
 void HTTPRequest::_setMaxBodySize(const std::string &serverKey)
 {
     ServerConfig const *_serverConfig = MyConfig::getServerConfig(serverKey, this->getHostURL());
-    _serverConfig->setCorectRoute(this->_requestTarget);
+    _serverConfig->setCorrectRoute(this->_requestTarget);
     _maxContentLength = _serverConfig->getClientMaxBodySize();
 }
 

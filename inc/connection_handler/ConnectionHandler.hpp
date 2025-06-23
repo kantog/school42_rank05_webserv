@@ -14,7 +14,7 @@ class	ConnectionHandler
 		const ServerConfig *_serverConfig;
 
 		bool _shouldClose;
-		std::string &_serverKey;
+		std::string _serverKey;
 		int _connectionSocketFD;
 
 		// ConnectionHandler();
@@ -39,4 +39,5 @@ class	ConnectionHandler
 
 		bool isCgiRunning() { return (this->_cgi != NULL); }
 		Cgi *getCgi() { return (this->_cgi); }
+		void killCgi();
 };

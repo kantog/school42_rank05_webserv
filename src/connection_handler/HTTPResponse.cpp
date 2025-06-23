@@ -84,6 +84,41 @@ void HTTPResponse::setHeaders(const std::string &headers)
     }
 }
 
+const std::string HTTPResponse::getContentTypeFromFile(const std::string &filePath)
+{
+    std::string contentType = "text/plain";
+
+    size_t dot = filePath.find_last_of(".");
+    if (dot != std::string::npos)
+    {
+        std::string ext = filePath.substr(dot + 1);
+
+        if (ext == "html" || ext == "htm")
+            contentType = "text/html";
+        else if (ext == "css")
+            contentType = "text/css";
+        else if (ext == "js")
+            contentType = "application/javascript";
+        else if (ext == "png")
+            contentType = "image/png";
+        else if (ext == "jpg" || ext == "jpeg")
+            contentType = "image/jpeg";
+        else if (ext == "gif")
+            contentType = "image/gif";
+        else if (ext == "svg")
+            contentType = "image/svg+xml";
+        else if (ext == "ico")
+            contentType = "image/x-icon";
+        else if (ext == "json")
+            contentType = "application/json";
+        else if (ext == "txt")
+            contentType = "text/plain";
+        else
+            contentType = "application/octet-stream";
+    }
+    return contentType;
+}
+
 void HTTPResponse::setBody(const std::string &body, const std::string &contentType)
 {
     _body = body + "\n\r";
@@ -99,32 +134,55 @@ void HTTPResponse::setBodySize()
     setHeader("Content-Length", oss.str());
 }
 
-void HTTPResponse::setBodyFromFile(const std::string &filePath, const std::string &contentType)
+void HTTPResponse::_setCustomErrorBody(const std::string &filePath)
+{
+    std::ostringstream oss;
+
+    oss << "<!DOCTYPE html>\n"
+        << "<html>\n"
+        << "<head>\n"
+        << "<title>Error " << this->_statusCode << "</title>\n"
+        << "</head>\n"
+        << "<body>\n"
+        << "<h1>Error " << this->_statusCode << "</h1>\n"
+        << "<p>" << _statusText << "</p>\n"
+        << "<p>" << filePath << " not found</p>\n"
+        << "</body>\n"
+        << "</html>\n";
+
+    this->setBody(oss.str());
+}
+
+void HTTPResponse::setBodyFromFile(const std::string &filePath)
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
 
     if (!file.is_open())
     {
-        int error = errno;
-        if (file.bad())
-            this->setStatusCode(500);
-        else if (file.fail())
+        if (_statusCode != 200)
         {
-            if (error == EACCES)
-                this->setStatusCode(403);
-            if (error == ENOENT)
-                this->setStatusCode(404);
-            // TODO: error kan ook 20 zijn
+            int error = errno;
+            if (file.bad())
+                this->setStatusCode(500);
+            else if (file.fail())
+            {
+                if (error == EACCES)
+                    this->setStatusCode(403);
+                if (error == ENOENT)
+                    this->setStatusCode(404);
+                // TODO: error kan ook 20 zijn
+            }
+            else
+                this->setStatusCode(400);
         }
-        else
-            this->setStatusCode(400);
+        this->_setCustomErrorBody(filePath);
         return;
     }
     std::ostringstream buffer;
     buffer << file.rdbuf();
     file.close();
 
-    setBody(buffer.str(), contentType);
+    setBody(buffer.str(), getContentTypeFromFile(filePath));
 }
 
 void HTTPResponse::setRedirect(const std::string &location, int code)
@@ -172,60 +230,56 @@ void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
 }
 
 std::string HTTPResponse::_createDirString(const std::string &directoryPath,
-		const std::string &appendString)
+                                           const std::string &appendString)
 {
-	std::string bodyToSet = "<br>";
+    std::string bodyToSet = "<br>";
 
-	std::cout << "directory requested: " << directoryPath << std::endl;//test
-	DIR *directory = opendir(directoryPath.c_str());
-	if (!directory)
-		throw std::runtime_error("Error: couldn't open directory");
+    std::cout << "directory requested: " << directoryPath << std::endl; // test
+    DIR *directory = opendir(directoryPath.c_str());
+    if (!directory)
+        throw std::runtime_error("Error: couldn't open directory");
 
-	struct dirent * directoryInfo = readdir(directory);
-	while (directoryInfo)
-	{
-		if (directoryInfo->d_type == DT_DIR 
-				&& (static_cast<std::string>(directoryInfo->d_name)
-					.find_first_of(".") == static_cast<size_t>(-1)))
-		{
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("/");
-			bodyToSet.append(_createDirString(directoryPath + "/"
-						+ directoryInfo->d_name, "&nbsp &nbsp"));
-		}
-		else if (static_cast<std::string>(directoryInfo->d_name) != "."
-				&& static_cast<std::string>(directoryInfo->d_name) != "..")
-		{
-			bodyToSet.append(appendString);
-			bodyToSet.append("<a href=\"");
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("\">");
-			bodyToSet.append(directoryInfo->d_name);
-			bodyToSet.append("</a> <br>");
-		}
-		directoryInfo = readdir(directory);
-	}
+    struct dirent *directoryInfo = readdir(directory);
+    while (directoryInfo)
+    {
+        if (directoryInfo->d_type == DT_DIR && (static_cast<std::string>(directoryInfo->d_name)
+                                                    .find_first_of(".") == static_cast<size_t>(-1)))
+        {
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("/");
+            bodyToSet.append(_createDirString(directoryPath + "/" + directoryInfo->d_name, "&nbsp &nbsp"));
+        }
+        else if (static_cast<std::string>(directoryInfo->d_name) != "." && static_cast<std::string>(directoryInfo->d_name) != "..")
+        {
+            bodyToSet.append(appendString);
+            bodyToSet.append("<a href=\"");
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("\">");
+            bodyToSet.append(directoryInfo->d_name);
+            bodyToSet.append("</a> <br>");
+        }
+        directoryInfo = readdir(directory);
+    }
 
-	int errorCode = closedir(directory);
-	if (errorCode == -1)
-		throw std::runtime_error("Error while closing directory");
-
-	return (bodyToSet);
+    int errorCode = closedir(directory);
+    if (errorCode == -1)
+        throw std::runtime_error("Error while closing directory");
+    return (bodyToSet);
 }
 
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
 {
-	this->setBody("INDEX\n" + this->_createDirString(directoryPath));
-	if (_body.empty())//test
-		std::cout << "empty body!" << std::endl;//test
+    this->setBody("INDEX\n" + this->_createDirString(directoryPath));
+    if (_body.empty())                           // test
+        std::cout << "empty body!" << std::endl; // test
 }
 
-void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
+void HTTPResponse::buildReturnPage(int code, const std::string &filePath) // TODO: test
 {
-	setStatusCode(code);
-	setHeader("Location", filePath);
-	setHeader("Content-Length", "0");
-	buildResponse();
+    setStatusCode(code);
+    setHeader("Location", filePath);
+    setHeader("Content-Length", "0");
+    buildResponse();
 }
 
 void HTTPResponse::buildCgiPage(const std::string &cgiString)
@@ -252,16 +306,16 @@ void HTTPResponse::buildCgiPage(const std::string &cgiString)
 
 void HTTPResponse::buildResponse()
 {
-	std::ostringstream responsStream;
+    std::ostringstream responsStream;
 
-	responsStream << "HTTP/1.1 " << _statusCode << " " << _statusText << "\r\n";
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-	{
-		responsStream << it->first << ": " << it->second << "\r\n";
-	}
-	responsStream << "\r\n";
-	if (_body.size() > 0)
-		responsStream << _body;
+    responsStream << "HTTP/1.1 " << _statusCode << " " << _statusText << "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+    {
+        responsStream << it->first << ": " << it->second << "\r\n";
+    }
+    responsStream << "\r\n";
+    if (_body.size() > 0)
+        responsStream << _body;
 
-	_responseString = responsStream.str();
+    _responseString = responsStream.str();
 }

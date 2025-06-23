@@ -2,12 +2,12 @@
 #include "../../inc/HTTPServer.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
 
-#include <cstring>      // for strerror
+#include <cstring>		// for strerror
 #include <sys/socket.h> // for socket
 #include <netinet/in.h> // for sockaddr_in
-#include <sys/epoll.h>  // for epoll
-#include <unistd.h>     // for close, read, write
-#include <cerrno>       // for errno
+#include <sys/epoll.h>	// for epoll
+#include <unistd.h>		// for close, read, write
+#include <cerrno>		// for errno
 #include <iostream>
 
 void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
@@ -28,7 +28,7 @@ void HTTPServer::_prossesCgi(ConnectionHandler *connectionHandler)
 	Cgi *cgi = connectionHandler->getCgi();
 	if (cgi->processCgi())
 		return;
-	
+
 	connectionHandler->sendCgiResponse();
 
 	const int *fd = cgi->getCgiFds();
@@ -60,22 +60,30 @@ void HTTPServer::_createNewConnection(int fd)
 
 	this->_setNonBlocking(newSocketFD);
 	this->_addFDToEpoll(newSocketFD);
-	this->_setNewHandler(newSocketFD);
+	this->_setNewHandler(newSocketFD, fd);
 	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
 
 	this->_delegateToConnectionHandler(newSocketFD);
 }
 
-void HTTPServer::_setNewHandler(int newSocketFD)
+void HTTPServer::_setNewHandler(int newSocketFD, int serverFD)
 {
-	std::string &serverKey = _listeningSockets[0].first;
-	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	std::string serverKey;
+	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin();
+		 it != _listeningSockets.end(); ++it)
 	{
-		if (it->second == newSocketFD)
+		if (it->second == serverFD)
 		{
 			serverKey = it->first;
 			break;
 		}
+	}
+
+	if (serverKey.empty())
+	{
+		std::cerr << "Error: Could not find server key for FD " << serverFD << std::endl;
+		close(newSocketFD);
+		return;
 	}
 
 	ConnectionHandler *newConnection = new ConnectionHandler(serverKey, newSocketFD);
@@ -110,25 +118,43 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);
 
-	if (connectionHandler->shouldClose())//TODO: Added this for cases where header says "connection close". 
-										 //IF there are other cases where we should close after handling request, add to shouldClose()
+	if (connectionHandler->shouldClose()) // TODO: Added this for cases where header says "connection close".
+										  // IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(_connectionHandlers, connectionFd);
 }
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
 {
-	epoll_ctl(_epollFD, EPOLL_CTL_DEL, fd, NULL);
+	if (_epollFD > 0)
+	{
+		if (epoll_ctl(_epollFD, EPOLL_CTL_DEL, fd, NULL) == -1)
+		{
+			if (errno != EBADF && errno != ENOENT)
+			{
+				std::cerr << "Warning: epoll_ctl DEL failed for FD " << fd
+						  << ": " << strerror(errno) << std::endl;
+			}
+		}
+	}
 
 	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
-	if (it != map.end())
 	{
-		map.erase(it);
 		if (map == _connectionHandlers)
 		{
-			_connAmount--;
+			if (it->second->isCgiRunning())
+				it->second->killCgi();
+
 			delete it->second;
+			_connAmount--;
 			std::cout << "Connection " << fd << " closed" << std::endl;
 		}
+		map.erase(it);
+	}
+	if (close(fd) == -1)
+	{
+		if (errno != EBADF)
+			std::cerr << "Warning: close failed for FD " << fd
+					  << ": " << strerror(errno) << std::endl;
 	}
 }
 
@@ -146,12 +172,12 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-        ConnectionHandler* cgiHandler = _getConnectionHandler(_cgis, fd); // BASIL
-        if (cgiHandler)
+		ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd); // BASIL
+		if (cgiHandler)
 		{
-            _prossesCgi(cgiHandler);
-            return;
-        }
+			_prossesCgi(cgiHandler);
+			return;
+		}
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
 		_closeConnection(_connectionHandlers, fd);
 	}

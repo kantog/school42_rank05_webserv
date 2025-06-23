@@ -1,23 +1,16 @@
-
 #include "Cgi.hpp"
 #include "ErrorCodes.hpp"
 
 #include <sys/stat.h>
 #include <sstream>
 #include <cerrno>
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
-// TODO: check list
-
+#include <fcntl.h>
 
 static void closeFd(int *fd)
 {
@@ -137,7 +130,7 @@ void Cgi::_initEnv()
     _envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
     _envStrings.push_back("REQUEST_METHOD=" + _request.getMethod());
     _envStrings.push_back("SERVER_PROTOCOL=" + _request.getVersion());
-    _envStrings.push_back("SCRIPT_FILENAME=" + _request.getRequestFile());
+    _envStrings.push_back("SCRIPT_FILENAME=" + _path);
     _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
     _envStrings.push_back("SERVER_NAME=" + _request.getHeader("Host"));
     _envStrings.push_back("HTTP_HOST=" + _request.getHeader("Host"));
@@ -145,6 +138,9 @@ void Cgi::_initEnv()
     _envStrings.push_back("REMOTE_ADDR=" + _serverConfig.host);
     _envStrings.push_back("HTTP_USER_AGENT=" + _request.getHeader("User-Agent"));
     _envStrings.push_back("HTTP_ACCEPT=" + _request.getHeader("Accept"));
+
+
+    _envStrings.push_back("REDIRECT_STATUS=200"); // for php
 
     if (_request.getMethod() == "GET")
     {
@@ -356,7 +352,8 @@ bool Cgi::processCgi()
 {
     (this->*_currentFunction)();
 
+    std::cout << "CGI status code: " << _statusCode << std::endl;
     if (_statusCode != HTTP_OK)
         return false;
     return _isRunning;
-}  // TODO check if child crashed
+}

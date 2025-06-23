@@ -40,21 +40,37 @@ HTTPServer::~HTTPServer()
     std::cout << "Server shutting down..." << std::endl;
     std::cout << "Amount of connections: " << _connAmount << std::endl;
 
-    std::map<int, ConnectionHandler *>::iterator it;
-    for (it = _connectionHandlers.begin(); it != _connectionHandlers.end(); ++it)
+    // close all connections
+    std::vector<int> fdsToClose;
+    for (std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.begin(); it != _connectionHandlers.end(); ++it)
+        fdsToClose.push_back(it->first);
+    for (size_t i = 0; i < fdsToClose.size(); ++i)
     {
-        std::cout << "\tClosing connection " << it->first << std::endl;
-        delete it->second;
-        close(it->first);
+        std::cout << "\tClosing connection " << fdsToClose[i] << std::endl;
+        _closeConnection(_connectionHandlers, fdsToClose[i]);
     }
-    _connectionHandlers.clear();
-    //
+
+    // close all cgis
+    std::map<int, ConnectionHandler *>::iterator cgiIt;
+    for (cgiIt = _cgis.begin(); cgiIt != _cgis.end(); ++cgiIt)
+    {
+        if (_epollFD > 0)
+            epoll_ctl(_epollFD, EPOLL_CTL_DEL, cgiIt->first, NULL);
+        close(cgiIt->first);
+    }
+    _cgis.clear();
+    
+    // close all listening sockets
     std::cout << "Closing listening sockets..." << std::endl;
     for (int i = 0; i < (int)_listeningSockets.size(); ++i)
     {
+        if (_epollFD > 0)
+            epoll_ctl(_epollFD, EPOLL_CTL_DEL, _listeningSockets[i].second, NULL);
         std::cout << "\tClosing listening socket " << _listeningSockets[i].second << std::endl;
         close(_listeningSockets[i].second);
     }
+
+    // close epoll
     std::cout << "Closing epoll..." << std::endl;
     if (_epollFD > 0)
         close(_epollFD);

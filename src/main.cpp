@@ -17,16 +17,15 @@ int main(int argc, char **argv)
 {
     try
     {
-        // TODO: als eror trow, lijst prineten met wat wel mag
         if (argc > 1)
         {
-            MyConfig::get(argv[1]); // TODO: check if file exists ? .conf?
+            MyConfig::get(argv[1]);
             std::cout << "Using config file " << argv[1] << std::endl;
         }
         else
         {
             std::cout << "Using default config file" << std::endl;
-            MyConfig::get("default/default.conf");
+            MyConfig::get("default/default.conf"); // TODO: define in haeder?
         }
     }
     catch (const std::exception &e)

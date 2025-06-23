@@ -10,7 +10,6 @@ class	ConnectionHandler
 {
 	private:
 		HTTPRequest _request; //nog handlen: onvolledige requests binnenkrijgen, check wat recv doet exact
-		// HTTPResponse _response;
 		Cgi *_cgi;
 		const ServerConfig *_serverConfig;
 

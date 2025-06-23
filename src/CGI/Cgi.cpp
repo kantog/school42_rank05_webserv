@@ -360,6 +360,7 @@ bool Cgi::processCgi()
 {
     (this->*_currentFunction)();
 
+    std::cout << "CGI status code: " << _statusCode << std::endl;
     if (_statusCode != 200)
         return false;
     return _isRunning;

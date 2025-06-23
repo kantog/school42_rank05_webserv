@@ -2,6 +2,7 @@
 import os
 import sys
 
+# dit werkt niet
 # import time
 # time.sleep(10)
 

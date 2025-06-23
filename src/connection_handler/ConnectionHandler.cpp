@@ -157,8 +157,10 @@ void ConnectionHandler::handleHTTP()
 
 void ConnectionHandler::sendCgiResponse()
 {
-	// TODO: error checking
-	this->_response.buildCgiPage(_cgi->getBody());
+	if (_cgi->getStatusCode() != 200) // TODO: 200
+		this->_response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
+	else
+		this->_response.buildCgiPage(_cgi->getBody());
 	this->_sendResponse();
 	_cgi = NULL;
 	this->_request.reset(); // TODO ?

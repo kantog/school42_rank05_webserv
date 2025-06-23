@@ -44,4 +44,8 @@ private:
 
     void tokenize(std::ifstream &file);
     void parseServer(void);
+
+    void validateRoutes(Route &route);
+    void validateServer(ServerConfig &server);
+    void validateParsedConfig(void);
 };

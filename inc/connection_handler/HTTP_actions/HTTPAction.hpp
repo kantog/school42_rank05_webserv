@@ -23,10 +23,8 @@ class	HTTPAction
 		HTTPResponse &_response;
 		const ServerConfig & _serverConfig;
 		MethodRegistry _methodRegistry;
-		// SessionManager &_sessionManager //TODO: 
-		// ErrorManager &_errorManager //TODO;
 
-		Cgi *_cgi; // BASILL
+		Cgi *_cgi;
 
 	public:
 		HTTPAction(HTTPRequest & _request, 
@@ -35,8 +33,6 @@ class	HTTPAction
 		HTTPAction(const HTTPAction &other);
 		~HTTPAction();
 
-		// void sessionManager();//TODO: wat moet dit doen? 
-		// void generateErrorResponse(int errorCode);//sets status code and body and returns
 		void run();
 
 		bool isCgiRunning();

@@ -1,10 +1,10 @@
 
 #include "../../inc/config_classes/ConfigParser.hpp"
 
-#include <stdexcept>            // std::runtime_error
-#include <iostream>             // std::cout
-#include <fstream>              // std::ifstream
-#include <sstream>              // std::stringstream
+#include <stdexcept> // std::runtime_error
+#include <iostream>  // std::cout
+#include <fstream>   // std::ifstream
+#include <sstream>   // std::stringstream
 #include <cstdlib>
 
 bool ConfigParser::hasMoreTokens(void)
@@ -191,14 +191,14 @@ bool ConfigParser::setCgi(Route &route, const std::string &token)
 {
     if (token != "cgi_extension")
         return false;
-    
+
     std::string extension = getNextToken();
     std::string path = getNextToken();
-    
+
     while (extension != ";" && path != ";")
     {
         route.cgiExtensions[extension] = path;
-        
+
         if (hasMoreTokens() && getCurrentToken() != ";")
         {
             extension = getNextToken();
@@ -208,10 +208,10 @@ bool ConfigParser::setCgi(Route &route, const std::string &token)
         else
             break;
     }
-    
+
     if (hasMoreTokens() && getCurrentToken() == ";")
         expectToken(";");
-        
+
     return true;
 }
 
@@ -219,7 +219,7 @@ bool ConfigParser::setReturn(Route &route, const std::string &token)
 {
     if (token != "return")
         return false;
-    
+
     route.redirectCode = std::atoi(getNextToken().c_str());
     route.redirectPath = getNextToken();
     expectToken(";");
@@ -256,6 +256,7 @@ void ConfigParser::parseServer()
     }
 
     expectToken("}");
+    this->validateServer(server);
     _configs[server.getServerKey()].push_back(server);
 }
 
@@ -296,8 +297,9 @@ bool ConfigParser::parseLocation(ServerConfig &server, const std::string &name)
             throw std::runtime_error("Unknown location directive: " + token);
         }
     }
-    server.routes.push_back(route);
     this->expectToken("}");
+    this->validateRoutes(route);
+    server.routes.push_back(route);
     return true;
 }
 
@@ -325,8 +327,38 @@ void ConfigParser::tokenize(std::ifstream &file)
     }
 }
 
+void ConfigParser::validateRoutes(Route &route)
+{
+    if (route.path.empty())
+        throw std::runtime_error("Route path is empty");
+    if (route.allowedMethods.empty())
+        throw std::runtime_error("Route allowed methods is empty");
+}
+
+void ConfigParser::validateServer(ServerConfig &server)
+{
+    if (server.server_names.empty())
+        throw std::runtime_error("Server name is empty");
+    if (server.host.empty())
+        throw std::runtime_error("Server listen is empty");
+    if (server.client_max_body_size == 0)
+        throw std::runtime_error("Server client_max_body_size is empty");
+    if (server.routes.empty())
+        throw std::runtime_error("Server has no routes");
+}
+
+void ConfigParser::validateParsedConfig(void)
+{
+    if (this->_configs.empty())
+        throw std::runtime_error("No servers found in config file");
+}
+
 std::map<std::string, std::vector<ServerConfig> > ConfigParser::parseConfigFile(const std::string &filename)
 {
+    if (filename.empty())
+        throw std::runtime_error("Config file name is empty");
+    if (filename.find(".conf") == std::string::npos)
+        throw std::runtime_error("Config file must have .conf extension");
     std::ifstream file(filename.c_str());
     if (!file.is_open())
         throw std::runtime_error("Cannot open config file: " + filename);
@@ -339,5 +371,6 @@ std::map<std::string, std::vector<ServerConfig> > ConfigParser::parseConfigFile(
         this->parseServer();
     }
 
+    this->validateParsedConfig();
     return _configs;
 }

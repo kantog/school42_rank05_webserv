@@ -274,7 +274,7 @@ void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
         std::cout << "empty body!" << std::endl; // test
 }
 
-void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
+void HTTPResponse::buildReturnPage(int code, const std::string &filePath) // TODO: test
 {
     setStatusCode(code);
     setHeader("Location", filePath);

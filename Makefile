@@ -85,6 +85,6 @@ aclean: fclean
 
 re: fclean all
 
-.PHONY: all clean fclean re aclean obj
+.PHONY: clean fclean re aclean obj
 
-# TODO: make toont niks van al set 
+# TODO: make toont niks van al set // misschien gewoon compleet andere make file maken?

@@ -63,7 +63,7 @@ public:
 	const std::string &getRawPath() const;
 
 	void reset();
-	bool hasCloseHeader() const; // TODO: ?
+	bool hasCloseHeader() const;
 	void parseRequest(const char *rawRequest, const std::string &serverKey);
 	bool isComplete() const;
 };

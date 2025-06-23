@@ -338,7 +338,7 @@ void Cgi::startCgi()
     if (_pid == 0)
         this->_runCgi();
 
-    int status; // if child is all dead
+    int status; // if child is already dead
     if (waitpid(_pid, &status, WNOHANG) > 0)
     {
         _statusCode = HTTP_SERVER_ERROR;

@@ -7,6 +7,9 @@
 #include "ServerConfig.hpp"
 #include "Cgi.hpp"
 
+#include <iostream>
+
+
 HTTPAction::HTTPAction(HTTPRequest & request,
 						const ServerConfig &serverConfig):
 	_request(request), 
@@ -48,6 +51,10 @@ std::string HTTPAction::getFullCgiResponseString()
 
 std::string HTTPAction::getFullResponseString() 
 {
+	std::cout << _request.getMethod() << " " << _request.getRawPath()
+			  << "(" << _serverConfig.getFullFilesystemPath(_request.getRequestTarget())<< "): "
+			  << _response.getStatusCode() << std::endl;
+
 	return (_response.getResponseString());
 }
 

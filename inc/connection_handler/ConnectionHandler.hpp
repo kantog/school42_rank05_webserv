@@ -3,7 +3,6 @@
 
 #include <string>
 #include "HTTPRequest.hpp"
-// #include "HTTPResponse.hpp"
 #include "Cgi.hpp"
 
 class	ConnectionHandler 
@@ -17,7 +16,6 @@ class	ConnectionHandler
 		std::string _serverKey;
 		int _connectionSocketFD;
 
-		// ConnectionHandler();
 		ConnectionHandler(const ConnectionHandler &other);
 		ConnectionHandler &operator=(const ConnectionHandler &other);
 

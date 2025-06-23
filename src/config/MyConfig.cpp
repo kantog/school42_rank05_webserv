@@ -3,15 +3,10 @@
 #include "../../inc/config_classes/ConfigParser.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
 
-MyConfig *MyConfig::_myConfig = NULL;
-
 MyConfig::MyConfig() {}
 
 MyConfig::~MyConfig() 
-{
-	if (_myConfig)
-		delete _myConfig;
-}
+{}
 
 MyConfig::MyConfig(const char *filename)
 {
@@ -21,9 +16,8 @@ MyConfig::MyConfig(const char *filename)
 
 const MyConfig& MyConfig::get(const char* filename)
 {
-	if (!_myConfig)
-		_myConfig = new MyConfig(filename);
-    return *_myConfig;
+    static MyConfig instance(filename);
+    return instance;
 }
 
 const ServerConfig* MyConfig::findServerConfig(const std::string &serverKey, const std::string &hostURL) const

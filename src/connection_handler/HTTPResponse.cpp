@@ -1,7 +1,7 @@
 
 
 #include "../../inc/connection_handler/HTTPResponse.hpp"
-#include "ServerConfig.hpp"
+#include "ErrorCodes.hpp"
 
 #include <cerrno>
 #include <cstddef>
@@ -20,7 +20,7 @@ HTTPResponse::~HTTPResponse() {}
 
 void HTTPResponse::reset()
 {
-    _statusCode = 200;
+    _statusCode = HTTP_OK;
     _statusText = "OK";
     _headers.clear();
     _body.clear();
@@ -159,30 +159,30 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath)
 
     if (!file.is_open())
     {
-        if (_statusCode != 200)
-        {
-            int error = errno;
-            if (file.bad())
-                this->setStatusCode(500);
-            else if (file.fail())
-            {
-                if (error == EACCES)
-                    this->setStatusCode(403);
-                if (error == ENOENT)
-                    this->setStatusCode(404);
-                // TODO: error kan ook 20 zijn
-            }
-            else
-                this->setStatusCode(400);
-        }
-        this->_setCustomErrorBody(filePath);
-        return;
-    }
-    std::ostringstream buffer;
-    buffer << file.rdbuf();
-    file.close();
+		int error = errno;
 
-    setBody(buffer.str(), getContentTypeFromFile(filePath));
+		if (getStatusCode() < 200 || getStatusCode() > 226)
+			_setCustomErrorBody(filePath);
+		if (file.bad())
+			this->setStatusCode(HTTP_SERVER_ERROR);
+		else if (file.fail())
+		{
+			if (error == EACCES)
+				this->setStatusCode(HTTP_FORBIDDEN);
+			if (error == ENOENT)
+				this->setStatusCode(HTTP_NOTFOUND);
+			// TODO: error kan ook 20 zijn
+		}
+		else
+			this->setStatusCode(HTTP_BADREQ);
+		return;
+	}
+
+	std::ostringstream buffer;
+	buffer << file.rdbuf();
+	file.close();
+
+	setBody(buffer.str(), getContentTypeFromFile(filePath));
 }
 
 void HTTPResponse::setRedirect(const std::string &location, int code)
@@ -207,17 +207,17 @@ void HTTPResponse::_setStatusMessage(int code)
     /// @todo
     switch (code)
     {
-    case 200:
-        _statusText = "OK";
-        break;
-    case 404:
-        _statusText = "Not Found";
-        break;
-    case 500:
-        _statusText = "Internal Server Error";
-        break;
-    default:
-        _statusText = "Unknown";
+		case HTTP_OK:
+			_statusText = "OK";
+			break;
+		case HTTP_NOTFOUND:
+			_statusText = "Not Found";
+			break;
+		case HTTP_SERVER_ERROR:
+			_statusText = "Internal Server Error";
+			break;
+		default:
+			_statusText = "Unknown";
         break;
     }
 }
@@ -229,30 +229,38 @@ void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
     buildResponse();
 }
 
-std::string HTTPResponse::_createDirString(const std::string &directoryPath,
-                                           const std::string &appendString)
+std::string HTTPResponse::_createDirString(const std::string &fullDirPath,
+                                           const std::string &relativeDirPath,
+                                           const std::string &whiteSpace)
 {
     std::string bodyToSet = "<br>";
 
-    std::cout << "directory requested: " << directoryPath << std::endl; // test
-    DIR *directory = opendir(directoryPath.c_str());
+    std::cout << "directory requested: " << fullDirPath << std::endl; // test
+    DIR *directory = opendir(fullDirPath.c_str());
     if (!directory)
         throw std::runtime_error("Error: couldn't open directory");
 
     struct dirent *directoryInfo = readdir(directory);
     while (directoryInfo)
     {
-        if (directoryInfo->d_type == DT_DIR && (static_cast<std::string>(directoryInfo->d_name)
-                                                    .find_first_of(".") == static_cast<size_t>(-1)))
+        if (directoryInfo->d_type == DT_DIR 
+				&& (static_cast<std::string>(directoryInfo->d_name)
+					.find_first_of(".") == static_cast<size_t>(-1)))
         {
+            bodyToSet.append(whiteSpace);
             bodyToSet.append(directoryInfo->d_name);
             bodyToSet.append("/");
-            bodyToSet.append(_createDirString(directoryPath + "/" + directoryInfo->d_name, "&nbsp &nbsp"));
+            bodyToSet.append(_createDirString(fullDirPath + "/" 
+						+ directoryInfo->d_name, 
+						relativeDirPath + "/" + directoryInfo->d_name,
+						whiteSpace + "&nbsp &nbsp"));
         }
-        else if (static_cast<std::string>(directoryInfo->d_name) != "." && static_cast<std::string>(directoryInfo->d_name) != "..")
+        else if (static_cast<std::string>(directoryInfo->d_name) != "." 
+				&& static_cast<std::string>(directoryInfo->d_name) != "..")
         {
-            bodyToSet.append(appendString);
+            bodyToSet.append(whiteSpace);
             bodyToSet.append("<a href=\"");
+            bodyToSet.append(relativeDirPath + "/");
             bodyToSet.append(directoryInfo->d_name);
             bodyToSet.append("\">");
             bodyToSet.append(directoryInfo->d_name);
@@ -298,7 +306,7 @@ void HTTPResponse::buildCgiPage(const std::string &cgiString)
     else
         body = cgiString;
 
-    setStatusCode(200);
+    setStatusCode(HTTP_OK);
     setHeaders(headers);
     setBody(body);
     buildResponse();

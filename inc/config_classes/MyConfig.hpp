@@ -9,10 +9,8 @@
 class MyConfig
 {
 	private:
-		static MyConfig *_myConfig;
 		MyConfig();
 		MyConfig(const char *filename);
-
 
 	public:
 		std::map<std::string, std::vector<ServerConfig> > _servers;

@@ -24,7 +24,7 @@ struct Route
 	Route() :
 		isDirectoryListing(false),
 		uploadAllowed(false),
-		client_max_body_size(-1) {}
+		client_max_body_size(0) {}
 };
 
 class ServerConfig

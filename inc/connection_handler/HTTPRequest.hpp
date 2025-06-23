@@ -25,6 +25,7 @@ private:
 
 	std::string _requestBuffer;
 	bool _isComplete;
+	int _errorCode;
 
 	size_t _chunkSizeRemaining;
 
@@ -66,4 +67,6 @@ public:
 	bool hasCloseHeader() const;
 	void parseRequest(const char *rawRequest, const std::string &serverKey);
 	bool isComplete() const;
+	bool isError() const;
+	int getErrorCode() const { return this->_errorCode; }
 };

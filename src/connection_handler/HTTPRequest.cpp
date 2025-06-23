@@ -22,6 +22,7 @@ HTTPRequest::HTTPRequest()
     _isComplete = false;
     _currentFunction = &HTTPRequest::_setMethod;
     _chunkSizeRemaining = 0;
+    _errorCode = 200;
 }
 
 HTTPRequest::HTTPRequest(const HTTPRequest &other)
@@ -51,6 +52,8 @@ void HTTPRequest::reset()
     _body.clear();
     _isComplete = false;
     _currentFunction = &HTTPRequest::_setMethod;
+    _chunkSizeRemaining = 0;
+    _errorCode = 200;
 }
 
 const std::string &HTTPRequest::getRawPath() const
@@ -70,7 +73,7 @@ const std::string &HTTPRequest::getRequestTarget() const
 
 const std::string &HTTPRequest::getHostURL() const
 {
-    return this->getHeader("Host"); // TODO
+    return this->getHeader("Host");
 }
 
 const std::map<std::string, std::string> &HTTPRequest::getHeaders() const
@@ -112,7 +115,8 @@ const std::string &HTTPRequest::getHeader(const std::string &key) const
 
 bool HTTPRequest::hasCloseHeader() const // TODO: different name
 {
-    // TODO: check
+    if (this->getHeader("Connection") == "close")
+        return true;
     return false;
 }
 
@@ -212,11 +216,18 @@ void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
             is >> _contentLength;
         }
         if (_contentLength == 0)
-            this->_isComplete = true; // TODO: check
+            this->_isComplete = true;
 
         this->_parsePath(serverKey);
         this->_setMaxBodySize(serverKey);
 
+        if (_contentLength > _maxContentLength)
+        {
+            std::cout << "Body too large " << _contentLength << "> " << _maxContentLength << std::endl;
+            this->_isComplete = false;
+            this->_errorCode = 413;
+            return;
+        }
         this->_currentFunction = NULL;
         return;
     }
@@ -270,9 +281,21 @@ bool HTTPRequest::_addChunkData()
         _chunkSizeRemaining -= bytesToCopy;
 
         _trimChunked();
+
+        if (_body.length() >= _maxContentLength)
+        {
+            _errorCode = 413;
+            _isComplete = false;
+            return (false);
+        }
         return (true);
     }
     return (false); // Need more data
+}
+
+bool HTTPRequest::isError() const
+{
+    return _errorCode != 200;
 }
 
 void HTTPRequest::_parseChunkedBody()
@@ -317,9 +340,6 @@ void HTTPRequest::_setBody()
 void HTTPRequest::parseRequest(const char *rawRequest, const std::string &serverKey)
 {
     _requestBuffer.append(rawRequest);
-    // std::cout << "requestBuffer: " << _requestBuffer << std::endl;
-
-    // TODO: client_max_body_size wat te doen?
 
     if (_currentFunction == NULL)
     {

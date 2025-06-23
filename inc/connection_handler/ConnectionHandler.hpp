@@ -39,7 +39,7 @@ class	ConnectionHandler
 		ConnectionHandler(std::string &serverKey, int fd);
 		~ConnectionHandler();
 
-		void handleHTTP();
+		bool handleHTTP();
 		void sendCgiResponse();
 		bool shouldClose();
 

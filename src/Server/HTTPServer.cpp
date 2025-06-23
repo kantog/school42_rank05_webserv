@@ -113,7 +113,8 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
 		return;
 	}
-	connectionHandler->handleHTTP();
+	if (!connectionHandler->handleHTTP())
+		return;
 
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);

@@ -44,10 +44,7 @@ HTTPServer::~HTTPServer()
     for (std::map<int, ConnectionHandler *>::iterator it = _connectionHandlers.begin(); it != _connectionHandlers.end(); ++it)
         fdsToClose.push_back(it->first);
     for (size_t i = 0; i < fdsToClose.size(); ++i)
-    {
-        std::cout << "\tClosing connection " << fdsToClose[i] << std::endl;
         _closeConnection(_connectionHandlers, fdsToClose[i]);
-    }
 
     // close all cgis
     std::map<int, ConnectionHandler *>::iterator cgiIt;

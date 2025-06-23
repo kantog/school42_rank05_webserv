@@ -122,54 +122,55 @@ bool ConnectionHandler::shouldClose()
 	// .... TODO: check
 }
 
-// void ConnectionHandler::makeResponse(std::string &input)
-// {
-// 	// std::cout << "input: " << input << std::endl;//test
-// 	_request.parseRequest(input);
-// 	std::cout << std::endl;
-// 	// actions aanmaken ...
-// }
-
 void ConnectionHandler::_setServerConfig()
 {
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
 }
 
-void ConnectionHandler::handleHTTP()
+bool ConnectionHandler::handleHTTP()
 {
 	if (this->_cgi)
 	{
+		this->_createRequest();
 		_response.reset();
 		_response.setStatusCode(503);
-		_response.setHeader("Retry-After", "5"); // Retry after 5 seconds
+		_response.setHeader("Retry-After", "5");
 		_response.setBody("Server busy processing request");
 		_response.buildResponse();
 		this->_sendResponse();
-		return;
+		return (false);
 	}
 
 	this->_createRequest();
+	if (this->_request.isError())
+	{	// TODO: test met grote files
+		this->_setServerConfig();
+		this->_response.buildErrorPage(this->_request.getErrorCode(), this->_serverConfig->getErrorPagePath(this->_request.getErrorCode()));
+		this->_sendResponse();
+		this->_shouldClose = true;
+		return (true);
+	}
 	if (!this->_request.isComplete())
-		return;
+		return (false);
 
 	this->_setServerConfig();
 
 	_response.reset();
-	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
-	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig); // TODO:? niet nieuw maken
+	_HTTPAction = new HTTPAction(_request, _response, *_serverConfig); // TODO:? heap/stack?
 	_HTTPAction->run();
 	if (_HTTPAction->isCgiRunning())
 		_cgi = _HTTPAction->getCgi();
 	delete _HTTPAction;
 
 	if (this->_cgi)
-		return;
+		return (true);
 
 	this->_sendResponse();
 
-	this->_request.reset(); // TODO ?
+	this->_request.reset();
+	return (true);
 }
 
 void ConnectionHandler::sendCgiResponse()
@@ -180,5 +181,5 @@ void ConnectionHandler::sendCgiResponse()
 		this->_response.buildCgiPage(_cgi->getBody());
 	this->_sendResponse();
 	_cgi = NULL;
-	this->_request.reset(); // TODO ?
+	this->_request.reset();
 }

@@ -1,7 +1,6 @@
 
 #pragma once 
 
-#include <string>
 #include "AMethod.hpp"
 
 class ServerConfig;
@@ -25,6 +24,4 @@ class	HTTPActionGET : public AMethod {
 		void implementMethod(HTTPRequest &request,
 						HTTPResponse & response, 
 						const ServerConfig &serverConfig);
-
-		//GCI: CGI is executed and
 };

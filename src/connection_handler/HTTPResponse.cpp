@@ -215,7 +215,7 @@ void HTTPResponse::_setStatusMessage(int code)
     case 500:
         _statusText = "Internal Server Error";
         break;
-    default: // kobe
+    default:
         {
         std::cerr << "Unknown status code: " << code << std::endl;
         _statusText = "Unknown";

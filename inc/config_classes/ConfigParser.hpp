@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "MyConfig.hpp"
+#include "ServerConfig.hpp"
 
 class ConfigParser
 {

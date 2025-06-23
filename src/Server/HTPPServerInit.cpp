@@ -1,5 +1,6 @@
 
 #include "../../inc/HTTPServer.hpp"
+#include "../../inc/config_classes/MyConfig.hpp"
 
 #include <iostream>
 

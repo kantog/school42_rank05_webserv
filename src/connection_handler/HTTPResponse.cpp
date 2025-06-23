@@ -234,39 +234,43 @@ void HTTPResponse::buildErrorPage(int code, const std::string &filePath)
 std::string HTTPResponse::_createDirString(const std::string &directoryPath,
                                            const std::string &appendString)
 {
-    std::string bodyToSet = "\n";
+	std::string bodyToSet = "<br>";
 
-    DIR *directory = opendir(directoryPath.c_str());
-    // std::cout << "dir Path: " << directoryPath << std::endl;//test
-    if (!directory)
-        throw std::runtime_error("Error: couldn't open directory");
+	std::cout << "directory requested: " << directoryPath << std::endl;//test
+	DIR *directory = opendir(directoryPath.c_str());
+	if (!directory)
+		throw std::runtime_error("Error: couldn't open directory");
 
-    struct dirent *directoryInfo = readdir(directory);
-    while (directoryInfo)
-    {
-        if (directoryInfo->d_type == DT_DIR && (static_cast<std::string>(directoryInfo->d_name)
-                                                    .find_first_of(".") == static_cast<size_t>(-1)))
-        {
-            bodyToSet.append(directoryInfo->d_name);
-            bodyToSet.append("\\");
-            bodyToSet.append(_createDirString(directoryPath + directoryInfo->d_name, "  "));
-        }
-        else if (static_cast<std::string>(directoryInfo->d_name) != "." && static_cast<std::string>(directoryInfo->d_name) != "..")
-        {
-            bodyToSet.append(appendString);
-            // bodyToSet.append(directoryInfo->d_name);//test
-            bodyToSet.append("<a href=\"" + directoryPath + directoryInfo->d_name + "\">" + directoryInfo->d_name + "</a>");
-            bodyToSet.append("\n");
-        }
-        directoryInfo = readdir(directory);
-    }
+	struct dirent * directoryInfo = readdir(directory);
+	while (directoryInfo)
+	{
+		if (directoryInfo->d_type == DT_DIR 
+				&& (static_cast<std::string>(directoryInfo->d_name)
+					.find_first_of(".") == static_cast<size_t>(-1)))
+		{
+			bodyToSet.append(directoryInfo->d_name);
+			bodyToSet.append("/");
+			bodyToSet.append(_createDirString(directoryPath + "/"
+						+ directoryInfo->d_name, "&nbsp &nbsp"));
+		}
+		else if (static_cast<std::string>(directoryInfo->d_name) != "."
+				&& static_cast<std::string>(directoryInfo->d_name) != "..")
+		{
+			bodyToSet.append(appendString);
+			bodyToSet.append("<a href=\"");
+			bodyToSet.append(directoryInfo->d_name);
+			bodyToSet.append("\">");
+			bodyToSet.append(directoryInfo->d_name);
+			bodyToSet.append("</a> <br>");
+		}
+		directoryInfo = readdir(directory);
+	}
 
     int errorCode = closedir(directory);
     if (errorCode == -1)
         throw std::runtime_error("Error while closing directory");
 
-    // std::cout << "body to set:" << bodyToSet << std::endl;//test
-    return (bodyToSet);
+	return (bodyToSet);
 }
 
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)

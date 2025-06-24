@@ -312,7 +312,7 @@ void Cgi::_readOutput()
 void Cgi::_finishCgi()
 {
     int status;
-    pid_t result = waitpid(_pid, &status, WNOHANG);
+    pid_t result = waitpid(_pid, &status, 0); // WNOHANG
 
     if (result > 0) // child is done
     {
@@ -320,8 +320,10 @@ void Cgi::_finishCgi()
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
             _statusCode = HTTP_SERVER_ERROR;
     }
-    // else if (result == 0) TODO Zombie
-    //     // save pids?
+    // else if (result == 0) // TODO Zombie
+    //     {
+
+    //     }
     else // error
         _statusCode = HTTP_SERVER_ERROR;
     _isRunning = false;

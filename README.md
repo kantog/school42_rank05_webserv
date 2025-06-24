@@ -234,6 +234,7 @@ HTTPServer *-- ConnectionHandler : uses
 HTTPAction *-- MethodRegistry : owns
 HTTPAction ..> HTTPRequest : uses
 HTTPAction *.. HTTPResponse : owns
+ConnectionHandler ..> HTTPResponse : uses (stack)
 HTTPAction ..> ServerConfig : uses
 AMethod <|-- HTTPhandlePOST : implements
 AMethod <|-- HTTPhandleGET : implements

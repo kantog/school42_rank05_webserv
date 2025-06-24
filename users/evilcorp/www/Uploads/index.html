@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uploads</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+  <nav>
+    <ul>
+      <li><a href="../Forms/index.html">Forms?</a></li>
+      <li><a href="../Counter/index.html">Counter</a></li>
+      <li><a href="../Uploads/index.html" class="active">Upload</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <form action="/Uploads" method="post" enctype="multipart/form-data">
+      <input type="file" name="mijnBestand">
+      <input type="submit" value="Upload">
+    </form>
+  </main>
+
+</body>
+
+</html>

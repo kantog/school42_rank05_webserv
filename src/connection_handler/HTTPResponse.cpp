@@ -158,30 +158,30 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath)
 
     if (!file.is_open())
     {
-		int error = errno;
+        int error = errno;
 
-		if (getStatusCode() < 200 || getStatusCode() > 226)
-			_setCustomErrorBody(filePath);
-		if (file.bad())
-			this->setStatusCode(HTTP_SERVER_ERROR);
-		else if (file.fail())
-		{
-			if (error == EACCES)
-				this->setStatusCode(HTTP_FORBIDDEN);
-			if (error == ENOENT)
-				this->setStatusCode(HTTP_NOTFOUND);
-			// TODO: error kan ook 20 zijn
-		}
-		else
-			this->setStatusCode(HTTP_BADREQ);
-		return;
-	}
+        if (getStatusCode() < 200 || getStatusCode() > 226)
+            _setCustomErrorBody(filePath);
+        if (file.bad())
+            this->setStatusCode(HTTP_SERVER_ERROR);
+        else if (file.fail())
+        {
+            if (error == EACCES)
+                this->setStatusCode(HTTP_FORBIDDEN);
+            if (error == ENOENT)
+                this->setStatusCode(HTTP_NOTFOUND);
+            // TODO: error kan ook 20 zijn
+        }
+        else
+            this->setStatusCode(HTTP_BADREQ);
+        return;
+    }
 
-	std::ostringstream buffer;
-	buffer << file.rdbuf();
-	file.close();
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    file.close();
 
-	setBody(buffer.str(), getContentTypeFromFile(filePath));
+    setBody(buffer.str(), getContentTypeFromFile(filePath));
 }
 
 void HTTPResponse::setRedirect(const std::string &location, int code)
@@ -205,17 +205,39 @@ void HTTPResponse::_setStatusMessage(int code)
 {
     switch (code)
     {
-		case HTTP_OK:
-	_statusText = "OK";
-	break;
-		case HTTP_NOTFOUND:
-	_statusText = "Not Found";
-	break;
-		case HTTP_SERVER_ERROR:
-	_statusText = "Internal Server Error";
-			break;
+    case HTTP_OK:
+        _statusText = "OK";
+        break;
+    case HTTP_NOTFOUND:
+        _statusText = "Not Found";
+        break;
+    case HTTP_SERVER_ERROR:
+        _statusText = "Internal Server Error";
+        break;
+    case HTTP_PAYLOADTOOLARGE:
+        _statusText = "Payload Too Large";
+        break;
+    case HTTP_METHOD_NALLOWED:
+        _statusText = "Method Not Allowed";
+        break;
+    case HTTP_CONFLICT:
+        _statusText = "Conflict";
+        break;
+    case HTTP_BADREQ:
+        _statusText = "Bad Request";
+        break;
+    case HTTP_UNAUTH:
+        _statusText = "Unauthorized";
+        break;
+    case HTTP_FORBIDDEN:
+        _statusText = "Forbidden";
+        break;
+    case HTTP_CREATED:
+        _statusText = "Created";
+        break;
     default:
         _statusText = "Unknown";
+        std::cerr << "Unknown status code: " << code << std::endl;
         throw std::runtime_error("Unknown status code"); // TODO: test
     }
 }
@@ -241,20 +263,17 @@ std::string HTTPResponse::_createDirString(const std::string &fullDirPath,
     struct dirent *directoryInfo = readdir(directory);
     while (directoryInfo)
     {
-        if (directoryInfo->d_type == DT_DIR 
-				&& (static_cast<std::string>(directoryInfo->d_name)
-					.find_first_of(".") == static_cast<size_t>(-1)))
+        if (directoryInfo->d_type == DT_DIR && (static_cast<std::string>(directoryInfo->d_name)
+                                                    .find_first_of(".") == static_cast<size_t>(-1)))
         {
             bodyToSet.append(whiteSpace);
             bodyToSet.append(directoryInfo->d_name);
             bodyToSet.append("/");
-            bodyToSet.append(_createDirString(fullDirPath + "/" 
-						+ directoryInfo->d_name, 
-						relativeDirPath + "/" + directoryInfo->d_name,
-						whiteSpace + "&nbsp &nbsp"));
+            bodyToSet.append(_createDirString(fullDirPath + "/" + directoryInfo->d_name,
+                                              relativeDirPath + "/" + directoryInfo->d_name,
+                                              whiteSpace + "&nbsp &nbsp"));
         }
-        else if (static_cast<std::string>(directoryInfo->d_name) != "." 
-				&& static_cast<std::string>(directoryInfo->d_name) != "..")
+        else if (static_cast<std::string>(directoryInfo->d_name) != "." && static_cast<std::string>(directoryInfo->d_name) != "..")
         {
             bodyToSet.append(whiteSpace);
             bodyToSet.append("<a href=\"");

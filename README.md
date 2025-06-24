@@ -1,3 +1,5 @@
+```mermaid
+
 classDiagram
 
 %%====open questions=====%%
@@ -242,3 +244,4 @@ Cgi ..> HTTPRequest : uses
 Cgi ..> ServerConfig : uses
 Cgi <.. HTTPServer : uses
 ServerConfig --> Path : uses (stack)
+```

@@ -22,7 +22,7 @@ void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
 	}
 }
 
-void HTTPServer::_prossesCgi(ConnectionHandler *connectionHandler)
+void HTTPServer::_processCgi(ConnectionHandler *connectionHandler)
 {
 	Cgi *cgi = connectionHandler->getCgi();
 	if (cgi->processCgi())
@@ -103,7 +103,7 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	ConnectionHandler *connectionHandler = _getConnectionHandler(_cgis, connectionFd);
 	if (connectionHandler)
 	{
-		_prossesCgi(connectionHandler); // BASIL
+		_processCgi(connectionHandler); // BASIL
 		return;
 	}
 	connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
@@ -175,7 +175,7 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 		ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd); // BASIL
 		if (cgiHandler)
 		{
-			_prossesCgi(cgiHandler);
+			_processCgi(cgiHandler);
 			return;
 		}
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;

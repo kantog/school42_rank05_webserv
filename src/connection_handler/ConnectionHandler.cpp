@@ -2,6 +2,7 @@
 #include "../../inc/connection_handler/ConnectionHandler.hpp"
 #include "HTTP_actions/HTTPAction.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
+#include "../../inc/connection_handler/HTTPResponse.hpp"
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -119,16 +120,34 @@ void ConnectionHandler::_setServerConfig()
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
 }
 
+
+
+
+
+
 void ConnectionHandler::sendCgiResponse()
 {
-	HTTPAction Action(_request, *_serverConfig);
+	HTTPResponse response;
 
-	// TODO: error checking
-
-	this->_sendResponse(Action.getFullCgiResponseString());
+	if (_cgi->getStatusCode() != 200) // TODO: 200
+		response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
+	else
+		response.buildCgiPage(_cgi->getBody());
+	this->_sendResponse(response.getResponseString());
 	_cgi = NULL;
-	this->_request.reset(); // TODO ?
+	this->_request.reset();
 }
+
+// void ConnectionHandler::sendCgiResponse()
+// {
+// 	HTTPAction Action(_request, *_serverConfig);
+//
+// 	// TODO: error checking
+//
+// 	this->_sendResponse(Action.getFullCgiResponseString());
+// 	_cgi = NULL;
+// 	this->_request.reset(); // TODO ?
+// }
 
 bool ConnectionHandler::handleHTTP()
 {

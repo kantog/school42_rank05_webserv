@@ -1,6 +1,5 @@
 
 #include "../../inc/HTTPServer.hpp"
-#include "../../inc/config_classes/MyConfig.hpp"
 
 #include <cstring>		// for strerror
 #include <sys/socket.h> // for socket

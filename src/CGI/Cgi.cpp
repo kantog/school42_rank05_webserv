@@ -1,18 +1,16 @@
 #include "Cgi.hpp"
+#include "ErrorCodes.hpp"
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/stat.h>
-#include <cerrno>
-#include <cstring>
-#include <cstdlib>
 #include <sstream>
+#include <cerrno>
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <cstdlib>
+#include <cstring>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 static void closeFd(int *fd)
 {
@@ -30,7 +28,7 @@ static void closePipe(int *pipe)
 
 Cgi::Cgi(const HTTPRequest &request, const ServerConfig &serverConfig) : _request(request),
                                                                          _serverConfig(serverConfig),
-                                                                         _statusCode(200)
+                                                                         _statusCode(HTTP_OK)
 {
     _path = _serverConfig.getFullFilesystemPath(_request.getRequestTarget());
     _pipeIn[0] = -1;
@@ -88,41 +86,41 @@ bool Cgi::_checkAccess()
     if (stat(_path.c_str(), &sb) == 0)
     {
         if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
-            _statusCode = 200; 
+            _statusCode = HTTP_OK; 
         else
-            _statusCode = 500; // script not executable
+            _statusCode = HTTP_FORBIDDEN; // script not executable
     }
     else
-        _statusCode = 404; // script not found
-    return _statusCode == 200;
+        _statusCode = HTTP_NOTFOUND; // script not found
+    return _statusCode == HTTP_OK;
 }
 
 bool Cgi::_initPipes()
 {
     if (pipe(_pipeIn) < 0)
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;  // internal error
     if (pipe(_pipeOut) < 0)
     {
         closePipe(_pipeIn);
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR; // internal error
     }
-    return _statusCode == 200;
+    return _statusCode == HTTP_OK;
 }
 
 bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
-        _statusCode = 500;
-    return _statusCode == 200;
+        _statusCode = HTTP_SERVER_ERROR;  // internal error // TODO: defins maken
+    return _statusCode == HTTP_OK;
 }
 
 bool Cgi::_forkCgi()
 {
     _pid = fork();
     if (_pid < 0)
-        _statusCode = 500;
-    return _statusCode == 200;
+        _statusCode = HTTP_SERVER_ERROR;
+    return _statusCode == HTTP_OK;
 }
 
 void Cgi::_initEnv()
@@ -264,7 +262,7 @@ void Cgi::_writeInput()
     if (waitpid(_pid, &status, WNOHANG) > 0)
     {
         std::cerr << "CGI child process died before we could write all data" << std::endl;
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeIn[1]);
         _currentFunction = &Cgi::_readOutput;
         return;
@@ -277,7 +275,7 @@ void Cgi::_writeInput()
         if (errno == EAGAIN || errno == EWOULDBLOCK)
             return; // more data to write
         std::cerr << "CGI write error: " << strerror(errno) << std::endl;
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeIn[1]);
         _currentFunction = &Cgi::_readOutput;
         return;
@@ -296,7 +294,7 @@ void Cgi::_readOutput()
         if (errno == EAGAIN || errno == EWOULDBLOCK)
             return; // more data to read
         std::cerr << "CGI read error: " << strerror(errno) << std::endl;
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeOut[0]);
         _finishCgi();
         return;
@@ -320,12 +318,12 @@ void Cgi::_finishCgi()
     {
         // if (!normal exit || exit code != 0)
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-            _statusCode = 500;
+            _statusCode = HTTP_SERVER_ERROR;
     }
     // else if (result == 0) TODO Zombie
     //     // save pids?
     else // error
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;
     _isRunning = false;
 }
 
@@ -340,10 +338,10 @@ void Cgi::startCgi()
     if (_pid == 0)
         this->_runCgi();
 
-    int status; // if child is all dead
+    int status; // if child is already dead
     if (waitpid(_pid, &status, WNOHANG) > 0)
     {
-        _statusCode = 500;
+        _statusCode = HTTP_SERVER_ERROR;
         return;
     }
 
@@ -355,7 +353,7 @@ bool Cgi::processCgi()
     (this->*_currentFunction)();
 
     std::cout << "CGI status code: " << _statusCode << std::endl;
-    if (_statusCode != 200)
+    if (_statusCode != HTTP_OK)
         return false;
     return _isRunning;
 }

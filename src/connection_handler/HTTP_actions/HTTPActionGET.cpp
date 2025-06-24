@@ -3,10 +3,9 @@
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
+#include "../../../inc/ErrorCodes.hpp"
 
-#include <stdexcept>
 #include <unistd.h>
-#include <iostream>
 #include <vector>
 #include <sys/stat.h>
 
@@ -28,7 +27,7 @@ void HTTPActionGET::_checkForIndexFiles(HTTPResponse & response,
 		response //index file not found 
 			.setBodyFromFile(serverConfig
 					.getFullFilesystemPath(*it));
-		if (response.getStatusCode() == 200)
+		if (response.getStatusCode() == HTTP_OK)
 			break ;
 	}
 }
@@ -54,10 +53,11 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 	*/
 
 	// Checking if file exists, else checking index files or auto-index
+	//
 	struct stat fileInfo; 
-	if (stat(filePath.c_str(), &fileInfo) == -1)  //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
+	if (stat(filePath.c_str(), &fileInfo) == -1) //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
 	{
-		response.setStatusCode(404);
+		response.setStatusCode(HTTP_NOTFOUND);
 		return;
 	}
 

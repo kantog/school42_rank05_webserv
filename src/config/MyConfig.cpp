@@ -4,7 +4,9 @@
 #include "../../inc/config_classes/MyConfig.hpp"
 
 MyConfig::MyConfig() {}
-MyConfig::~MyConfig() {}
+
+MyConfig::~MyConfig() 
+{}
 
 MyConfig::MyConfig(const char *filename)
 {

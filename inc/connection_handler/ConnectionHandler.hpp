@@ -3,14 +3,12 @@
 
 #include <string>
 #include "HTTPRequest.hpp"
-// #include "HTTPResponse.hpp"
 #include "Cgi.hpp"
 
 class	ConnectionHandler 
 {
 	private:
 		HTTPRequest _request; //nog handlen: onvolledige requests binnenkrijgen, check wat recv doet exact
-		// HTTPResponse _response;
 		Cgi *_cgi;
 		const ServerConfig *_serverConfig;
 
@@ -18,7 +16,6 @@ class	ConnectionHandler
 		std::string _serverKey;
 		int _connectionSocketFD;
 
-		// ConnectionHandler();
 		ConnectionHandler(const ConnectionHandler &other);
 		ConnectionHandler &operator=(const ConnectionHandler &other);
 

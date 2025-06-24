@@ -2,6 +2,7 @@
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
+#include "../../../inc/ErrorCodes.hpp"
 
 #include <cstdio>
 #include <errno.h>
@@ -18,7 +19,7 @@ void HTTPActionDEL::implementMethod(HTTPRequest &request,
 {	
 	if (request.getBody() != "")
 	{
-		response.setStatusCode(400);
+		response.setStatusCode(HTTP_BADREQ);
 		return;
 	}
 	errno = 0;
@@ -28,16 +29,16 @@ void HTTPActionDEL::implementMethod(HTTPRequest &request,
 		switch (errno)
 		{
 			case  EACCES: 	
-				response.setStatusCode(403);
+				response.setStatusCode(HTTP_FORBIDDEN);
 				return;
 			case ENOENT:	
-				response.setStatusCode(404);
+				response.setStatusCode(HTTP_NOTFOUND);
 				return;
 			case EISDIR:	
-				response.setStatusCode(409);
+				response.setStatusCode(HTTP_CONFLICT);
 				return;
 			default: 
-				response.setStatusCode(500);
+				response.setStatusCode(HTTP_SERVER_ERROR);
 				return;
 		}
 	}

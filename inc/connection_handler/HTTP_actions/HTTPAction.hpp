@@ -21,7 +21,6 @@ class	HTTPAction
 		HTTPResponse _response;
 		const ServerConfig & _serverConfig;
 		MethodRegistry _methodRegistry;
-		// SessionManager &_sessionManager //TODO: 
 
 		Cgi *_cgi;
 
@@ -35,6 +34,7 @@ class	HTTPAction
 
 		bool isCgiRunning();
 		Cgi *getCgi();
-		std::string getFullResponseString(); // TODO: waarom geen const &?
-		std::string getFullCgiResponseString(const Cgi &cgi);
+		std::string getFullResponseString();
+		std::string getFullErrorResponseString(int statusCode);
+		std::string getFullCgiResponseString();
 };

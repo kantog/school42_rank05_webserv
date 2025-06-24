@@ -16,8 +16,8 @@ class HTTPResponse
 
 		void _setStatusMessage(int code);
 		std::string _createDirString(const std::string &directoryPath,
-				const std::string &appendString = "");
-		
+				const std::string &relativeDirPath = "",
+				const std::string &whiteSpace = "");
 		void _setCustomErrorBody(const std::string &filePath);
 
 	public:

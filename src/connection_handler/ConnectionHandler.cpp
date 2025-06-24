@@ -16,15 +16,15 @@
 // } // doet moelijk met &_serverKey
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd) : _cgi(NULL),
-																	   _serverConfig(NULL),
-																	   _shouldClose(false),
-																	   _serverKey(serverKey),
-																	   _connectionSocketFD(fd)
+	_serverConfig(NULL),
+	_shouldClose(false),
+	_serverKey(serverKey),
+	_connectionSocketFD(fd)
 {
 }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other) : _serverKey(other._serverKey), // dit ok?
-																	   _connectionSocketFD(other._connectionSocketFD)
+	_connectionSocketFD(other._connectionSocketFD)
 {
 }
 
@@ -47,11 +47,10 @@ void ConnectionHandler::_handleErrorRecv(int bytesRead)
 		_shouldClose = true;
 		return;
 	}
-	// bytesRead == -1
 	if (errno == EAGAIN || errno == EWOULDBLOCK)
 		return;
 	std::cerr << "Error reading from socket " << _connectionSocketFD
-			  << ": " << strerror(errno) << std::endl;
+		<< ": " << strerror(errno) << std::endl;
 	_shouldClose = true;
 	return;
 }
@@ -88,14 +87,14 @@ void ConnectionHandler::_sendResponse(const std::string &responseString)
 	// 		  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
 	// 		  << _response.getStatusCode() << std::endl;
 
-	// const std::string &responseString = _response.getResponseString();
+	// const std::string &responseString = _response.getResponseString();//test
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test
 	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
 	if (bytesWritten == -1)
 	{
 		std::cerr << "Error writing to socket " << _connectionSocketFD
-				  << ": " << strerror(errno) << std::endl;
+			<< ": " << strerror(errno) << std::endl;
 		_shouldClose = true;
 		return; // TODO: basil error handling in orde?
 	}
@@ -120,67 +119,56 @@ void ConnectionHandler::_setServerConfig()
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
 }
 
-
-// void ConnectionHandler::sendCgiResponse()
-// {
-// 	if (_cgi->getStatusCode() != 200) // TODO: 200
-// 		this->_response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
-// 	else
-// 		this->_response.buildCgiPage(_cgi->getBody());
-// 	this->_sendResponse();
-// 	_cgi = NULL;
-// 	this->_request.reset();
-// }
 void ConnectionHandler::sendCgiResponse()
 {
 	HTTPAction Action(_request, *_serverConfig);
 
 	// TODO: error checking
-	// this->_response.buildCgiPage(_cgi->getBody());
-	this->_sendResponse(Action.getFullCgiResponseString(*_cgi));
+
+	this->_sendResponse(Action.getFullCgiResponseString());
 	_cgi = NULL;
 	this->_request.reset(); // TODO ?
 }
 
 bool ConnectionHandler::handleHTTP()
 {
-	// if (this->_cgi)
-	// {
-	// 	this->_createRequest();
-	// 	_response.reset();
-	// 	_response.setStatusCode(503);
-	// 	_response.setHeader("Retry-After", "5");
-	// 	_response.setBody("Server busy processing request");
-	// 	_response.buildResponse();
-	// 	this->_sendResponse();
-	// 	return (false);
-	// }
+	if (this->_cgi)
+	{
+		// _response.reset(); // al dit is work in progress, werkt post refactor niet meer
+		// _response.setStatusCode(503);
+		// _response.setHeader("Retry-After", "5"); // Retry after 5 seconds
+		// _response.setBody("Server busy processing request");
+		// _response.buildResponse();
+		// this->_sendResponse();
+		return (false);//BASIL: moet dit false of true returnen?
+	}
 
 	this->_createRequest();
-	// if (this->_request.isError())
-	// {	// TODO: test met grote files
-	// 	this->_setServerConfig();
-	// 	this->_response.buildErrorPage(this->_request.getErrorCode(), this->_serverConfig->getErrorPagePath(this->_request.getErrorCode()));
-	// 	this->_sendResponse();
-	// 	this->_shouldClose = true;
-	// 	return (true);
-	// }
-	if (!this->_request.isComplete())
-		return (false);
-
 	this->_setServerConfig();
 
 	HTTPAction Action(_request, *_serverConfig);
+
+	if (this->_request.isError())// TODO: test met grote files
+	{	
+		// this->_setServerConfig();//BASIL: is dit nodig als we boven al serverconfig meegeven?
+		this->_sendResponse(Action.
+				getFullErrorResponseString(this->_request.getErrorCode()));
+		this->_shouldClose = true;
+		return (true);
+	}
+
+	if (!this->_request.isComplete())
+		return (false);
+
+	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
+
 	Action.run();
 	if (Action.isCgiRunning())
 		_cgi = Action.getCgi();
-
 	if (this->_cgi)
 		return (true);
 
 	this->_sendResponse(Action.getFullResponseString());
-
 	this->_request.reset();
 	return (true);
 }
-

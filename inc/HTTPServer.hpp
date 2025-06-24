@@ -6,9 +6,7 @@
 #include <vector>
 #include "connection_handler/ConnectionHandler.hpp"
 
-
 #define MAX_LISTEN_QUEUE 10
-
 
 class HTTPServer
 {
@@ -39,7 +37,7 @@ class HTTPServer
 		ConnectionHandler *_getConnectionHandler(std::map<int, ConnectionHandler *> &map, int fd);
 
 		void _addCgi(ConnectionHandler *connectionHandler);
-		void _prossesCgi(ConnectionHandler *connectionHandler);
+		void _processCgi(ConnectionHandler *connectionHandler);
 
 	public:
 		HTTPServer(); // test

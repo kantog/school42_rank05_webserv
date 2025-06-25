@@ -377,7 +377,6 @@ executeMove() {
     }
 }
 
-
     scramble() {
         const moves = ['R', 'U', 'F', 'D', 'L', 'B'];
         const modifiers = ['', "'", '2'];

@@ -71,7 +71,7 @@ void ConnectionHandler::_createRequest()
 			buffer[bytesRead] = '\0';
 			_request.parseRequest(buffer, _serverKey);
 
-			if (_request.isComplete())
+			if (_request.isComplete() || _request.isError())
 				return;
 		}
 		else

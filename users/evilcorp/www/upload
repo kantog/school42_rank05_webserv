@@ -1,0 +1,42 @@
+------geckoformboundary660793661bfd74adcd3b8566a3fd8b49
+Content-Disposition: form-data; name="mijnBestand"; filename="multipleServers.conf"
+Content-Type: application/octet-stream
+
+server
+{
+    listen localhost:8080;
+    server_name evilcorp;
+    client_max_body_size 1024; 
+
+    root users/evilcorp/www;
+
+    location / {
+        allowed_methods GET;
+        index index.html;
+    }
+    
+    location /CGI {
+        root users/evilcorp/www/CGI;
+        allowed_methods GET POST;
+        index index.html;
+        autoindex on;
+        cgi_extension .py /usr/bin/python3;
+        cgi_extension .php /usr/bin/php-cgi;
+    }
+}
+
+server
+{
+    listen localhost:8080;
+    server_name test;
+    client_max_body_size 1024; 
+
+    root users/test;
+
+    location / {
+        autoindex on;
+    }
+}
+
+
+------geckoformboundary660793661bfd74adcd3b8566a3fd8b49--

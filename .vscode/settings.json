@@ -48,7 +48,8 @@
     "stdexcept": "cpp",
     "streambuf": "cpp",
     "typeinfo": "cpp",
-    "cstring": "cpp"
+    "cstring": "cpp",
+    "chrono": "cpp"
   },
   "makefile.configureOnOpen": false,
   "C_Cpp_Runner.cCompilerPath": "gcc",

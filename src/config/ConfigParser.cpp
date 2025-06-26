@@ -1,11 +1,14 @@
 
 #include "../../inc/config_classes/ConfigParser.hpp"
+#include "Defines.hpp"
 
 #include <stdexcept> // std::runtime_error
 #include <iostream>  // std::cout
 #include <fstream>   // std::ifstream
 #include <sstream>   // std::stringstream
 #include <cstdlib>
+#include <sys/stat.h> 
+#include <unistd.h>
 
 bool ConfigParser::hasMoreTokens(void)
 {
@@ -90,7 +93,7 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     error_codes.push_back(std::atoi(getNextToken().c_str()));
     // 502/file
     std::string current_error_token = getNextToken();
-    // 503/
+    // 503/;
     std::string next_error_token = getNextToken();
 
     while (next_error_token != ";")
@@ -327,12 +330,27 @@ void ConfigParser::tokenize(std::ifstream &file)
     }
 }
 
+static bool isDirectory(const std::string& path)
+{
+    struct stat info;
+    return stat(path.c_str(), &info) == 0 && S_ISDIR(info.st_mode);
+}
+
 void ConfigParser::validateRoutes(Route &route)
 {
     if (route.path.empty())
         throw std::runtime_error("Route path is empty");
-    // if (route.allowedMethods.empty())
-    //     throw std::runtime_error("Route allowed methods is empty");
+    if (route.uploadPath.empty())
+        route.uploadPath = route.path + DEFAULT_UPLOAD_FILE;
+    else
+    {
+        if (isDirectory(route.uploadPath))
+            route.uploadPath += DEFAULT_UPLOAD_FILE;
+        else if (access(route.uploadPath.c_str(), F_OK) == 0) // file exist
+            return;
+        else
+            throw std::runtime_error("Directory dont exist: " + route.uploadPath);
+    }
 }
 
 void ConfigParser::validateServer(ServerConfig &server)

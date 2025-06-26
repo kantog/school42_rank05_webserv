@@ -15,3 +15,4 @@
 
 #define DEFAULT_CONFIG "./default/default.conf"
 #define DEFAULT_ERROR_PAGE "./default/defaultError.html"
+#define DEFAULT_UPLOAD_FILE "/uploads.txt"

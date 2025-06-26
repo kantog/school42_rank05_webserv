@@ -3,6 +3,10 @@
 
 #include <map>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+
 
 class HTTPRequest
 {
@@ -19,11 +23,12 @@ private:
 
 	size_t _contentLength;
 	size_t _maxContentLength;
+	size_t _bodyBytesReceived;
 
 	typedef void (HTTPRequest::*ParseFunction)(std::string &line, const std::string &serverKey);
 	ParseFunction _currentFunction;
 
-	std::string _requestBuffer;
+	std::vector<char> _requestBuffer;
 	bool _isComplete;
 	int _errorCode;
 
@@ -65,7 +70,7 @@ public:
 
 	void reset();
 	bool hasCloseHeader() const;
-	void parseRequest(const char *rawRequest, const std::string &serverKey);
+	void parseRequest(const char *rawRequest, ssize_t bytesRead, const std::string &serverKey);
 	bool isComplete() const;
 	bool isError() const;
 	int getErrorCode() const { return this->_errorCode; }

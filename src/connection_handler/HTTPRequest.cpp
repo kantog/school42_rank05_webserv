@@ -22,6 +22,7 @@ HTTPRequest::HTTPRequest()
     _isComplete = false;
     _currentFunction = &HTTPRequest::_setMethod;
     _chunkSizeRemaining = 0;
+    _bodyBytesReceived = 0;
     _errorCode = 200;
 }
 
@@ -53,6 +54,7 @@ void HTTPRequest::reset()
     _isComplete = false;
     _currentFunction = &HTTPRequest::_setMethod;
     _chunkSizeRemaining = 0;
+    _bodyBytesReceived = 0;
     _errorCode = 200;
 }
 
@@ -236,63 +238,96 @@ void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
 
 bool HTTPRequest::_setChunkSize()
 {
-    size_t pos = _requestBuffer.find('\n');
-    if (pos == std::string::npos)
-        return (false); // Need more data
+    std::vector<char>::iterator it = std::find(_requestBuffer.begin(), _requestBuffer.end(), '\n');
+    if (it == _requestBuffer.end())
+        return false; // Need more data
 
-    std::string sizeLine = _requestBuffer.substr(0, pos);
-    if (!sizeLine.empty() && sizeLine[sizeLine.length() - 1] == '\r')
-        sizeLine.erase(sizeLine.length() - 1);
+    std::string sizeLine(_requestBuffer.begin(), it); // van begin tot '\n'
+    if (!sizeLine.empty() && sizeLine[sizeLine.size() - 1] == '\r')
+        sizeLine.erase(sizeLine.size() - 1);
 
     std::stringstream hexStream(sizeLine);
     hexStream >> std::hex >> _chunkSizeRemaining;
 
-    _requestBuffer.erase(0, pos + 1);
+    // Erase line + \n
+    _requestBuffer.erase(_requestBuffer.begin(), it + 1);
 
     if (_chunkSizeRemaining == 0)
     {
         std::cout << "Chunk done?" << std::endl;
         _isComplete = true;
-        return (false);
+        return false;
     }
-    return (true);
+    return true;
 }
 
 void HTTPRequest::_trimChunked()
 {
-    if (_chunkSizeRemaining)
+    if (_chunkSizeRemaining > 0)
         return;
-    if (_requestBuffer.length() >= 2 &&
-        _requestBuffer.substr(0, 2) == "\r\n")
-        _requestBuffer.erase(0, 2);
-    else if (_requestBuffer.length() >= 1 &&
+
+    if (_requestBuffer.size() >= 2 &&
+        _requestBuffer[0] == '\r' &&
+        _requestBuffer[1] == '\n')
+    {
+        _requestBuffer.erase(_requestBuffer.begin(), _requestBuffer.begin() + 2);
+    }
+    else if (_requestBuffer.size() >= 1 &&
              _requestBuffer[0] == '\n')
-        _requestBuffer.erase(0, 1);
+    {
+        _requestBuffer.erase(_requestBuffer.begin());
+    }
 }
+
+
+// bool HTTPRequest::_addChunkData()
+// {
+//     size_t availableBytes = _requestBuffer.length();
+//     size_t bytesToCopy = std::min(_chunkSizeRemaining, availableBytes);
+
+//     if (bytesToCopy > 0)
+//     {
+//         _body.append(_requestBuffer.substr(0, bytesToCopy));
+//         _requestBuffer.erase(0, bytesToCopy);
+//         _chunkSizeRemaining -= bytesToCopy;
+
+//         _trimChunked();
+
+//         if (_body.length() >= _maxContentLength)
+//         {
+//             _errorCode = 413;
+//             _isComplete = false;
+//             return (false);
+//         }
+//         return (true);
+//     }
+//     return (false); // Need more data
+// }
 
 bool HTTPRequest::_addChunkData()
 {
-    size_t availableBytes = _requestBuffer.length();
-    size_t bytesToCopy = std::min(_chunkSizeRemaining, availableBytes);
+    size_t availableBytes = _requestBuffer.size();
+    size_t bytesToCopy = (std::min)(_chunkSizeRemaining, availableBytes);
 
     if (bytesToCopy > 0)
     {
-        _body.append(_requestBuffer.substr(0, bytesToCopy));
-        _requestBuffer.erase(0, bytesToCopy);
+        _body.append(&_requestBuffer[0], bytesToCopy);
+        _requestBuffer.erase(_requestBuffer.begin(), _requestBuffer.begin() + bytesToCopy);
         _chunkSizeRemaining -= bytesToCopy;
 
         _trimChunked();
 
-        if (_body.length() >= _maxContentLength)
+        if (_body.size() >= _maxContentLength)
         {
             _errorCode = 413;
             _isComplete = false;
-            return (false);
+            return false;
         }
-        return (true);
+        return true;
     }
-    return (false); // Need more data
+    return false; // Need more data
 }
+
 
 bool HTTPRequest::isError() const
 {
@@ -325,24 +360,30 @@ void HTTPRequest::_setBody()
         return;
     }
 
-    size_t neededBytes = _contentLength - _body.length();
-    size_t availableBytes = _requestBuffer.length();
-    size_t bytesToCopy = std::min(neededBytes, availableBytes);
-
-    if (bytesToCopy > 0)
+    if (!_requestBuffer.empty())
     {
-        _body.append(_requestBuffer.substr(0, bytesToCopy));
-        _requestBuffer.erase(0, bytesToCopy);
+        if (_body.capacity() < _contentLength)
+            _body.reserve(_contentLength);
+
+        _body.append(&_requestBuffer[0], _requestBuffer.size());
+        _bodyBytesReceived += _requestBuffer.size();
+        _requestBuffer.clear();
     }
 
-    std::cout << "Body: " << _body.length() << " / " << _contentLength << std::endl;
-    if (_body.length() >= _contentLength)
+    std::cout << "Body: " << _bodyBytesReceived << " / " << _contentLength << std::endl;
+
+    if (_bodyBytesReceived >= _contentLength)
+    {
+        if (_body.size() > _contentLength)
+            _body.resize(_contentLength);
         _isComplete = true;
+    }
 }
 
-void HTTPRequest::parseRequest(const char *rawRequest, const std::string &serverKey)
+
+void HTTPRequest::parseRequest(const char *rawRequest, ssize_t bytesRead, const std::string &serverKey)
 {
-    _requestBuffer.append(rawRequest);
+    _requestBuffer.insert(_requestBuffer.end(), rawRequest, rawRequest + bytesRead);
 
     if (_currentFunction == NULL)
     {
@@ -351,27 +392,27 @@ void HTTPRequest::parseRequest(const char *rawRequest, const std::string &server
     }
 
     std::string line;
-    size_t pos = 0;
 
-    while ((pos = _requestBuffer.find('\n')) != std::string::npos)
+    while (true)
     {
-        line = _requestBuffer.substr(0, pos);
+        std::vector<char>::iterator it = std::find(_requestBuffer.begin(), _requestBuffer.end(), '\n');
+        if (it == _requestBuffer.end())
+            break;
 
-        if (!line.empty() && line[line.length() - 1] == '\r')
-            line.erase(line.length() - 1);
+        size_t lineLen = it - _requestBuffer.begin();
+        line.assign(_requestBuffer.begin(), _requestBuffer.begin() + lineLen);
+
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
 
         (this->*_currentFunction)(line, serverKey);
-        _requestBuffer.erase(0, pos + 1);
-        
-        if (_errorCode != 200) // TODO
+        _requestBuffer.erase(_requestBuffer.begin(), it + 1);
+        if (_errorCode != 200)
             return;
         if (_currentFunction == NULL)
             break;
     }
-    if (_currentFunction == NULL)
-    {
-        _setBody();
-        return;
-    }
 
-} // TODO: split file parser
+    if (_currentFunction == NULL)
+        _setBody();
+}

@@ -1,5 +1,6 @@
 
 #include "../../inc/connection_handler/ConnectionHandler.hpp"
+#include "ErrorCodes.hpp"
 #include "HTTP_actions/HTTPAction.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
 #include "../../inc/connection_handler/HTTPResponse.hpp"
@@ -129,7 +130,7 @@ void ConnectionHandler::sendCgiResponse()
 {
 	HTTPResponse response;
 
-	if (_cgi->getStatusCode() != 200) // TODO: 200
+	if (_cgi->getStatusCode() != HTTP_OK) // TODO: 200
 		response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
 	else
 		response.buildCgiPage(_cgi->getBody());

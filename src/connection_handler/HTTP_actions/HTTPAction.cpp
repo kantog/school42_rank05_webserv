@@ -8,6 +8,7 @@
 #include "Cgi.hpp"
 
 #include <iostream>
+#include <stdexcept>
 
 
 HTTPAction::HTTPAction(HTTPRequest & request,
@@ -90,8 +91,17 @@ void HTTPAction::run()
 	{
 		AMethod *HTTPMethod 
 			= _methodRegistry.createMethodInstance(_request.getMethod());
-		HTTPMethod->implementMethod(_request, _response, _serverConfig);
-		delete HTTPMethod;
+		try 
+		{
+			HTTPMethod->implementMethod(_request, _response, _serverConfig);
+			delete HTTPMethod;
+		}
+		catch (std::exception &e)
+		{
+			if (HTTPMethod)
+				delete HTTPMethod;
+			throw std::runtime_error(e.what());
+		}
 	}
 
 	int errorCode = _response.getStatusCode();

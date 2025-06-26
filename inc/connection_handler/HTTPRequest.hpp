@@ -45,7 +45,6 @@ private:
 	void _parseChunkedBody();
 
 	void _fillHeaders(std::string line);
-	void _printRequest() const;
 
 	void _parsePath(const std::string &serverKey);
 	void _setMaxBodySize(const std::string &serverKey);
@@ -74,4 +73,7 @@ public:
 	bool isComplete() const;
 	bool isError() const;
 	int getErrorCode() const { return this->_errorCode; }
+
+	void printRequest() const;
+
 };

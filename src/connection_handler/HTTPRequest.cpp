@@ -135,15 +135,15 @@ void HTTPRequest::_fillHeaders(std::string line)
     }
 }
 
-void HTTPRequest::_printRequest() const
+void HTTPRequest::printRequest() const
 {
     std::cout << "\tMethod: " << _method << std::endl;
     std::cout << "\tRequest Target: " << _requestTarget << std::endl;
     std::cout << "\tHost URL: " << getHeader("Host") << std::endl;
-    // std::cout << "\tHeaders: " << std::endl;
-    // for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-    //     std::cout << it->first << ": " << it->second << std::endl;
-    std::cout << "\tBody: " << _body.substr(0, 100) << "..." << std::endl;
+    std::cout << "\tHeaders: " << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+        std::cout << it->first << ": " << it->second << std::endl;
+    std::cout << "\tBody: " << _body << "..." << std::endl;
 }
 
 bool HTTPRequest::isComplete() const

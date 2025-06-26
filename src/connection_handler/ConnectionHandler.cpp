@@ -180,6 +180,7 @@ bool ConnectionHandler::handleHTTP()
 	if (!this->_request.isComplete())
 		return (false);
 
+	_request.printRequest();
 	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	Action.run();

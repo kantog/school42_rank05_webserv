@@ -62,7 +62,9 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 						serverConfig.getCurentRoute().path));
 		}
 		else
+		{
 			response.setStatusCode(HTTP_NOTFOUND);
+		}
 	}
 }
 

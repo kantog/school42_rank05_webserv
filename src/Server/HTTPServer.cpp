@@ -68,7 +68,7 @@ void HTTPServer::_createNewConnection(int fd)
 void HTTPServer::_setNewHandler(int newSocketFD, int serverFD)
 {
 	std::string serverKey;
-	for (std::vector<std::pair<std::string, int>>::const_iterator it = _listeningSockets.begin();
+	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin();
 		 it != _listeningSockets.end(); ++it)
 	{
 		if (it->second == serverFD)
@@ -161,7 +161,8 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 
 bool HTTPServer::_isListeningSocket(int fd)
 {
-	for (std::vector<std::pair<std::string, int>>::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	for (std::vector<std::pair<std::string, int> >::const_iterator it 
+			= _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
 	{
 		if (it->second == fd)
 			return true;

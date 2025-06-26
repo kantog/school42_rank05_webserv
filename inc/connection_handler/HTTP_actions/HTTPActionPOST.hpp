@@ -2,6 +2,8 @@
 #pragma once 
 
 #include "AMethod.hpp"
+ 
+#include <string>
 
 class ServerConfig;
 class HTTPRequest;

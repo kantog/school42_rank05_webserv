@@ -66,8 +66,13 @@ std::string HTTPAction::getFullErrorResponseString(int statusCode)
 
 void HTTPAction::run()
 {
-	// TODO: hier return page optie aan toevoegen
-	if (!_serverConfig.isAllowedMethod(_request.getMethod()))
+	if (!_serverConfig.getCurentRoute().redirectPath.empty())
+	{
+		_response.buildReturnPage(_serverConfig.getCurentRoute().redirectCode, 
+				_serverConfig.getCurentRoute().redirectPath);
+		return;	
+	}
+	else if (!_serverConfig.isAllowedMethod(_request.getMethod()))
 		_response.setStatusCode(HTTP_METHOD_NALLOWED);
 	else if (_serverConfig.isAllowedCgi(_request.getRequestTarget()))
 	{

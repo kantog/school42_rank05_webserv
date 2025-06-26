@@ -1,5 +1,5 @@
 #include "Cgi.hpp"
-#include "ErrorCodes.hpp"
+#include "Defines.hpp"
 
 #include <sys/stat.h>
 #include <sstream>

@@ -1,5 +1,6 @@
-
 #include "../../inc/config_classes/ServerConfig.hpp"
+#include "Defines.hpp"
+
 #include <sstream>
 
 ServerConfig::ServerConfig():
@@ -118,5 +119,5 @@ const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
         return ("." + this->root + this->error_pages.at(code));
-    return ("./default/defaultError.html"); // TODO: define in haeder?
+    return (DEFAULT_ERROR_PAGE);
 }

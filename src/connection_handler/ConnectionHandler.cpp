@@ -1,6 +1,5 @@
-
 #include "../../inc/connection_handler/ConnectionHandler.hpp"
-#include "ErrorCodes.hpp"
+#include "Defines.hpp"
 #include "HTTP_actions/HTTPAction.hpp"
 #include "../../inc/config_classes/MyConfig.hpp"
 #include "../../inc/connection_handler/HTTPResponse.hpp"
@@ -11,12 +10,6 @@
 #include <cstring>
 #include <iostream>
 #include <cerrno>
-
-// ConnectionHandler::ConnectionHandler()
-// {
-// 	_connectionSocketFD = -1;
-// 	// _HTTPAction = NULL;
-// } // doet moelijk met &_serverKey
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd) : _cgi(NULL),
 	_serverConfig(NULL),
@@ -93,15 +86,6 @@ void ConnectionHandler::_createRequest()
 
 void ConnectionHandler::_sendResponse(const std::string &responseString)
 {
-
-	// std::cout << _request.getMethod() << " " << _request.getRawPath()
-	// 		  << "(" << _serverConfig->getFullFilesystemPath(_request.getRequestTarget())<< "): "
-	// 		  << _response.getStatusCode() << std::endl;
-
-	// const std::string &responseString = _response.getResponseString();//test
-
-	// std::cout << "Sent back by server: " << responseString << std::endl; //test
-	
 	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), 
 			responseString.length(), 0);
 	if (bytesWritten == -1)
@@ -109,7 +93,7 @@ void ConnectionHandler::_sendResponse(const std::string &responseString)
 		std::cerr << "Error writing to socket " << _connectionSocketFD
 			<< ": " << strerror(errno) << std::endl;
 		_shouldClose = true;
-		return; // TODO: basil error handling in orde?
+		return;
 	}
 }
 
@@ -136,7 +120,7 @@ void ConnectionHandler::sendCgiResponse()
 {
 	HTTPResponse response;
 
-	if (_cgi->getStatusCode() != HTTP_OK) // TODO: 200
+	if (200 < _cgi->getStatusCode() && _cgi->getStatusCode() > 226)
 		response.buildErrorPage(_cgi->getStatusCode(), _serverConfig->getErrorPagePath(_cgi->getStatusCode()));
 	else
 		response.buildCgiPage(_cgi->getBody());
@@ -145,28 +129,17 @@ void ConnectionHandler::sendCgiResponse()
 	this->_request.reset();
 }
 
-// void ConnectionHandler::sendCgiResponse()
-// {
-// 	HTTPAction Action(_request, *_serverConfig);
-//
-// 	// TODO: error checking
-//
-// 	this->_sendResponse(Action.getFullCgiResponseString());
-// 	_cgi = NULL;
-// 	this->_request.reset(); // TODO ?
-// }
-
 bool ConnectionHandler::handleHTTP()
 {
 	if (this->_cgi)
 	{
-		// _response.reset(); // al dit is work in progress, werkt post refactor niet meer
-		// _response.setStatusCode(503);
-		// _response.setHeader("Retry-After", "5"); // Retry after 5 seconds
-		// _response.setBody("Server busy processing request");
-		// _response.buildResponse();
-		// this->_sendResponse();
-		return (false);//BASIL: moet dit false of true returnen?
+		HTTPResponse response;
+		response.setStatusCode(503);
+		response.setHeader("Retry-After", "5");
+		response.setBody("Server busy processing request");
+		response.buildResponse();
+		this->_sendResponse(response.getResponseString());
+		return (false);
 	}
 
 	this->_createRequest();
@@ -174,9 +147,8 @@ bool ConnectionHandler::handleHTTP()
 
 	HTTPAction Action(_request, *_serverConfig);
 
-	if (this->_request.isError())// TODO: test met grote files
+	if (this->_request.isError())
 	{	
-		// this->_setServerConfig();//BASIL: is dit nodig als we boven al serverconfig meegeven?
 		this->_sendResponse(Action.
 				getFullErrorResponseString(this->_request.getErrorCode()));
 		this->_shouldClose = true;
@@ -185,9 +157,6 @@ bool ConnectionHandler::handleHTTP()
 
 	if (!this->_request.isComplete())
 		return (false);
-
-	// std::cout << _request.getBody() << std::endl;//test
-	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	Action.run();
 	if (Action.isCgiRunning())

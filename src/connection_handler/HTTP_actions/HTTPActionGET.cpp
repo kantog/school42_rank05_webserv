@@ -3,7 +3,7 @@
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
-#include "../../../inc/ErrorCodes.hpp"
+#include "../../../inc/Defines.hpp"
 
 #include <unistd.h>
 #include <vector>
@@ -16,7 +16,7 @@ HTTPActionGET::HTTPActionGET()
 HTTPActionGET::~HTTPActionGET()
 { }
 
-void HTTPActionGET::_checkForIndexFiles(HTTPResponse & response, 
+bool HTTPActionGET::_checkForIndexFiles(HTTPResponse & response, 
 		const ServerConfig &serverConfig)
 {
 	for (std::vector<std::string>::const_iterator it 
@@ -28,8 +28,9 @@ void HTTPActionGET::_checkForIndexFiles(HTTPResponse & response,
 			.setBodyFromFile(serverConfig
 					.getFullFilesystemPath(*it));
 		if (response.getStatusCode() == HTTP_OK)
-			break ;
+			return (true);
 	}
+	return (false);
 }
 
 void HTTPActionGET::_fetchFile(HTTPRequest &request,
@@ -39,23 +40,8 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 	std::string filePath = serverConfig.getFullFilesystemPath(request.getRequestTarget());
 
 
-	/*
-	struct stat sb;
-    if (stat(_path.c_str(), &sb) == 0)
-    {
-        if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
-            _statusCode = 200; 
-        else
-            _statusCode = 403; // script not executable
-    }
-    else
-        _statusCode = 404; // script not found
-	*/
-
-	// Checking if file exists, else checking index files or auto-index
-	//
 	struct stat fileInfo; 
-	if (stat(filePath.c_str(), &fileInfo) == -1) //TODO ?  if (access(filePath.c_str(), F_OK) != 0) 
+	if (stat(filePath.c_str(), &fileInfo) == -1)
 	{
 		response.setStatusCode(HTTP_NOTFOUND);
 		return;
@@ -66,14 +52,17 @@ void HTTPActionGET::_fetchFile(HTTPRequest &request,
 	else
 	{
 		if (!(serverConfig.getCurentRoute().defaultFiles.empty()))
-			this->_checkForIndexFiles(response, serverConfig);
+		{
+			if (this->_checkForIndexFiles(response, serverConfig))
+				return ;
+		}
 		if (serverConfig.getCurentRoute().isDirectoryListing)
 		{
 			response.buildDirectoryPage(serverConfig.getFullFilesystemPath(
 						serverConfig.getCurentRoute().path));
 		}
-		// else 	// TODO error pages?
-
+		else
+			response.setStatusCode(HTTP_NOTFOUND);
 	}
 }
 

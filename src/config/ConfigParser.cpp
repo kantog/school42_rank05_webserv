@@ -90,7 +90,7 @@ bool ConfigParser::setErrorPage(ServerConfig &server, const std::string &token)
     error_codes.push_back(std::atoi(getNextToken().c_str()));
     // 502/file
     std::string current_error_token = getNextToken();
-    // 503/;
+    // 503/
     std::string next_error_token = getNextToken();
 
     while (next_error_token != ";")

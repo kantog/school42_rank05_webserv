@@ -3,7 +3,7 @@
 #include "../../../inc/connection_handler/HTTP_actions/HTTPAction.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
-#include "ErrorCodes.hpp"
+#include "Defines.hpp"
 #include "ServerConfig.hpp"
 #include "Cgi.hpp"
 
@@ -30,9 +30,6 @@ HTTPAction::HTTPAction(const HTTPAction &other):
 
 HTTPAction::~HTTPAction()
 { }
-
-// void generateErrorResponse(int errorCode) //sets status code and body and return
-// { }
 
 bool HTTPAction::isCgiRunning()
 {
@@ -69,7 +66,7 @@ std::string HTTPAction::getFullErrorResponseString(int statusCode)
 
 void HTTPAction::run()
 {
-	_response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
+	// TODO: hier return page optie aan toevoegen
 	if (!_serverConfig.isAllowedMethod(_request.getMethod()))
 		_response.setStatusCode(HTTP_METHOD_NALLOWED);
 	else if (_serverConfig.isAllowedCgi(_request.getRequestTarget()))
@@ -84,7 +81,6 @@ void HTTPAction::run()
 		}
 		else
 			_cgi = cgi;
-		// this->_response.buildCgiPage(_cgi->getBody());//test
 		return;
 	}
 	else
@@ -108,8 +104,6 @@ void HTTPAction::run()
 	if (errorCode < 200 || errorCode > 226)
 		_response.buildErrorPage(errorCode, 
 				_serverConfig.getErrorPagePath(errorCode));
-	//TODO: hier return page optie aan toevoegen?
 	else
 		_response.buildResponse();
-	// TODO: flag if not yet build?
 }

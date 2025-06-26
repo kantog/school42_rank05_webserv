@@ -1,7 +1,7 @@
 
 
 #include "../../inc/connection_handler/HTTPResponse.hpp"
-#include "ErrorCodes.hpp"
+#include "Defines.hpp"
 
 #include <cerrno>
 #include <cstddef>
@@ -25,8 +25,7 @@ void HTTPResponse::reset()
     _headers.clear();
     _body.clear();
     _responseString.clear();
-
-    // setHeader("Content-Length", "0");
+    setHeader("Content-Length", "0");
 }
 
 void HTTPResponse::setStatusCode(int code)
@@ -170,7 +169,8 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath)
                 this->setStatusCode(HTTP_FORBIDDEN);
             if (error == ENOENT)
                 this->setStatusCode(HTTP_NOTFOUND);
-            // TODO: error kan ook 20 zijn
+            else
+                this->setStatusCode(HTTP_SERVER_ERROR);
         }
         else
             this->setStatusCode(HTTP_BADREQ);
@@ -238,7 +238,6 @@ void HTTPResponse::_setStatusMessage(int code)
     default:
         _statusText = "Unknown";
         std::cerr << "Unknown status code: " << code << std::endl;
-        throw std::runtime_error("Unknown status code"); // TODO: test
     }
 }
 
@@ -255,7 +254,6 @@ std::string HTTPResponse::_createDirString(const std::string &fullDirPath,
 {
     std::string bodyToSet = "<br>";
 
-    std::cout << "directory requested: " << fullDirPath << std::endl; // test
     DIR *directory = opendir(fullDirPath.c_str());
     if (!directory)
         throw std::runtime_error("Error: couldn't open directory");
@@ -295,11 +293,9 @@ std::string HTTPResponse::_createDirString(const std::string &fullDirPath,
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
 {
     this->setBody("INDEX\n" + this->_createDirString(directoryPath));
-    if (_body.empty())                           // test
-        std::cout << "empty body!" << std::endl; // test
 }
 
-void HTTPResponse::buildReturnPage(int code, const std::string &filePath) // TODO: test
+void HTTPResponse::buildReturnPage(int code, const std::string &filePath)
 {
     setStatusCode(code);
     setHeader("Location", filePath);

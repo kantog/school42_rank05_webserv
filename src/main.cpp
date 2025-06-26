@@ -1,6 +1,7 @@
 
 #include "../inc/config_classes/MyConfig.hpp"
 #include "../inc/HTTPServer.hpp"
+#include "Defines.hpp"
 
 #include <signal.h>
 #include <iostream>
@@ -25,8 +26,8 @@ int main(int argc, char **argv)
         else
         {
             std::cout << "Using default config file" << std::endl;
-            MyConfig::get("default/default.conf"); // TODO: define in haeder?
-        }
+            MyConfig::get(DEFAULT_CONFIG);
+        } 
     }
     catch (const std::exception &e)
     {

@@ -2,7 +2,7 @@
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
-#include "../../../inc/ErrorCodes.hpp"
+#include "../../../inc/Defines.hpp"
 
 #include <cstdio>
 #include <errno.h>
@@ -42,7 +42,7 @@ void HTTPActionDEL::implementMethod(HTTPRequest &request,
 				return;
 		}
 	}
-	response.setBody("Succes: " + request.getRequestTarget() + " deleted");
+	response.setBody("Success: " + request.getRequestTarget() + " deleted");
 }
 
 AMethod *HTTPActionDEL::create()

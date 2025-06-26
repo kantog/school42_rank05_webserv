@@ -116,32 +116,10 @@ void HTTPServer::_addFDToEpoll(int fd)
     newLocalEpollEvent.data.fd = fd;
     if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, fd, &newLocalEpollEvent) == -1)
     {
-        close(fd); // necessary? ConnectionHandler handles this?
+        close(fd);
         throw(std::runtime_error("Error: problem with epoll_ctl"));
     }
 }
-
-// void HTTPServer::initListeningSocket()
-// {
-
-// 	struct sockaddr_in sockAdress;
-// 	int optval = 1;
-
-// 	sockAdress.sin_family = AF_INET;
-// 	sockAdress.sin_port = htons(8080); ////////
-// 	sockAdress.sin_addr.s_addr = INADDR_ANY;
-
-// 	_listeningSocketFD = socket(AF_INET, SOCK_NONBLOCK | SOCK_STREAM, 0); // SOCK_NONBLOCK is Linux specific, use fnctl for other systems
-// 	if (_listeningSocketFD == -1)
-// 		throw(std::runtime_error("Error: problem with socket creation"));
-// 	if (setsockopt(_listeningSocketFD, SOL_SOCKET, SO_REUSEADDR,
-// 				   &optval, sizeof(optval)) == -1)
-// 		throw(std::runtime_error("Error setting socket options SO_REUSEADDR"));
-// 	if (bind(_listeningSocketFD, (struct sockaddr *)&sockAdress, sizeof(sockAdress)) == -1)
-// 		throw(std::runtime_error("Error: problem with socket binding"));
-// 	if (listen(_listeningSocketFD, MAX_LISTEN_QUEUE) == -1)
-// 		throw(std::runtime_error("Error listening for new connection"));
-// }
 
 void HTTPServer::_initListeningSockets()
 {
@@ -154,8 +132,6 @@ void HTTPServer::_initListeningSockets()
         _listeningSockets.push_back(std::pair<std::string, int>(it->first, fd)); // TODO: is dit nodig?localEpollEvent.data.fd);
     }
 }
-
-// /////////////////////////
 
 static struct addrinfo *_getAddressInfo(const std::string &ip, const std::string &port)
 {
@@ -247,8 +223,6 @@ int HTTPServer::_makeNewListeningSocket(const std::string &ip, const std::string
     _startListening(socketFD);
     return socketFD;
 }
-
-// //////////////////////////
 
 void HTTPServer::_initEpoll()
 {

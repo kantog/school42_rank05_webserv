@@ -11,3 +11,7 @@
 #define HTTP_CONFLICT 409
 #define HTTP_PAYLOADTOOLARGE 413
 #define HTTP_SERVER_ERROR 500
+#define HTTP_VERSION_NOTSUPPORTED 505
+
+#define DEFAULT_CONFIG "./default/default.conf"
+#define DEFAULT_ERROR_PAGE "./default/defaultError.html"

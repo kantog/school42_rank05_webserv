@@ -11,7 +11,7 @@
 
 void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
 {
-	Cgi *cgi = connectionHandler->getCgi(); // BASIL
+	Cgi *cgi = connectionHandler->getCgi();
 	const int *fd = cgi->getCgiFds();
 
 	while (*fd)
@@ -68,7 +68,7 @@ void HTTPServer::_createNewConnection(int fd)
 void HTTPServer::_setNewHandler(int newSocketFD, int serverFD)
 {
 	std::string serverKey;
-	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin();
+	for (std::vector<std::pair<std::string, int>>::const_iterator it = _listeningSockets.begin();
 		 it != _listeningSockets.end(); ++it)
 	{
 		if (it->second == serverFD)
@@ -101,15 +101,7 @@ ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHan
 void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
 
-	ConnectionHandler *connectionHandler = _getConnectionHandler(_cgis, connectionFd);
-
-	if (connectionHandler)
-	{
-		_processCgi(connectionHandler); // BASIL
-		return;
-	}
-
-	connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
+	ConnectionHandler *connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
 
 	if (!connectionHandler)
 	{
@@ -126,10 +118,10 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 										  // IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(_connectionHandlers, connectionFd);
 
-// 	if (connectionHandler->epolloutShouldOpen)
-// 	{
-// 		this->_setEPOLLOUT(connectionFd, true);
-// 	}
+	// 	if (connectionHandler->epolloutShouldOpen)
+	// 	{
+	// 		this->_setEPOLLOUT(connectionFd, true);
+	// 	}
 }
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
@@ -169,7 +161,7 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 
 bool HTTPServer::_isListeningSocket(int fd)
 {
-	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	for (std::vector<std::pair<std::string, int>>::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
 	{
 		if (it->second == fd)
 			return true;
@@ -179,22 +171,20 @@ bool HTTPServer::_isListeningSocket(int fd)
 
 void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
+	ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd);
+	if (cgiHandler)
+	{
+		_processCgi(cgiHandler);
+		return;
+	}
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-		ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd); // BASIL
-		if (cgiHandler)
-		{
-			_processCgi(cgiHandler);
-			return;
-		}
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
 		_closeConnection(_connectionHandlers, fd);
 	}
 	else if (events & (EPOLLIN | EPOLLOUT))
-	{
 		_delegateToConnectionHandler(fd);
-	}
-	else 
+	else
 		std::cerr << "Error: unknown epoll event" << std::endl;
 }
 

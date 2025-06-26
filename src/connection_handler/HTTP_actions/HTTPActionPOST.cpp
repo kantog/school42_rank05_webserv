@@ -2,7 +2,7 @@
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "../../../inc/connection_handler/HTTPRequest.hpp"
 #include "../../../inc/connection_handler/HTTPResponse.hpp"
-#include "../../../inc/ErrorCodes.hpp"
+#include "../../../inc/Defines.hpp"
 
 #include <cstring>
 #include <fstream>
@@ -15,35 +15,36 @@ HTTPActionPOST::HTTPActionPOST()
 HTTPActionPOST::~HTTPActionPOST()
 { }
 
+
+
 void HTTPActionPOST::implementMethod(HTTPRequest &request,
 						HTTPResponse & response, 
 						const ServerConfig &serverConfig)
 {
 	if (!serverConfig.getCurentRoute().uploadAllowed)
 	{
-		response.setStatusCode(HTTP_CREATED);
+		response.setStatusCode(HTTP_METHOD_NALLOWED);
 		return ;
 	}
 
 	std::ofstream fileToPost(serverConfig.
 			getFullFilesystemPath(request.
-				getRequestTarget()).c_str());// die . gwn in ReqTarget zetten?
+				getRequestTarget()).c_str());
 	if (!fileToPost.is_open())
 	{
 		if (errno == EISDIR
 				&& (request.getHeader("Content-Type").find_first_of("multipart/form-data")
 					!= request.getHeader("content-type").npos))
 		{
-			std::string newFile = serverConfig.getFullFilesystemPath(request.
-						getRequestTarget()) + "/" + "UploadedMultipartFile.html";
-			fileToPost.open(newFile.c_str());// die . gwn in ReqTarget zetten?
+			
+			std::string newFile = serverConfig.getCurentRoute().uploadPath;
+			fileToPost.open(newFile.c_str());
 		}
 		if (!fileToPost.is_open())
 		{
 			response.setStatusCode(HTTP_SERVER_ERROR);
 			return ;
 		}
-		// std::cout << "errno: " << errno << std::endl;//test
 	}
 
 	fileToPost << request.getBody();
@@ -57,7 +58,7 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 	}
 
 	response.setStatusCode(HTTP_CREATED);
-	response.setBody("Congratulations, you succesfully uploaded a file!");
+	response.setBody("Congratulations, you successfully uploaded a file!");
 }
 
 AMethod *HTTPActionPOST::create()

@@ -13,6 +13,8 @@ class	HTTPActionPOST : public AMethod {
 						HTTPResponse & response, 
 						const ServerConfig &serverConfig);
 
+		std::string getUploadPath(const ServerConfig &serverConfig) const;
+
 	public:
 		HTTPActionPOST();
 		~HTTPActionPOST();

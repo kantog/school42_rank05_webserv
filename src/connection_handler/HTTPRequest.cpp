@@ -13,6 +13,8 @@
 #include "../../inc/connection_handler/HTTPRequest.hpp"
 #include "ServerConfig.hpp"
 #include "MyConfig.hpp"
+#include "Defines.hpp"
+
 #include <sstream>
 #include <iostream>
 #include <unistd.h>
@@ -115,7 +117,7 @@ const std::string &HTTPRequest::getHeader(const std::string &key) const
     return it != _headers.end() ? it->second : empty;
 }
 
-bool HTTPRequest::hasCloseHeader() const // TODO: different name
+bool HTTPRequest::hasCloseHeader() const
 {
     if (this->getHeader("Connection") == "close")
         return true;
@@ -203,7 +205,11 @@ void HTTPRequest::_setMethod(std::string &line, const std::string &serverKey)
 
     startLine >> _method >> _rawPath >> _version;
 
-    // TODO: version check error?
+    if (_version != "HTTP/1.1")
+    {
+        _errorCode = HTTP_VERSION_NOTSUPPORTED;
+        return;
+    }
     this->_currentFunction = &HTTPRequest::_setHeader;
 }
 
@@ -278,31 +284,6 @@ void HTTPRequest::_trimChunked()
         _requestBuffer.erase(_requestBuffer.begin());
     }
 }
-
-
-// bool HTTPRequest::_addChunkData()
-// {
-//     size_t availableBytes = _requestBuffer.length();
-//     size_t bytesToCopy = std::min(_chunkSizeRemaining, availableBytes);
-
-//     if (bytesToCopy > 0)
-//     {
-//         _body.append(_requestBuffer.substr(0, bytesToCopy));
-//         _requestBuffer.erase(0, bytesToCopy);
-//         _chunkSizeRemaining -= bytesToCopy;
-
-//         _trimChunked();
-
-//         if (_body.length() >= _maxContentLength)
-//         {
-//             _errorCode = 413;
-//             _isComplete = false;
-//             return (false);
-//         }
-//         return (true);
-//     }
-//     return (false); // Need more data
-// }
 
 bool HTTPRequest::_addChunkData()
 {

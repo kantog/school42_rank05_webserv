@@ -5,6 +5,7 @@
 #include "../../inc/config_classes/MyConfig.hpp"
 #include "../../inc/connection_handler/HTTPResponse.hpp"
 
+#include <stdexcept>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <cstring>
@@ -21,7 +22,8 @@ ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd) : _cgi(NULL
 	_serverConfig(NULL),
 	_shouldClose(false),
 	_serverKey(serverKey),
-	_connectionSocketFD(fd)
+	_connectionSocketFD(fd),
+	epolloutShouldOpen(false)
 {
 }
 
@@ -72,10 +74,17 @@ void ConnectionHandler::_createRequest()
 			_request.parseRequest(buffer, bytesRead, _serverKey);
 
 			if (_request.isComplete() || _request.isError())
+			{
 				return;
+			}
 		}
 		else
 		{
+			// if (errno == EAGAIN)
+			// {
+			// 	epolloutShouldOpen = true;
+			// 	return;
+			// }
 			this->_handleErrorRecv(bytesRead);
 			return;
 		}
@@ -92,7 +101,9 @@ void ConnectionHandler::_sendResponse(const std::string &responseString)
 	// const std::string &responseString = _response.getResponseString();//test
 
 	// std::cout << "Sent back by server: " << responseString << std::endl; //test
-	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), responseString.length(), 0);
+	
+	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), 
+			responseString.length(), 0);
 	if (bytesWritten == -1)
 	{
 		std::cerr << "Error writing to socket " << _connectionSocketFD
@@ -120,11 +131,6 @@ void ConnectionHandler::_setServerConfig()
 	_serverConfig = MyConfig::getServerConfig(_serverKey, _request.getHostURL());
 	_serverConfig->setCorrectRoute(this->_request.getRequestTarget());
 }
-
-
-
-
-
 
 void ConnectionHandler::sendCgiResponse()
 {
@@ -180,7 +186,7 @@ bool ConnectionHandler::handleHTTP()
 	if (!this->_request.isComplete())
 		return (false);
 
-	_request.printRequest();
+	// std::cout << _request.getBody() << std::endl;//test
 	// _response.setHeader("Set-Cookie", _request.getHeader("Cookie")); // TODO: test cookies
 
 	Action.run();

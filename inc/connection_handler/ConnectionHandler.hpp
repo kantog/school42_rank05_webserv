@@ -31,6 +31,8 @@ class	ConnectionHandler
 		ConnectionHandler(std::string &serverKey, int fd);
 		~ConnectionHandler();
 
+		bool epolloutShouldOpen;
+
 		bool handleHTTP();
 		void sendCgiResponse();
 		bool shouldClose();

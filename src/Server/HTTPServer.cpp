@@ -100,13 +100,17 @@ ConnectionHandler *HTTPServer::_getConnectionHandler(std::map<int, ConnectionHan
 
 void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 {
+
 	ConnectionHandler *connectionHandler = _getConnectionHandler(_cgis, connectionFd);
+
 	if (connectionHandler)
 	{
 		_processCgi(connectionHandler); // BASIL
 		return;
 	}
+
 	connectionHandler = _getConnectionHandler(_connectionHandlers, connectionFd);
+
 	if (!connectionHandler)
 	{
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
@@ -121,6 +125,11 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	if (connectionHandler->shouldClose()) // TODO: Added this for cases where header says "connection close".
 										  // IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(_connectionHandlers, connectionFd);
+
+// 	if (connectionHandler->epolloutShouldOpen)
+// 	{
+// 		this->_setEPOLLOUT(connectionFd, true);
+// 	}
 }
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
@@ -181,10 +190,12 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 		std::cout << "Connection error/hangup on FD " << fd << std::endl;
 		_closeConnection(_connectionHandlers, fd);
 	}
-	else if (events & EPOLLIN)
+	else if (events & (EPOLLIN | EPOLLOUT))
 	{
 		_delegateToConnectionHandler(fd);
 	}
+	else 
+		std::cerr << "Error: unknown epoll event" << std::endl;
 }
 
 void HTTPServer::start()
@@ -205,7 +216,6 @@ void HTTPServer::start()
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;
-
 			if (_isListeningSocket(fd))
 				_createNewConnection(fd);
 			else

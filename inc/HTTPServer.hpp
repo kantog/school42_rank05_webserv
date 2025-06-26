@@ -25,6 +25,7 @@ class HTTPServer
 
 		void _setNonBlocking(int fd);
 		void _addFDToEpoll(int fd);
+		void _setEPOLLOUT(int fd, bool on);
 		int _makeNewListeningSocket(const std::string &ip, const std::string &port);
 		
 		void _createNewConnection(int fd);

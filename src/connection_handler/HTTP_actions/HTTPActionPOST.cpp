@@ -25,12 +25,25 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 		return ;
 	}
 
-	std::ofstream fileToPost(serverConfig.getFullFilesystemPath(request.getRequestTarget()).c_str());// die . gwn in ReqTarget zetten?
+	std::ofstream fileToPost(serverConfig.
+			getFullFilesystemPath(request.
+				getRequestTarget()).c_str());// die . gwn in ReqTarget zetten?
 	if (!fileToPost.is_open())
 	{
-		std::cerr << "Error: couldn't open file" << std::endl;
-		response.setStatusCode(HTTP_SERVER_ERROR);
-		return ;
+		if (errno == EISDIR
+				&& (request.getHeader("Content-Type").find_first_of("multipart/form-data")
+					!= request.getHeader("content-type").npos))
+		{
+			std::string newFile = serverConfig.getFullFilesystemPath(request.
+						getRequestTarget()) + "/" + "UploadedMultipartFile.html";
+			fileToPost.open(newFile.c_str());// die . gwn in ReqTarget zetten?
+		}
+		if (!fileToPost.is_open())
+		{
+			response.setStatusCode(HTTP_SERVER_ERROR);
+			return ;
+		}
+		// std::cout << "errno: " << errno << std::endl;//test
 	}
 
 	fileToPost << request.getBody();
@@ -44,6 +57,7 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 	}
 
 	response.setStatusCode(HTTP_CREATED);
+	response.setBody("Congratulations, you succesfully uploaded a file!");
 }
 
 AMethod *HTTPActionPOST::create()

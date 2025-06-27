@@ -46,38 +46,6 @@ Cgi::~Cgi()
     closePipe(_pipeOut);
     if (_pid > 0)
         kill(_pid, SIGKILL);
-    /* TODO:
-    if (_pid > 0) {
-    kill(_pid, SIGTERM);  // Try graceful termination first
-
-    // Give it a moment to terminate gracefully
-    int status;
-    if (waitpid(_pid, &status, WNOHANG) == 0) {
-        // Still running, force kill
-        std::cerr << "CGI process " << _pid << " didn't terminate gracefully, killing..." << std::endl;
-        kill(_pid, SIGKILL);
-        waitpid(_pid, &status, 0); // Wait for it to die
-    }
-    _pid = -1;
-
-    of
-        if (_pid > 0) {
-        kill(_pid, SIGTERM);  // Try graceful termination first
-
-        // Give it a moment to terminate gracefully
-        int status;
-        struct timespec ts = {0, 100000000}; // 100ms
-        nanosleep(&ts, NULL);
-
-        if (waitpid(_pid, &status, WNOHANG) == 0) {
-            // Still running, force kill
-            kill(_pid, SIGKILL);
-            waitpid(_pid, &status, 0);
-        }
-        _pid = -1;
-    }
-}
-    */
 }
 
 bool Cgi::_checkAccess()
@@ -86,7 +54,7 @@ bool Cgi::_checkAccess()
     if (stat(_path.c_str(), &sb) == 0)
     {
         if (S_ISREG(sb.st_mode) && (sb.st_mode & S_IXUSR))
-            _statusCode = HTTP_OK; 
+            _statusCode = HTTP_OK;
         else
             _statusCode = HTTP_FORBIDDEN; // script not executable
     }
@@ -98,7 +66,7 @@ bool Cgi::_checkAccess()
 bool Cgi::_initPipes()
 {
     if (pipe(_pipeIn) < 0)
-        _statusCode = HTTP_SERVER_ERROR;  // internal error
+        _statusCode = HTTP_SERVER_ERROR; // internal error
     if (pipe(_pipeOut) < 0)
     {
         closePipe(_pipeIn);
@@ -111,7 +79,7 @@ bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
-        _statusCode = HTTP_SERVER_ERROR;  // internal error // TODO: defins maken
+        _statusCode = HTTP_SERVER_ERROR; // internal error // TODO: defins maken
     return _statusCode == HTTP_OK;
 }
 
@@ -123,39 +91,54 @@ bool Cgi::_forkCgi()
     return _statusCode == HTTP_OK;
 }
 
+static std::string sanitizeEnvValue(const std::string &value)
+{
+    std::string sanitized;
+    for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
+    {
+        char c = *it;
+        if (std::isprint(c) && c != '\n' && c != '\r' && c != '=' && c != '\0')
+            sanitized += c;
+        else
+            sanitized += '_';
+    }
+    return sanitized;
+}
+
+void Cgi::_pushEnv(const std::string &key, const std::string &value)
+{
+    _envStrings.push_back(key + "=" + sanitizeEnvValue(value));
+}
+
 void Cgi::_initEnv()
 {
-    // TODO: sanitization?
-    _envStrings.push_back("HTTP_COOKIE=" + _request.getHeader("Cookie"));
-    _envStrings.push_back("GATEWAY_INTERFACE=CGI/1.1");
-    _envStrings.push_back("REQUEST_METHOD=" + _request.getMethod());
-    _envStrings.push_back("SERVER_PROTOCOL=" + _request.getVersion());
-    _envStrings.push_back("SCRIPT_FILENAME=" + _path);
-    _envStrings.push_back("PATH_INFO=" + _request.getPathInfo());
-    _envStrings.push_back("SERVER_NAME=" + _request.getHeader("Host"));
-    _envStrings.push_back("HTTP_HOST=" + _request.getHeader("Host"));
-    _envStrings.push_back("SERVER_PORT=" + _serverConfig.port);
-    _envStrings.push_back("REMOTE_ADDR=" + _serverConfig.host);
-    _envStrings.push_back("HTTP_USER_AGENT=" + _request.getHeader("User-Agent"));
-    _envStrings.push_back("HTTP_ACCEPT=" + _request.getHeader("Accept"));
-
-
-    _envStrings.push_back("REDIRECT_STATUS=200"); // for php
+    _pushEnv("HTTP_COOKIE", _request.getHeader("Cookie"));
+    _pushEnv("GATEWAY_INTERFACE", "CGI/1.1");
+    _pushEnv("REQUEST_METHOD", _request.getMethod());
+    _pushEnv("SERVER_PROTOCOL", _request.getVersion());
+    _pushEnv("SCRIPT_FILENAME", _path);
+    _pushEnv("PATH_INFO", _request.getPathInfo());
+    _pushEnv("SERVER_NAME", _request.getHeader("Host"));
+    _pushEnv("HTTP_HOST", _request.getHeader("Host"));
+    _pushEnv("SERVER_PORT", _serverConfig.port);
+    _pushEnv("REMOTE_ADDR", _serverConfig.host);
+    _pushEnv("HTTP_USER_AGENT", _request.getHeader("User-Agent"));
+    _pushEnv("HTTP_ACCEPT", _request.getHeader("Accept"));
+    _pushEnv("REDIRECT_STATUS", "200"); // for php
 
     if (_request.getMethod() == "GET")
     {
-        _envStrings.push_back("QUERY_STRING=" + _request.getQuery());
-        _envStrings.push_back("CONTENT_LENGTH=");
-        _envStrings.push_back("CONTENT_TYPE=");
+        _pushEnv("QUERY_STRING", _request.getQuery());
+        _pushEnv("CONTENT_LENGTH", "");
+        _pushEnv("CONTENT_TYPE", "");
     }
     else if (_request.getMethod() == "POST")
     {
         std::stringstream ss;
         ss << _request.getBody().size();
-        _envStrings.push_back("CONTENT_LENGTH=" + ss.str());
-
-        _envStrings.push_back("CONTENT_TYPE=" + _request.getHeader("Content-Type"));
-        _envStrings.push_back("QUERY_STRING=");
+        _pushEnv("CONTENT_LENGTH", ss.str());
+        _pushEnv("CONTENT_TYPE", _request.getHeader("Content-Type"));
+        _pushEnv("QUERY_STRING", "");
     }
 
     _env.reserve(_envStrings.size() + 1);
@@ -316,15 +299,10 @@ void Cgi::_finishCgi()
 
     if (result > 0) // child is done
     {
-        // if (!normal exit || exit code != 0)
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
             _statusCode = HTTP_SERVER_ERROR;
     }
-    // else if (result == 0) // TODO Zombie
-    //     {
-
-    //     }
-    else // error
+    else
         _statusCode = HTTP_SERVER_ERROR;
     _isRunning = false;
 }

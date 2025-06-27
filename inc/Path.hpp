@@ -31,7 +31,6 @@ public:
     Path join(const std::string& other) const;
     Path removePrefix(const Path& prefix) const;
     Path removePrefix(const std::string& prefix) const;
-    bool startsWith(const Path& prefix) const;
     bool startsWith(const std::string& prefix) const;
     bool isEmpty() const;
     

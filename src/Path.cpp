@@ -149,11 +149,6 @@ Path Path::removePrefix(const std::string &prefix) const
     return Path(result);
 }
 
-bool Path::startsWith(const Path &prefix) const
-{
-    return startsWith(prefix._path);
-}
-
 bool Path::startsWith(const std::string &prefix) const
 {
     if (prefix.empty())

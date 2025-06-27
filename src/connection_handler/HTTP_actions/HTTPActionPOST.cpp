@@ -7,58 +7,64 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-
+#include <ctime>
 
 HTTPActionPOST::HTTPActionPOST()
-{ }
+{
+}
 
 HTTPActionPOST::~HTTPActionPOST()
-{ }
-
-
-
-void HTTPActionPOST::implementMethod(HTTPRequest &request,
-						HTTPResponse & response, 
-						const ServerConfig &serverConfig)
 {
-	if (!serverConfig.getCurentRoute().uploadAllowed)
-	{
-		response.setStatusCode(HTTP_METHOD_NALLOWED);
-		return ;
-	}
+}
 
-	std::ofstream fileToPost(serverConfig.
-			getFullFilesystemPath(request.
-				getRequestTarget()).c_str());
+void HTTPActionPOST::downloadMulti(HTTPRequest &request,
+								   HTTPResponse &response,
+								   const ServerConfig &serverConfig)
+{
+	std::ofstream fileToPost(
+		serverConfig.getUploadPath(request.getRequestTarget()).c_str(),
+		std::ios::out | std::ios::binary | std::ios::app);
 	if (!fileToPost.is_open())
 	{
-		if (errno == EISDIR
-				&& (request.getHeader("Content-Type").find_first_of("multipart/form-data")
-					!= request.getHeader("content-type").npos))
-		{
-			
-			std::string newFile = serverConfig.getCurentRoute().uploadPath;
-			fileToPost.open(newFile.c_str());
-		}
-		if (!fileToPost.is_open())
-		{
-			response.setStatusCode(HTTP_SERVER_ERROR);
-			return ;
-		}
+		response.setStatusCode(HTTP_SERVER_ERROR);
+		return;
 	}
 
-	fileToPost << request.getBody();
+	std::time_t now = std::time(NULL);
+    char timeBuffer[100];
+    std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+	
+	fileToPost << "[" << timeBuffer << "]\n";
+	fileToPost << request.getBody() << "\n\n";
+	
 	fileToPost.close();
 
 	if (fileToPost.fail())
 	{
 		std::cerr << "Error: couldn't write to file" << std::endl;
 		response.setStatusCode(HTTP_SERVER_ERROR);
-		return ;
+		return;
 	}
 
 	response.setStatusCode(HTTP_CREATED);
 	response.setBody("Congratulations, you successfully uploaded a file!");
+}
+
+void HTTPActionPOST::implementMethod(HTTPRequest &request,
+									 HTTPResponse &response,
+									 const ServerConfig &serverConfig)
+{
+	if (!serverConfig.getCurentRoute().uploadAllowed)
+	{
+		response.setStatusCode(HTTP_METHOD_NALLOWED);
+		return;
+	}
+
+	if (request.getHeader("Content-Type").find_first_of("multipart/form-data") != request.getHeader("content-type").npos)
+	{
+		downloadMulti(request, response, serverConfig);
+		return;
+	}
 }
 
 AMethod *HTTPActionPOST::create()

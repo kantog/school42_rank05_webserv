@@ -7,3 +7,12 @@ username=btnn&adge=5
 [2025-06-27 11:34:54]
 username=btnn&adge=5
 
+[2025-06-27 12:03:48]
+mijnBestand=textFileTest.html&targetPath=..%2FDelete%2FfiletoDelete.hmtl
+
+[2025-06-27 12:04:49]
+mijnBestand=fileToDelete.html&targetPath=..%2FDelete%2FfiletoDelete.hmtl
+
+[2025-06-27 12:09:39]
+mijnBestand=fileToDelete.html&targetPath=..%2FDelete%2FfiletoDelete.hmtl
+

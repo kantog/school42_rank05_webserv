@@ -4,8 +4,6 @@
 #include "../../../inc/config_classes/ServerConfig.hpp"
 #include "Defines.hpp"
 
-#include <iostream>
-
 // THIS METHOD IS INCLUDED ONLY TO TEST THE DELETE METHOD IN THE BROWSER.
 // WITHOUT IT, THE CORS SECURITY SYSTEM WILL NOT ALLOW DELETE REQUESTS.
 // IT IS NOT MEANT FOR ACTUAL USE.
@@ -22,7 +20,7 @@ void HTTPActionOPTIONS::implementMethod(HTTPRequest &request,
 {
 	response.setStatusCode(HTTP_OK_NOCONTENT);
 	response.setHeader("Access-Control-Allow-Origin", "*");
-	response.setHeader("Access-Control-Allow-Methods", "DELETE, OPTIONS");
+	response.setHeader("Access-Control-Allow-Methods", "DELETE, OPTIONS, POST, GET");
 	response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
 	(void)request;
@@ -31,6 +29,5 @@ void HTTPActionOPTIONS::implementMethod(HTTPRequest &request,
 
 AMethod *HTTPActionOPTIONS::create()
 {
-	std::cout << "TEST" << std::endl;//test
 	return (new HTTPActionOPTIONS());
 }

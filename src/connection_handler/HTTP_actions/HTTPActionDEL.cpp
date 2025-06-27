@@ -42,7 +42,6 @@ void HTTPActionDEL::implementMethod(HTTPRequest &request,
 				return;
 		}
 	}
-	response.setBody("Success: " + request.getRequestTarget() + " deleted");
 }
 
 AMethod *HTTPActionDEL::create()

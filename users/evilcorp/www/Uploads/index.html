@@ -17,7 +17,9 @@
 
   <main>
     <h1>Uploads</h1>
+
     <h2>enctype="multipart/form-data"</h2>
+
     <form action="/Uploads" method="post" enctype="multipart/form-data" class="form">
       <input type="file" name="mijnBestand">
       <input type="file" name="lol">
@@ -34,6 +36,13 @@
     </form>
 
     
+    <h2>filetoDelete</h2>
+    <form action="/Uploads" method="post" class="form">
+		<input type="file" name="mijnBestand" accept=".html,.txt">
+		<input type="hidden" name="targetPath" value="../Delete/filetoDelete.hmtl">
+		<input type="submit" value="Upload">
+    </form>
+
   </main>
 
 </body>

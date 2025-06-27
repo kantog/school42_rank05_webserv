@@ -235,6 +235,9 @@ void HTTPResponse::_setStatusMessage(int code)
     case HTTP_CREATED:
         _statusText = "Created";
         break;
+    case HTTP_OK_NOCONTENT:
+        _statusText = "No Content";
+        break;
     default:
         _statusText = "Unknown";
         std::cerr << "Unknown status code: " << code << std::endl;

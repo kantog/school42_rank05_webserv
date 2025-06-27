@@ -93,6 +93,24 @@ Path ServerConfig::getDocumentRoot(void) const
     return Path(this->root);
 }
 
+std::string ServerConfig::getUploadPath(Path relativePath) const
+{
+
+    if (!_curentRoute->uploadAllowed)
+        return "";
+    Path rawPath = _curentRoute->uploadPath;
+    Path rootedPath;
+    if (rawPath.isRelative())
+        rootedPath = rawPath;
+    else
+        rootedPath = getDocumentRoot().join(rawPath).makeRelative();
+
+    Path fileName = relativePath.removePrefix(_curentRoute->path);
+    if (fileName.isEmpty())
+        return rootedPath.toString();
+    return rootedPath.getDirectory().join(fileName).toString();
+}
+
 size_t ServerConfig::getClientMaxBodySize(void) const
 {
     if (_curentRoute->client_max_body_size != 0)

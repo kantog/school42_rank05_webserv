@@ -45,6 +45,7 @@ class Cgi
 		void _initEnv(void);
 		void _runCgi(void);
 		void _setupParentPipes(void);
+		void _pushEnv(const std::string &key, const std::string &value);
 
 	public:
 		Cgi(const HTTPRequest &request, const ServerConfig &serverConfig);

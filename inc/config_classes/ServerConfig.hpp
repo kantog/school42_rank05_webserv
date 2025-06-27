@@ -55,7 +55,7 @@ class ServerConfig
 		std::string getFullFilesystemPath(const std::string &requestPath) const;
 
 		Path getDocumentRoot(void) const;
-
+		std::string getUploadPath(Path relativePath) const;
 
 		std::string getServerKey(void) const;
 		const std::string getCgiInterpreter(const std::string &fullPath) const;

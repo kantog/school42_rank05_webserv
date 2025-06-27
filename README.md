@@ -14,17 +14,14 @@ make
 
 To test our process, start the server using the test configuration file or execute the following curl command:
 
-```bash
-make
-./webserv {file.conf}  
-```
 
-// TODO 
 ```bash
 ./webserv users/multipleServers.conf
 
-curl -H "Host: lol" http://localhost:8080
-curl -H "Host: test" http://localhost:8080
+curl -H "Host: lol" http://localhost:8080 # default
+curl -H "Host: evil" http://localhost:8080 # server 0
+curl -H "Host: test" http://localhost:8080 # server 1
+curl -H "Host: cool" http://localhost:8080 # server 1
 ``` 
 
 ```mermaid

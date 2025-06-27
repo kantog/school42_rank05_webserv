@@ -16,9 +16,13 @@ private:
 			  HTTPResponse &response,
 			  const ServerConfig &serverConfig);
 
-	void downloadMulti(HTTPRequest &request,
+	void downloadMultiPart(HTTPRequest &request,
 			  HTTPResponse &response,
 			  const ServerConfig &serverConfig);
+	
+	void downloadFile(HTTPRequest &request,
+			  HTTPResponse &response,
+			  const ServerConfig &serverConfig, const std::string &body);
 
 public:
 	HTTPActionPOST();

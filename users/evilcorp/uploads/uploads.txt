@@ -1,0 +1,39 @@
+[2025-06-27 11:36:59]
+username=btnn&adge=5
+
+[2025-06-27 11:38:16]
+------WebKitFormBoundaryk4dIMMrnKlA4eQ4A
+Content-Disposition: form-data; name="mijnBestand"; filename="smal.txt"
+Content-Type: text/plain
+
+jow dit is een smal text file
+------WebKitFormBoundaryk4dIMMrnKlA4eQ4A
+Content-Disposition: form-data; name="lol"; filename=""
+Content-Type: application/octet-stream
+
+
+------WebKitFormBoundaryk4dIMMrnKlA4eQ4A
+Content-Disposition: form-data; name="name"
+
+
+------WebKitFormBoundaryk4dIMMrnKlA4eQ4A--
+
+
+[2025-06-27 11:43:53]
+username=btnn&adge=5
+
+[2025-06-27 11:44:05]
+username=lol&adge=5
+
+[2025-06-27 12:50:32]
+jyjjyj
+
+[2025-06-27 12:52:49]
+jyjjyj
+
+[2025-06-27 12:54:51]
+yolo
+
+[2025-06-27 12:57:13]
+yolo
+

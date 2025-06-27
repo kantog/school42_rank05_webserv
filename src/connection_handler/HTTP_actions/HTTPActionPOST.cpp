@@ -17,9 +17,9 @@ HTTPActionPOST::~HTTPActionPOST()
 {
 }
 
-void HTTPActionPOST::downloadMulti(HTTPRequest &request,
-								   HTTPResponse &response,
-								   const ServerConfig &serverConfig)
+void HTTPActionPOST::downloadFile(HTTPRequest &request,
+								  HTTPResponse &response,
+								  const ServerConfig &serverConfig, const std::string &body)
 {
 	std::ofstream fileToPost(
 		serverConfig.getUploadPath(request.getRequestTarget()).c_str(),
@@ -30,13 +30,14 @@ void HTTPActionPOST::downloadMulti(HTTPRequest &request,
 		return;
 	}
 
+	std::cout << "[INFO]: appending data in file: " << serverConfig.getUploadPath(request.getRequestTarget()) << std::endl;
 	std::time_t now = std::time(NULL);
-    char timeBuffer[100];
-    std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-	
+	char timeBuffer[100];
+	std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
 	fileToPost << "[" << timeBuffer << "]\n";
-	fileToPost << request.getBody() << "\n\n";
-	
+	fileToPost << body << "\n\n";
+
 	fileToPost.close();
 
 	if (fileToPost.fail())
@@ -50,6 +51,111 @@ void HTTPActionPOST::downloadMulti(HTTPRequest &request,
 	response.setBody("Congratulations, you successfully uploaded a file!");
 }
 
+std::string getBoundary(std::string &contentType)
+{
+	std::string boundaryPrefix = "boundary=";
+	std::size_t boundaryPos = contentType.find(boundaryPrefix);
+	if (boundaryPos == std::string::npos)
+		return "";
+	return "--" + contentType.substr(boundaryPos + boundaryPrefix.length());
+}
+
+std::string getFilename(std::string &headers)
+{
+	std::string filename;
+	std::size_t namePos = headers.find("filename=\"");
+	if (namePos != std::string::npos)
+	{
+		std::size_t start = namePos + 10;
+		std::size_t end = headers.find("\"", start);
+		return headers.substr(start, end - start);
+	}
+	return "";
+}
+
+void saveFile(std::string &filePath, std::string &content, HTTPResponse &response)
+{
+	std::ofstream outFile(filePath.c_str(), std::ios::binary);
+	if (!outFile.is_open())
+	{
+		std::cerr << "Error opening file: " << filePath << std::endl;
+		response.setStatusCode(HTTP_SERVER_ERROR);
+		return;
+	}
+	outFile << content;
+	outFile.close();
+	std::cout << "[INFO]: Saved file: " << filePath << std::endl;
+}
+
+void HTTPActionPOST::downloadMultiPart(HTTPRequest &request,
+									   HTTPResponse &response,
+									   const ServerConfig &serverConfig)
+{
+	std::string contentType = request.getHeader("Content-Type");
+	std::string body = request.getBody();
+	std::string boundary = getBoundary(contentType);
+	if (boundary == "")
+	{
+		response.setStatusCode(HTTP_BADREQ);
+		return;
+	}
+
+	std::stringstream ss(body);
+	std::string line;
+	bool inPart = false;
+	bool headersComplete = false;
+	std::string headers = "";
+	std::string content = "";
+	
+	while (std::getline(ss, line))
+	{
+		// Remove \r
+		if (!line.empty() && line[line.length() - 1] == '\r')
+			line.erase(line.length() - 1);
+			
+		if (line == boundary || line == boundary + "--")
+		{
+			if (inPart && headersComplete)
+			{
+				std::string filename = getFilename(headers);
+				
+				if (!filename.empty())
+				{
+					std::string filePath = serverConfig.getUploadPath(filename);
+					saveFile(filePath, content, response);
+				}
+				else 
+					downloadFile(request, response, serverConfig, content);
+			}
+			if (line == boundary + "--")
+				break;
+			inPart = true;
+			headersComplete = false;
+			headers = "";
+			content = "";
+		}
+		else if (inPart)
+		{
+			if (!headersComplete)
+			{
+				if (line.empty())
+					headersComplete = true;
+				else
+					headers += line + "\n";
+			}
+			else
+			{
+				if (!content.empty())
+					content += "\n";
+				content += line;
+			}
+		}
+	}
+
+	response.setStatusCode(HTTP_CREATED);
+	response.setBody("Multipart upload succesvol!");
+}
+
 void HTTPActionPOST::implementMethod(HTTPRequest &request,
 									 HTTPResponse &response,
 									 const ServerConfig &serverConfig)
@@ -60,11 +166,13 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 		return;
 	}
 
-	if (request.getHeader("Content-Type").find_first_of("multipart/form-data") != request.getHeader("content-type").npos)
+	std::string contentType = request.getHeader("Content-Type");
+	if (contentType.find("boundary=") != std::string::npos)
 	{
-		downloadMulti(request, response, serverConfig);
+		downloadMultiPart(request, response, serverConfig);
 		return;
 	}
+	downloadFile(request, response, serverConfig, request.getBody());
 }
 
 AMethod *HTTPActionPOST::create()

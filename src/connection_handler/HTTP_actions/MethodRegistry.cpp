@@ -3,6 +3,7 @@
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionPOST.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionGET.hpp"
 #include "../../../inc/connection_handler/HTTP_actions/HTTPActionDEL.hpp"
+#include "../../../inc/connection_handler/HTTP_actions/HTTPActionOPTIONS.hpp"
 #include <stdexcept>
 #include <map>
 
@@ -11,6 +12,7 @@ MethodRegistry::MethodRegistry()
 	_methods["POST"] = &HTTPActionPOST::create;
 	_methods["GET"] = &HTTPActionGET::create;
 	_methods["DELETE"] = &HTTPActionDEL::create;
+	_methods["OPTIONS"] = &HTTPActionOPTIONS::create;
 }
 
 MethodRegistry::~MethodRegistry()

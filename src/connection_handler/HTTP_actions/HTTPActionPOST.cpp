@@ -48,7 +48,9 @@ void HTTPActionPOST::downloadFile(HTTPRequest &request,
 	}
 
 	response.setStatusCode(HTTP_CREATED);
-	response.setBody("Congratulations, you successfully uploaded a file!");
+	response.setHeader("Access-Control-Allow-Origin", "*");
+	response.setHeader("Access-Control-Allow-Methods", "DELETE, OPTIONS, POST, GET");
+	response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
 std::string getBoundary(std::string &contentType)

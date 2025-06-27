@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>HOME</title>
+	<link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+<nav>
+	<ul>
+		<li><a href="../..">Home</a></li>
+	</ul>
+</nav>
+
+
+<!-- Made by deepseek:  -->
+
+<main>
+	<h1>Delete this file! </h1>
+
+	<button onclick="sendDeleteRequest()">Send DELETE Request</button>
+	<li><a href="/Delete/fileToDelete.html">File to delete</a></li>
+
+	<script>
+	function sendDeleteRequest() {
+		fetch('http://localhost:8080/Delete/fileToDelete.html', {
+			method: 'DELETE',
+		})
+			.then(response => response.json())
+			.then(data => console.log(data))
+			.catch(error => console.error('Error:', error));
+	}
+	</script>
+
+<!-- Deepseek end -->
+
+<h1>(But maybe upload it first)</h1>
+
+<!-- Made by deepseek:  -->
+
+ <button id="createFileBtn">Create fileToDelete.html</button>
+
+    <script>
+        document.getElementById('createFileBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:8080/Delete/fileToDelete.html', 
+					{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/html'
+                    },
+                    body: 'This file exists.'
+                });
+
+                if (response.ok) {
+                    alert('File created successfully!');
+                } else {
+                    alert('Failed to create file');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }});
+    </script>
+
+<!-- Deepseek end -->

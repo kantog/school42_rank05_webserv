@@ -35,6 +35,7 @@ SRCS = \
 	src/connection_handler/HTTP_actions/HTTPActionDEL.cpp \
 	src/connection_handler/HTTP_actions/HTTPActionGET.cpp \
 	src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
+	src/connection_handler/HTTP_actions/HTTPActionOPTIONS.cpp \
 	src/connection_handler/HTTP_actions/MethodRegistry.cpp \
 	src/CGI/Cgi.cpp
 

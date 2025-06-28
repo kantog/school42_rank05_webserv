@@ -255,8 +255,8 @@ void Cgi::_writeInput()
     ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
     if (written < 0)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-            return; // more data to write
+        // if (errno == EAGAIN || errno == EWOULDBLOCK)
+        //     return; // more data to write
         std::cerr << "CGI write error: " << strerror(errno) << std::endl;
         _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeIn[1]);
@@ -269,13 +269,13 @@ void Cgi::_writeInput()
 
 void Cgi::_readOutput()
 {
-    char buffer[4096];
+    char buffer[16384];
     ssize_t bytesRead = read(_pipeOut[0], buffer, sizeof(buffer));
 
     if (bytesRead < 0)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-            return; // more data to read
+        // if (errno == EAGAIN || errno == EWOULDBLOCK)
+        //     return; // more data to read
         std::cerr << "CGI read error: " << strerror(errno) << std::endl;
         _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeOut[0]);

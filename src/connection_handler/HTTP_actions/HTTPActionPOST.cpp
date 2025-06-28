@@ -22,6 +22,11 @@ void HTTPActionPOST::downloadFile(HTTPRequest &request,
 								  HTTPResponse &response,
 								  const ServerConfig &serverConfig, const std::string &body)
 {
+	if (body.length() == 0)
+	{
+		response.setBody("success", "text/plain");
+		return;
+	}
 	std::ofstream fileToPost(
 		serverConfig.getUploadPath(request.getRequestTarget()).c_str(),
 		std::ios::out | std::ios::binary | std::ios::app);
@@ -75,6 +80,12 @@ std::string getFilename(std::string &headers)
 
 void saveFile(std::string &filePath, const std::vector<char> &content, HTTPResponse &response)
 {
+
+	if (content.size() == 0)
+	{
+		response.setBody("success");
+		return;
+	}
 	std::ofstream outFile(filePath.c_str(), std::ios::binary);
 	if (!outFile.is_open())
 	{

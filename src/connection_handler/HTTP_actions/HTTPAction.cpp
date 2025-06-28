@@ -72,9 +72,12 @@ void HTTPAction::run()
 				_serverConfig.getCurentRoute().redirectPath);
 		return;	
 	}
-	else if (!_serverConfig.isAllowedMethod(_request.getMethod()))
-		_response.setStatusCode(HTTP_METHOD_NALLOWED);
-	else if (_serverConfig.isAllowedCgi(_request.getRequestTarget()))
+	if (!_serverConfig.isAllowedMethod(_request.getMethod()))
+	{
+		_response.buildErrorPage(HTTP_METHOD_NALLOWED, _serverConfig.getErrorPagePath(HTTP_METHOD_NALLOWED));
+		return;
+	}
+	if (_serverConfig.isAllowedCgi(_request.getRequestTarget()))
 	{
 		Cgi *cgi = new Cgi(_request, _serverConfig);
 		cgi->startCgi();
@@ -88,23 +91,21 @@ void HTTPAction::run()
 			_cgi = cgi;
 		return;
 	}
-	else
-	{
-		AMethod *HTTPMethod 
-			= _methodRegistry.createMethodInstance(_request.getMethod());
-		try 
-		{
-			HTTPMethod->implementMethod(_request, _response, _serverConfig);
-			delete HTTPMethod;
-		}
-		catch (std::exception &e)
-		{
-			if (HTTPMethod)
-				delete HTTPMethod;
-			throw std::runtime_error(e.what());
-		}
-	}
 
+	AMethod *HTTPMethod 
+		= _methodRegistry.createMethodInstance(_request.getMethod());
+	try 
+	{
+		HTTPMethod->implementMethod(_request, _response, _serverConfig);
+		delete HTTPMethod;
+	}
+	catch (std::exception &e)
+	{
+		if (HTTPMethod)
+			delete HTTPMethod;
+		throw std::runtime_error(e.what());
+	}
+	
 	int errorCode = _response.getStatusCode();
 	if (errorCode < 200 || errorCode > 226)
 		_response.buildErrorPage(errorCode, 

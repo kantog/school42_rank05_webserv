@@ -22,16 +22,19 @@
 	<h1>Delete this file! </h1>
 
 	<button onclick="sendDeleteRequest()">Send DELETE Request</button>
-	<li><a href="/Delete/fileToDelete.html">File to delete</a></li>
+	<a href="/Delete/fileToDelete.html">File to delete</a>
 
 	<script>
 	function sendDeleteRequest() {
 		fetch('http://localhost:8080/Delete/fileToDelete.html', {
 			method: 'DELETE',
 		})
-			.then(response => response.json())
-			.then(data => console.log(data))
-			.catch(error => console.error('Error:', error));
+		.then(response => {
+  if (!response.ok) throw new Error('Netwerkfout');
+  return response.text(); // of .json() als je zeker weet dat het JSON is
+})
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
 	}
 	</script>
 

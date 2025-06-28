@@ -18,7 +18,7 @@ class HTTPResponse
 		std::string _createDirString(const std::string &directoryPath,
 				const std::string &relativeDirPath = "",
 				const std::string &whiteSpace = "");
-		void _setCustomErrorBody(const std::string &filePath);
+		void _setCustomErrorBody();
 
 	public:
 		HTTPResponse();

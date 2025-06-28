@@ -132,7 +132,7 @@ void HTTPResponse::setBodySize()
     setHeader("Content-Length", oss.str());
 }
 
-void HTTPResponse::_setCustomErrorBody(const std::string &filePath)
+void HTTPResponse::_setCustomErrorBody()
 {
     std::ostringstream oss;
 
@@ -144,7 +144,6 @@ void HTTPResponse::_setCustomErrorBody(const std::string &filePath)
         << "<body>\n"
         << "<h1>Error " << this->_statusCode << "</h1>\n"
         << "<p>" << _statusText << "</p>\n"
-        << "<p>" << filePath << " not found</p>\n"
         << "</body>\n"
         << "</html>\n";
 
@@ -160,7 +159,7 @@ void HTTPResponse::setBodyFromFile(const std::string &filePath)
         int error = errno;
 
         if (getStatusCode() < 200 || getStatusCode() > 226)
-            _setCustomErrorBody(filePath);
+            _setCustomErrorBody();
         if (file.bad())
             this->setStatusCode(HTTP_SERVER_ERROR);
         else if (file.fail())

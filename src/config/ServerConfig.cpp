@@ -137,5 +137,5 @@ const std::string ServerConfig::getErrorPagePath(int code) const
 {
     if (this->error_pages.find(code) != this->error_pages.end())
         return ("./" + this->root + this->error_pages.at(code));
-    return (DEFAULT_ERROR_PAGE);
+    return ("");
 }

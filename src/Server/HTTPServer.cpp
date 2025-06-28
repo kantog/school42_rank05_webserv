@@ -108,8 +108,8 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 		std::cerr << "Error: Connection handler not found for FD " << connectionFd << std::endl;
 		return;
 	}
-	if (!connectionHandler->handleHTTP())
-		return;
+
+	connectionHandler->handleHTTP();
 
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);
@@ -118,10 +118,15 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 										  // IF there are other cases where we should close after handling request, add to shouldClose()
 		_closeConnection(_connectionHandlers, connectionFd);
 
-	// 	if (connectionHandler->epolloutShouldOpen)
-	// 	{
-	// 		this->_setEPOLLOUT(connectionFd, true);
-	// 	}
+	if (connectionHandler->epolloutShouldOpen)
+	{
+		this->_setEPOLLOUT(connectionFd, true);
+	}
+	if (connectionHandler->epolloutShouldClose)
+	{
+		this->_setEPOLLOUT(connectionFd, false);
+		connectionHandler->epolloutShouldClose = false;
+	}
 }
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
@@ -214,6 +219,7 @@ void HTTPServer::start()
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);
 			}
+				std::cout << localEpollEvents[i].events << std::endl;//test
 		}
 	}
 }

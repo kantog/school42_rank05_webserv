@@ -16,7 +16,8 @@ ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd) : _cgi(NULL
 	_shouldClose(false),
 	_serverKey(serverKey),
 	_connectionSocketFD(fd),
-	epolloutShouldOpen(false)
+	epolloutShouldOpen(false),
+	epolloutShouldClose(false)
 {
 }
 
@@ -73,11 +74,6 @@ void ConnectionHandler::_createRequest()
 		}
 		else
 		{
-			// if (errno == EAGAIN)
-			// {
-			// 	epolloutShouldOpen = true;
-			// 	return;
-			// }
 			this->_handleErrorRecv(bytesRead);
 			return;
 		}
@@ -90,6 +86,11 @@ void ConnectionHandler::_sendResponse(const std::string &responseString)
 			responseString.length(), 0);
 	if (bytesWritten == -1)
 	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		{
+			epolloutShouldOpen = true;
+			return;
+		}
 		std::cerr << "Error writing to socket " << _connectionSocketFD
 			<< ": " << strerror(errno) << std::endl;
 		_shouldClose = true;
@@ -129,8 +130,30 @@ void ConnectionHandler::sendCgiResponse()
 	this->_request.reset();
 }
 
-bool ConnectionHandler::handleHTTP()
+bool ConnectionHandler::_delegateToHTTPAction(HTTPAction &Action)
 {
+	Action.run();
+	if (Action.isCgiRunning())
+		_cgi = Action.getCgi();
+	if (this->_cgi)
+		return (true);
+
+	this->_sendResponse(Action.getFullResponseString());
+	if (!epolloutShouldOpen)
+		this->_request.reset();
+	return (true);
+		
+}
+
+void ConnectionHandler::handleHTTP()
+{
+	if (epolloutShouldOpen)
+	{
+		HTTPAction Action(_request, *_serverConfig);
+		_delegateToHTTPAction(Action);
+		epolloutShouldOpen = false;
+		epolloutShouldClose = true;
+	}
 	if (this->_cgi)
 	{
 		HTTPResponse response;
@@ -139,7 +162,7 @@ bool ConnectionHandler::handleHTTP()
 		response.setBody("Server busy processing request");
 		response.buildResponse();
 		this->_sendResponse(response.getResponseString());
-		return (false);
+		return;
 	}
 
 	this->_createRequest();
@@ -152,21 +175,12 @@ bool ConnectionHandler::handleHTTP()
 		this->_sendResponse(Action.
 				getFullErrorResponseString(this->_request.getErrorCode()));
 		this->_shouldClose = true;
-		return (true);
+		return;
 	}
 
 	if (!this->_request.isComplete())
-		return (false);
+		return;
 
-	// _request.printRequest(); // Test;
+	this->_delegateToHTTPAction(Action);
 
-	Action.run();
-	if (Action.isCgiRunning())
-		_cgi = Action.getCgi();
-	if (this->_cgi)
-		return (true);
-
-	this->_sendResponse(Action.getFullResponseString());
-	this->_request.reset();
-	return (true);
 }

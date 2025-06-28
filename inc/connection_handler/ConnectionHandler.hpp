@@ -1,9 +1,11 @@
 
 #pragma once 
 
-#include <string>
 #include "HTTPRequest.hpp"
+#include "HTTPAction.hpp"
 #include "Cgi.hpp"
+
+#include <string>
 
 class	ConnectionHandler 
 {
@@ -26,14 +28,16 @@ class	ConnectionHandler
 		void _setServerConfig();
 
 		void _handleErrorRecv(int bytesRead);
+		bool _delegateToHTTPAction(HTTPAction &Action);
 
 	public:
 		ConnectionHandler(std::string &serverKey, int fd);
 		~ConnectionHandler();
 
 		bool epolloutShouldOpen;
+		bool epolloutShouldClose;
 
-		bool handleHTTP();
+		void handleHTTP();
 		void sendCgiResponse();
 		bool shouldClose();
 

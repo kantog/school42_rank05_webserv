@@ -83,35 +83,33 @@ void HTTPServer::_setNonBlocking(int fd)
     }
 }
 
-// void HTTPServer::_setEPOLLOUT(int fd, bool on)
-// {
-//     struct epoll_event newLocalEpollEvent;
-//     // newLocalEpollEvent.events = EPOLLIN | EPOLLET | EPOLLOUT;//epollout should temporarily be added when sending response
-//     newLocalEpollEvent.data.fd = fd;
-// 	if (on == true)
-// 	{
-// 		newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
-// 		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-// 		{
-// 			close(fd); // necessary? ConnectionHandler handles this?
-// 			throw(std::runtime_error("Error: problem with epoll_ctl"));
-// 		}
-// 	}
-// 	else 
-// 	{
-// 		newLocalEpollEvent.events = EPOLLIN | EPOLLET;
-// 		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-// 		{
-// 			close(fd); // necessary? ConnectionHandler handles this?
-// 			throw(std::runtime_error("Error: problem with epoll_ctl"));
-// 		}
-// 	}
-// }
+void HTTPServer::_setEPOLLOUT(int fd, bool on)
+{
+    struct epoll_event newLocalEpollEvent;
+    newLocalEpollEvent.data.fd = fd;
+	if (on == true)
+	{
+		newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
+		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
+		{
+			close(fd); // necessary? ConnectionHandler handles this?
+			throw(std::runtime_error("Error: problem with epoll_ctl"));
+		}
+	}
+	else 
+	{
+		newLocalEpollEvent.events = EPOLLIN | EPOLLET;
+		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
+		{
+			close(fd); // necessary? ConnectionHandler handles this?
+			throw(std::runtime_error("Error: problem with epoll_ctl"));
+		}
+	}
+}
 
 void HTTPServer::_addFDToEpoll(int fd)
 {
     struct epoll_event newLocalEpollEvent;
-    // newLocalEpollEvent.events = EPOLLIN | EPOLLET | EPOLLOUT;//epollout should temporarily be added when sending response
     newLocalEpollEvent.events = EPOLLIN | EPOLLET;
     newLocalEpollEvent.data.fd = fd;
     if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, fd, &newLocalEpollEvent) == -1)

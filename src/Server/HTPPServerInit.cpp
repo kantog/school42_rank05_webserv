@@ -56,7 +56,7 @@ HTTPServer::~HTTPServer()
         close(cgiIt->first);
     }
     _cgis.clear();
-    
+
     // close all listening sockets
     std::cout << "Closing listening sockets..." << std::endl;
     for (int i = 0; i < (int)_listeningSockets.size(); ++i)
@@ -87,24 +87,24 @@ void HTTPServer::_setEPOLLOUT(int fd, bool on)
 {
     struct epoll_event newLocalEpollEvent;
     newLocalEpollEvent.data.fd = fd;
-	if (on == true)
-	{
-		newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
-		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-		{
-			close(fd); // necessary? ConnectionHandler handles this?
-			throw(std::runtime_error("Error: problem with epoll_ctl"));
-		}
-	}
-	else 
-	{
-		newLocalEpollEvent.events = EPOLLIN | EPOLLET;
-		if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-		{
-			close(fd); // necessary? ConnectionHandler handles this?
-			throw(std::runtime_error("Error: problem with epoll_ctl"));
-		}
-	}
+    if (on == true)
+    {
+        newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
+        if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
+        {
+            close(fd); // necessary? ConnectionHandler handles this?
+            throw(std::runtime_error("Error: problem with epoll_ctl"));
+        }
+    }
+    else
+    {
+        newLocalEpollEvent.events = EPOLLIN | EPOLLET;
+        if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
+        {
+            close(fd); // necessary? ConnectionHandler handles this?
+            throw(std::runtime_error("Error: problem with epoll_ctl"));
+        }
+    }
 }
 
 void HTTPServer::_addFDToEpoll(int fd)
@@ -127,7 +127,7 @@ void HTTPServer::_initListeningSockets()
     {
         int fd = _makeNewListeningSocket(it->second[0].host, it->second[0].port);
         this->_addFDToEpoll(fd);
-        _listeningSockets.push_back(std::pair<std::string, int>(it->first, fd)); // TODO: is dit nodig?localEpollEvent.data.fd);
+        _listeningSockets.push_back(std::pair<std::string, int>(it->first, fd));
     }
 }
 

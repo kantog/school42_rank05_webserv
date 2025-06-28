@@ -49,6 +49,7 @@ std::string HTTPAction::getFullCgiResponseString()
 
 std::string HTTPAction::getFullResponseString() 
 {
+	//if (_response.getStatusCode() != 200) // test
 	std::cout << _request.getMethod() << " " << _request.getRawPath()
 			  << "(" << _serverConfig.getFullFilesystemPath(_request.getRequestTarget())<< "): "
 			  << _response.getStatusCode() << std::endl;

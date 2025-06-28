@@ -114,10 +114,11 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);
 
-	if (connectionHandler->shouldClose()) // TODO: Added this for cases where header says "connection close".
-										  // IF there are other cases where we should close after handling request, add to shouldClose()
+	if (connectionHandler->shouldClose())
+	{
 		_closeConnection(_connectionHandlers, connectionFd);
-
+		return;
+	}
 	if (connectionHandler->epolloutShouldOpen)
 	{
 		this->_setEPOLLOUT(connectionFd, true);
@@ -145,7 +146,7 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 
 	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
 	{
-		if (map == _connectionHandlers)
+		if (&map == &_connectionHandlers)
 		{
 			if (it->second->isCgiRunning())
 				it->second->killCgi();
@@ -166,8 +167,7 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 
 bool HTTPServer::_isListeningSocket(int fd)
 {
-	for (std::vector<std::pair<std::string, int> >::const_iterator it 
-			= _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
+	for (std::vector<std::pair<std::string, int> >::const_iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it)
 	{
 		if (it->second == fd)
 			return true;
@@ -185,8 +185,19 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 	}
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-		std::cout << "Connection error/hangup on FD " << fd << std::endl;
-		_closeConnection(_connectionHandlers, fd);
+		std::cout << "Connection error/hangup on FD " << events << std::endl; // test fiks fd terug
+		_closeConnection(_connectionHandlers, fd);							  // test
+		int err = 0;														  // test
+		socklen_t len = sizeof(err);										  // test
+		getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);					  // test
+		if (err != 0)
+		{																 // test
+			std::cerr << "Socket error: " << strerror(err) << std::endl; // test
+		} // test
+		else
+		{
+			std::cerr << "Socket hangup" << std::endl; // test
+		} // test
 	}
 	else if (events & (EPOLLIN | EPOLLOUT))
 		_delegateToConnectionHandler(fd);
@@ -219,7 +230,6 @@ void HTTPServer::start()
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);
 			}
-				std::cout << localEpollEvents[i].events << std::endl;//test
 		}
 	}
 }

@@ -36,7 +36,7 @@ void HTTPActionPOST::downloadFile(HTTPRequest &request,
 		return;
 	}
 
-	std::cout << "[INFO]: appending data in file: " << serverConfig.getUploadPath(request.getRequestTarget()) << std::endl;
+	// std::cout << "[INFO]: appending data in file: " << serverConfig.getUploadPath(request.getRequestTarget()) << std::endl;
 	std::time_t now = std::time(NULL);
 	char timeBuffer[100];
 	std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
@@ -103,8 +103,7 @@ void saveFile(std::string &filePath, const std::vector<char> &content, HTTPRespo
 		response.setStatusCode(HTTP_SERVER_ERROR);
 		return;
 	}
-
-	std::cout << "[INFO]: Saved file: " << filePath << " (" << content.size() << " bytes)" << std::endl;
+	// std::cout << "[INFO]: Saved file: " << filePath << " (" << content.size() << " bytes)" << std::endl;
 }
 
 static std::string getHeaders(std::string &body, size_t &pos)

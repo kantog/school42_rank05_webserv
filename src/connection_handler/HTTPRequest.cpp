@@ -231,7 +231,6 @@ void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
 
         if (_contentLength > _maxContentLength)
         {
-            std::cout << "Body too large " << _contentLength << " > " << _maxContentLength << std::endl;
             this->_isComplete = false;
             this->_errorCode = 413;
             return;
@@ -260,7 +259,6 @@ bool HTTPRequest::_setChunkSize()
 
     if (_chunkSizeRemaining == 0)
     {
-        std::cout << "Chunk done?" << std::endl;
         _isComplete = true;
         return false;
     }
@@ -336,7 +334,6 @@ void HTTPRequest::_setBody()
 {
     if (this->getHeader("Transfer-Encoding") == "chunked")
     {
-        std::cout << "chunked !!!" << std::endl;
         _parseChunkedBody();
         return;
     }

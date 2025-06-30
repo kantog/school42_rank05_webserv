@@ -6,8 +6,6 @@
 #include <vector>
 #include "connection_handler/ConnectionHandler.hpp"
 
-#define MAX_LISTEN_QUEUE 10
-
 class HTTPServer
 {
 	private:

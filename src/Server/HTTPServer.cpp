@@ -131,7 +131,9 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 }
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
-{
+{   
+	std::cout << "DEBUG: _closeConnection called for FD " << fd //test
+              << " (map size: " << map.size() << ")" << std::endl;
 	if (_epollFD > 0)
 	{
 		if (epoll_ctl(_epollFD, EPOLL_CTL_DEL, fd, NULL) == -1)
@@ -146,6 +148,12 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 
 	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
 	{
+		if (it == map.end())
+		{
+			std::cerr << "Warning: FD " << fd 
+				<< "not found in connection map" << std::endl;//test
+			return;
+		}
 		if (&map == &_connectionHandlers)
 		{
 			if (it->second->isCgiRunning())
@@ -157,6 +165,11 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 		}
 		map.erase(it);
 	}
+
+	// char buffer[4096];//necessary?
+	// while (read(fd, buffer, sizeof(buffer)) > 0)
+	// { }
+
 	if (close(fd) == -1)
 	{
 		if (errno != EBADF)
@@ -177,6 +190,7 @@ bool HTTPServer::_isListeningSocket(int fd)
 
 void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
+	std::cout << "FD " << fd << " events: " << std::hex << events << std::dec << std::endl;//test
 	ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd);
 	if (cgiHandler)
 	{
@@ -187,6 +201,7 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 	{
 		std::cout << "Connection error/hangup on FD " << events << std::endl; // test fiks fd terug
 		_closeConnection(_connectionHandlers, fd);							  // test
+																			  //
 		int err = 0;														  // test
 		socklen_t len = sizeof(err);										  // test
 		getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);					  // test
@@ -198,7 +213,8 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 		{
 			std::cerr << "Socket hangup" << std::endl; // test
 		} // test
-	}
+	}//test
+	 //
 	else if (events & (EPOLLIN | EPOLLOUT))
 		_delegateToConnectionHandler(fd);
 	else
@@ -213,7 +229,9 @@ void HTTPServer::start()
 
 	while (!this->_gotStopSignal)
 	{
+		std::cout << "epoll fd: " << _epollFD << std::endl;//test
 		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1);
+		std::cout << "left epoll_wait()" << std::endl;//test
 		if (eventCount == -1)
 		{
 			if (errno == EINTR)

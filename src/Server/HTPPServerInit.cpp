@@ -180,7 +180,7 @@ static void _bindSocket(int socketFD, const struct addrinfo *addrInfo)
 
 static void _startListening(int socketFD)
 {
-    if (listen(socketFD, MAX_LISTEN_QUEUE) == -1)
+    if (listen(socketFD, SOMAXCONN) == -1)
     {
         close(socketFD);
         throw std::runtime_error("Error: Failed to listen on socket");

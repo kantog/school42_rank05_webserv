@@ -17,23 +17,7 @@
 HTTPServer::HTTPServer() : _epollFD(-1),
                            _connAmount(0),
                            _gotStopSignal(false)
-{
-}
-
-HTTPServer::HTTPServer(const HTTPServer &other) : _epollFD(-1),
-                                                  _connAmount(0)
-{
-    (void)other; // test
-}
-
-HTTPServer &HTTPServer::operator=(const HTTPServer &other)
-{
-    // gewoon error throwen?
-    _epollFD = -1;
-    _connAmount = 0;
-    (void)other; // test
-    return (*this);
-}
+{ }
 
 HTTPServer::~HTTPServer()
 {
@@ -91,19 +75,13 @@ void HTTPServer::_setEPOLLOUT(int fd, bool on)
     {
         newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
         if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-        {
-            close(fd); // necessary? ConnectionHandler handles this?
             throw(std::runtime_error("Error: problem with epoll_ctl"));
-        }
     }
     else
     {
         newLocalEpollEvent.events = EPOLLIN | EPOLLET;
         if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-        {
-            close(fd); // necessary? ConnectionHandler handles this?
             throw(std::runtime_error("Error: problem with epoll_ctl"));
-        }
     }
 }
 

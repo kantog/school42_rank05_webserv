@@ -9,6 +9,9 @@
 class HTTPServer
 {
 	private:
+		HTTPServer(const HTTPServer &other);
+		HTTPServer &operator=(const HTTPServer &other);
+
 		std::vector<std::pair<std::string, int> > _listeningSockets;
 		int _epollFD;
 		int _connAmount;
@@ -26,7 +29,7 @@ class HTTPServer
 		void _setEPOLLOUT(int fd, bool on);
 		int _makeNewListeningSocket(const std::string &ip, const std::string &port);
 		
-		void _createNewConnection(int fd);
+		void _createNewConnections(int fd);
 		void _closeConnection(std::map<int, ConnectionHandler *> &map, int fd);
 		void _delegateToConnectionHandler(int connectionFd);
 		void _delegateToCgi(int connectionFd);
@@ -40,9 +43,7 @@ class HTTPServer
 		void _processCgi(ConnectionHandler *connectionHandler);
 
 	public:
-		HTTPServer(); // test
-		HTTPServer(const HTTPServer &other);
-		HTTPServer &operator=(const HTTPServer &other);
+		HTTPServer();
 		~HTTPServer();
 
 		void init();

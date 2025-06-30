@@ -37,32 +37,35 @@ void HTTPServer::_processCgi(ConnectionHandler *connectionHandler)
 	delete cgi;
 }
 
-void HTTPServer::_createNewConnection(int fd)
+void HTTPServer::_createNewConnections(int fd)
 {
-	struct sockaddr_in sockAdress;
-	socklen_t addressLen = sizeof(sockAdress);
-	int newSocketFD = -1;
-
-	std::cout << "Connecting..." << std::endl;
-
-	newSocketFD = accept(fd, (struct sockaddr *)&sockAdress, &addressLen);
-	if (newSocketFD == -1)
+	while (true)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		struct sockaddr_in sockAdress;
+		socklen_t addressLen = sizeof(sockAdress);
+		int newSocketFD = -1;
+
+		std::cout << "Connecting..." << std::endl;
+
+		newSocketFD = accept(fd, (struct sockaddr *)&sockAdress, &addressLen);
+		if (newSocketFD == -1)
 		{
-			std::cout << "No more connections to accept (EAGAIN/EWOULDBLOCK)" << std::endl;
-			return;
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			{
+				std::cout << "No more connections to accept (EAGAIN/EWOULDBLOCK)" << std::endl;
+				return;
+			}
+			std::cerr << "Accept failed: " << strerror(errno) << std::endl;
+			throw(std::runtime_error("Error accepting new connection socket"));
 		}
-		std::cerr << "Accept failed: " << strerror(errno) << std::endl;
-		throw(std::runtime_error("Error accepting new connection socket"));
+
+		this->_setNonBlocking(newSocketFD);
+		this->_addFDToEpoll(newSocketFD);
+		this->_setNewHandler(newSocketFD, fd);
+		std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
+
+		this->_delegateToConnectionHandler(newSocketFD);
 	}
-
-	this->_setNonBlocking(newSocketFD);
-	this->_addFDToEpoll(newSocketFD);
-	this->_setNewHandler(newSocketFD, fd);
-	std::cout << "Connection established! FD=" << newSocketFD << ", Total connections: " << _connAmount << std::endl;
-
-	this->_delegateToConnectionHandler(newSocketFD);
 }
 
 void HTTPServer::_setNewHandler(int newSocketFD, int serverFD)
@@ -132,8 +135,6 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 
 void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int fd)
 {   
-	std::cout << "DEBUG: _closeConnection called for FD " << fd //test
-              << " (map size: " << map.size() << ")" << std::endl;
 	if (_epollFD > 0)
 	{
 		if (epoll_ctl(_epollFD, EPOLL_CTL_DEL, fd, NULL) == -1)
@@ -149,11 +150,7 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 	std::map<int, ConnectionHandler *>::iterator it = map.find(fd);
 	{
 		if (it == map.end())
-		{
-			std::cerr << "Warning: FD " << fd 
-				<< "not found in connection map" << std::endl;//test
 			return;
-		}
 		if (&map == &_connectionHandlers)
 		{
 			if (it->second->isCgiRunning())
@@ -165,10 +162,6 @@ void HTTPServer::_closeConnection(std::map<int, ConnectionHandler *> &map, int f
 		}
 		map.erase(it);
 	}
-
-	// char buffer[4096];//necessary?
-	// while (read(fd, buffer, sizeof(buffer)) > 0)
-	// { }
 
 	if (close(fd) == -1)
 	{
@@ -190,7 +183,6 @@ bool HTTPServer::_isListeningSocket(int fd)
 
 void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 {
-	std::cout << "FD " << fd << " events: " << std::hex << events << std::dec << std::endl;//test
 	ConnectionHandler *cgiHandler = _getConnectionHandler(_cgis, fd);
 	if (cgiHandler)
 	{
@@ -199,22 +191,9 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 	}
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-		std::cout << "Connection error/hangup on FD " << events << std::endl; // test fiks fd terug
-		_closeConnection(_connectionHandlers, fd);							  // test
-																			  //
-		int err = 0;														  // test
-		socklen_t len = sizeof(err);										  // test
-		getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);					  // test
-		if (err != 0)
-		{																 // test
-			std::cerr << "Socket error: " << strerror(err) << std::endl; // test
-		} // test
-		else
-		{
-			std::cerr << "Socket hangup" << std::endl; // test
-		} // test
-	}//test
-	 //
+		std::cerr << "Error: connection error/hangup" << std::endl; 
+		_closeConnection(_connectionHandlers, fd);						
+	}
 	else if (events & (EPOLLIN | EPOLLOUT))
 		_delegateToConnectionHandler(fd);
 	else
@@ -229,9 +208,7 @@ void HTTPServer::start()
 
 	while (!this->_gotStopSignal)
 	{
-		std::cout << "epoll fd: " << _epollFD << std::endl;//test
 		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1);
-		std::cout << "left epoll_wait()" << std::endl;//test
 		if (eventCount == -1)
 		{
 			if (errno == EINTR)
@@ -241,17 +218,10 @@ void HTTPServer::start()
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;
+			std::cout << "FD " << fd << ": ";
 			if (_isListeningSocket(fd))
-			{
-				while (true)
-				{
-					_createNewConnection(fd);
-					// Break if no more connections are waiting
-					if (errno == EAGAIN || errno == EWOULDBLOCK)
-						break;
-				}
-			}
-						else
+				_createNewConnections(fd);
+			else
 			{
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);

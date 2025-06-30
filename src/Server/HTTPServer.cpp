@@ -242,8 +242,16 @@ void HTTPServer::start()
 		{
 			int fd = localEpollEvents[i].data.fd;
 			if (_isListeningSocket(fd))
-				_createNewConnection(fd);
-			else
+			{
+				while (true)
+				{
+					_createNewConnection(fd);
+					// Break if no more connections are waiting
+					if (errno == EAGAIN || errno == EWOULDBLOCK)
+						break;
+				}
+			}
+						else
 			{
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);

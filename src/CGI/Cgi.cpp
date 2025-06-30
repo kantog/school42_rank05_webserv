@@ -79,7 +79,7 @@ bool Cgi::_makeNonBlocking()
 {
     if (fcntl(_pipeIn[0], F_SETFL, O_NONBLOCK) < 0 ||
         fcntl(_pipeOut[1], F_SETFL, O_NONBLOCK) < 0)
-        _statusCode = HTTP_SERVER_ERROR; // internal error // TODO: defins maken
+        _statusCode = HTTP_SERVER_ERROR; // internal error
     return _statusCode == HTTP_OK;
 }
 
@@ -255,8 +255,6 @@ void Cgi::_writeInput()
     ssize_t written = write(_pipeIn[1], body.c_str() + _bytesWritten, bytesToWrite);
     if (written < 0)
     {
-        // if (errno == EAGAIN || errno == EWOULDBLOCK)
-        //     return; // more data to write
         std::cerr << "CGI write error: " << strerror(errno) << std::endl;
         _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeIn[1]);
@@ -274,8 +272,6 @@ void Cgi::_readOutput()
 
     if (bytesRead < 0)
     {
-        // if (errno == EAGAIN || errno == EWOULDBLOCK)
-        //     return; // more data to read
         std::cerr << "CGI read error: " << strerror(errno) << std::endl;
         _statusCode = HTTP_SERVER_ERROR;
         closeFd(&_pipeOut[0]);

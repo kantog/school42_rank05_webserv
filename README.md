@@ -22,6 +22,8 @@ curl -H "Host: lol" http://localhost:8080 # default
 curl -H "Host: evil" http://localhost:8080 # server 0
 curl -H "Host: test" http://localhost:8080 # server 1
 curl -H "Host: cool" http://localhost:8080 # server 1
+
+curl -H "Host: cool" http://localhost:8000 # server 2
 ``` 
 
 ```mermaid

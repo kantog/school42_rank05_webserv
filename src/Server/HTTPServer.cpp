@@ -39,13 +39,12 @@ void HTTPServer::_processCgi(ConnectionHandler *connectionHandler)
 
 void HTTPServer::_createNewConnections(int fd)
 {
+	std::cout << "Connecting..." << std::endl;
 	while (true)
 	{
 		struct sockaddr_in sockAdress;
 		socklen_t addressLen = sizeof(sockAdress);
 		int newSocketFD = -1;
-
-		std::cout << "Connecting..." << std::endl;
 
 		newSocketFD = accept(fd, (struct sockaddr *)&sockAdress, &addressLen);
 		if (newSocketFD == -1)

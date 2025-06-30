@@ -47,8 +47,6 @@ class HTTPServer
 		~HTTPServer();
 
 		void init();
-
 		void start();
 		void stop(int signal);
-
 };

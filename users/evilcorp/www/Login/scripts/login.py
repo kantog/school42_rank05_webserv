@@ -1,42 +1,15 @@
 #!/usr/bin/env python3
 import cgi
 import cgitb
-import json
-import os
 import hashlib
 import uuid
 import time
 
-# Enable CGI error reporting
+from util import hash_password, load_sessions, load_users, save_sessions
+
 cgitb.enable()
 
-def load_users():
-    """Load users from file"""
-    try:
-        with open('users.json', 'r') as f:
-            return json.load(f)
-    except:
-        return {}
-
-def load_sessions():
-    """Load sessions from file"""
-    try:
-        with open('sessions.json', 'r') as f:
-            return json.load(f)
-    except:
-        return {}
-
-def save_sessions(sessions):
-    """Save sessions to file"""
-    with open('sessions.json', 'w') as f:
-        json.dump(sessions, f, indent=4)
-
-def hash_password(password):
-    """Simple password hashing"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
 def cleanup_expired_sessions(sessions):
-    """Remove sessions older than 1 hour"""
     current_time = time.time()
     expired_sessions = []
     
@@ -48,12 +21,10 @@ def cleanup_expired_sessions(sessions):
         del sessions[session_id]
 
 def main():
-    # Parse form data
     form = cgi.FieldStorage()
     username = form.getvalue('username', '').strip()
     password = form.getvalue('password', '')
     
-    # Validation
     if not username or not password:
         print("Content-Type: text/html")
         print()
@@ -69,7 +40,6 @@ def main():
         """)
         return
     
-    # Check credentials
     users = load_users()
     if username not in users or users[username]['password'] != hash_password(password):
         print("Content-Type: text/html")
@@ -86,7 +56,6 @@ def main():
         """)
         return
     
-    # Create session
     sessions = load_sessions()
     cleanup_expired_sessions(sessions)
     
@@ -98,7 +67,6 @@ def main():
     
     save_sessions(sessions)
     
-    # Success response with cookie
     print(f"Set-Cookie: session_id={session_id}; Path=/") #; HttpOnly
     print("Content-Type: text/html")
     print()

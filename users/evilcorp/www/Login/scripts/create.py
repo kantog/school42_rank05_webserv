@@ -2,45 +2,25 @@
 import cgi
 import cgitb
 import json
-import os
-import hashlib
-import sys
+from util import hash_password, load_users, log_debug
 
-# Enable CGI error reporting
 cgitb.enable()
 
 
-def log_debug(message):
-    sys.stderr.write(f"[DEBUG] {message}\n")
-
-def load_users():
-    try:
-        with open('users.json', 'r') as f:
-            return json.load(f)
-    except Exception as e:
-        log_debug(f"FOUT bij opslaan: {e}")
-        return {}
-
 def save_users(users):
-    """Save users to file"""
     try:
         with open('users.json', 'w') as f:
             json.dump(users, f, indent=4)
     except Exception as e:
         log_debug(f"FOUT bij opslaan: {e}")
 
-def hash_password(password):
-    """Simple password hashing"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
 def main():
-    # Parse form data
+
     form = cgi.FieldStorage()
     username = form.getvalue('username', '').strip()
     password = form.getvalue('password', '')
     confirm_password = form.getvalue('confirm_password', '')
     
-    # Validation
     if not username or not password:
         print("Content-Type: text/html")
         print()
@@ -71,7 +51,6 @@ def main():
         """)
         return
     
-    # Check if user already exists
     users = load_users()
     if username in users:
         print("Content-Type: text/html")
@@ -88,15 +67,12 @@ def main():
         """)
         return
     
-    # Create new user
     users[username] = {
-        'password': hash_password(password),
-        'created': True
+        'password': hash_password(password)
     }
     
     save_users(users)
     
-    # Success response
     print("Content-Type: text/html")
     print()
     print(f"""

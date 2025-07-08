@@ -19,11 +19,13 @@
       <li><a href="/testAutoindex">Autoindex</a></li>
       <li><a href="/permanent">Test default page</a></li>
       <li><a href="/temp">Test default page again</a></li>
+      <li><a href="/Login/login.html">login</a></li>
+      <li><a href="/Login/scripts/logout.py">logout</a></li>
     </ul>
   </nav>
 
   <main>
-	<h1> Welkom bij Evilcorp! </h1>
+	<h1>Welkom bij Evilcorp, <span id="name"></span>! </h1>
 	<br />	
 	<br />	
 	<br />	
@@ -61,4 +63,17 @@
   </main>
 </body>
 
+<script>
+
+  fetch('/Login/scripts/get-name.py')
+    .then(response => response.text())
+    .then(name => {
+      document.getElementById('name').textContent = name;
+    })
+    .catch(error => {
+      console.error('Fout bij ophalen van naam:', error);
+      document.getElementById('name').textContent = 'gast';
+    });
+
+</script>
 </html>

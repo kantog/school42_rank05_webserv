@@ -97,7 +97,7 @@ static std::string sanitizeEnvValue(const std::string &value)
     for (std::string::const_iterator it = value.begin(); it != value.end(); ++it)
     {
         char c = *it;
-        if (std::isprint(c) && c != '\n' && c != '\r' && c != '=' && c != '\0')
+        if (std::isprint(c) && c != '\n' && c != '\r' && c != '\0')
             sanitized += c;
         else
             sanitized += '_';
@@ -172,11 +172,19 @@ void Cgi::_runCgi()
         std::cerr << "No interpreter found for: " << _path << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    std::string relPath = Path(_path)
+                              .removePrefix(_serverConfig.getDocumentRoot().makeRelative()).toString();
+
+    if (!relPath.empty() && relPath[0] == '/')
+        relPath = relPath.substr(1);
+
     char *argv[] = {
         const_cast<char *>(interpreter.c_str()),
-        const_cast<char *>(_path.c_str()),
+        const_cast<char *>(relPath.c_str()),
         NULL};
 
+    chdir(_serverConfig.getDocumentRoot().makeAbsolute().c_str());
     execve(interpreter.c_str(), argv, _env.data());
 
     std::cerr << "execve failed: " << strerror(errno) << std::endl;
@@ -296,7 +304,10 @@ void Cgi::_finishCgi()
     if (result > 0) // child is done
     {
         if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+        {
             _statusCode = HTTP_SERVER_ERROR;
+            std::cerr << "CGI child process exited with status " << WEXITSTATUS(status) << std::endl;
+        }
     }
     else
         _statusCode = HTTP_SERVER_ERROR;
@@ -305,6 +316,7 @@ void Cgi::_finishCgi()
 
 void Cgi::startCgi()
 {
+
     if (!this->_checkAccess() ||
         !this->_initPipes() ||
         !this->_makeNonBlocking() ||

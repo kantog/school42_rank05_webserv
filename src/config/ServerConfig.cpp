@@ -2,6 +2,7 @@
 #include "Defines.hpp"
 
 #include <sstream>
+#include <iostream>
 
 ServerConfig::ServerConfig():
     _curentRoute(NULL),

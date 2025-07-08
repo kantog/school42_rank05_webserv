@@ -232,7 +232,7 @@ void HTTPRequest::_setHeader(std::string &line, const std::string &serverKey)
         if (_contentLength > _maxContentLength)
         {
             this->_isComplete = false;
-            this->_errorCode = 413;
+            this->_errorCode = HTTP_PAYLOADTOOLARGE;
             return;
         }
         this->_currentFunction = NULL;
@@ -298,7 +298,7 @@ bool HTTPRequest::_addChunkData()
 
         if (_body.size() >= _maxContentLength)
         {
-            _errorCode = 413;
+            _errorCode = HTTP_PAYLOADTOOLARGE;
             _isComplete = false;
             return false;
         }

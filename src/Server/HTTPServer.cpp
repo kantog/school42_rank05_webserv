@@ -217,11 +217,11 @@ void HTTPServer::start()
 		for (int i = 0; i < eventCount; i++)
 		{
 			int fd = localEpollEvents[i].data.fd;
-			std::cout << "FD " << fd << ": ";
 			if (_isListeningSocket(fd))
 				_createNewConnections(fd);
 			else
 			{
+				std::cout << "FD " << fd << ": ";
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);
 			}

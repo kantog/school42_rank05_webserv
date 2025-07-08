@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIN</title>
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  
+  <body>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="Forms/index.html">Forms (Cgi)</a></li>
+        <li><a href="Counter/index.html">Counter</a></li>
+        <li><a href="Uploads/index.html">Uploads</a></li>
+        <li><a href="Delete/delete.html">Delete</a></li>
+        <li><a href="/testAutoindex">Autoindex</a></li>
+        <li><a href="/permanent">Test default page</a></li>
+        <li><a href="/temp">Test default page again</a></li>
+        <li><a href="/Login/login.html">login</a></li>
+        <li><a href="/Login/scripts/logout.py">logout</a></li>
+      </ul>
+    </nav>
+  
+    <main>
+    <div class="form-container">
+        <h1>Login</h1>
+        <form action="scripts/login.py" method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+        <div class="links">
+            <p>Don't have an account? <a href="create.html">Create one</a></p>
+        </div>
+    </div>
+</main>
+</body>
+</html>

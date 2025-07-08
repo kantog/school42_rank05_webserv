@@ -327,6 +327,7 @@ void HTTPResponse::buildCgiPage(const std::string &cgiString)
     buildResponse();
 }
 
+
 void HTTPResponse::buildResponse()
 {
     std::ostringstream responsStream;

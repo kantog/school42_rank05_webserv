@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Rubik's Cube</title>
+
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="../css/template.css">
+
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="cube-icon"></div>
+                Rubik's Cube
+            </a>
+            <ul class="nav-menu" id="nav-menu">
+            </ul>
+            <div class="mobile-menu" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title" id="main-title">Corener: ?</h1>
+            <p class="page-subtitle" id="page-subtitle">time: 69.420</p>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <canvas id="cubeCanvas" width="800" height="500"></canvas>
+        </div>
+
+
+        <!-- custom content -->
+
+        <div class="page-content" id="page-content">
+            <div style="margin-top: 1rem;">
+                <button id="saveBtn" disabled>⏱️ Opslaan</button>
+                <button id="resetBtn">🔄 Reset</button>
+            </div>
+
+            <div id="timeStats" style="margin-top: 2rem;"></div>
+            <div id="timeBars" style="margin-top: 1rem;"></div>
+        </div>
+        <!-- custom content -->
+
+    </div>
+
+    <script src="../js/template.js"></script>
+    <script src="../js/cube.js"></script>
+    <script src="../js/oefBlind.js"></script>
+    <script>
+        setSetupMoves("corners");
+    </script>
+
+</body>
+
+</html>

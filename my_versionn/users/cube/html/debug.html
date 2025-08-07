@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .check-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ccc;
+        }
+        .success { border-left-color: #27ae60; background: #d5f4e6; }
+        .error { border-left-color: #e74c3c; background: #fdf2f2; }
+        .warning { border-left-color: #f39c12; background: #fef9e7; }
+        .info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Browser & PWA Compatibility Check</h1>
+    
+    <div class="info">
+        <strong>Jouw browser info:</strong><br>
+        <span id="browser-info"></span>
+    </div>
+
+    <div id="https-check" class="check-item">
+        <h3>🔒 HTTPS Check</h3>
+        <p id="https-status"></p>
+    </div>
+
+    <div id="sw-check" class="check-item">
+        <h3>⚙️ Service Worker Support</h3>
+        <p id="sw-status"></p>
+    </div>
+
+    <div id="cache-check" class="check-item">
+        <h3>💾 Cache API Support</h3>
+        <p id="cache-status"></p>
+    </div>
+
+    <div id="manifest-check" class="check-item">
+        <h3>📱 Web App Manifest Support</h3>
+        <p id="manifest-status"></p>
+    </div>
+
+    <div id="pwa-check" class="check-item">
+        <h3>📲 PWA Features</h3>
+        <p id="pwa-status"></p>
+    </div>
+
+    <div class="info">
+        <h3>🛠️ Aanbevelingen:</h3>
+        <ul id="recommendations"></ul>
+    </div>
+
+    <script>
+        // Browser info
+        const browserInfo = document.getElementById('browser-info');
+        browserInfo.innerHTML = `
+            User Agent: ${navigator.userAgent}<br>
+            Browser: ${getBrowserName()}<br>
+            Versie: ${getBrowserVersion()}<br>
+            Platform: ${navigator.platform}
+        `;
+
+        function getBrowserName() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            if (ua.includes('Edg')) return 'Edge';
+            if (ua.includes('SamsungBrowser')) return 'Samsung Internet';
+            return 'Onbekend';
+        }
+
+        function getBrowserVersion() {
+            const ua = navigator.userAgent;
+            let match = ua.match(/Chrome\/(\d+)/);
+            if (match) return match[1];
+            match = ua.match(/Firefox\/(\d+)/);
+            if (match) return match[1];
+            match = ua.match(/Version\/(\d+)/);
+            if (match) return match[1];
+            return 'Onbekend';
+        }
+
+        // HTTPS Check
+        const httpsCheck = document.getElementById('https-check');
+        const httpsStatus = document.getElementById('https-status');
+        if (location.protocol === 'https:' || location.hostname === 'localhost') {
+            httpsCheck.className += ' success';
+            httpsStatus.textContent = '✅ Website draait op HTTPS - PWA features beschikbaar';
+        } else {
+            httpsCheck.className += ' error';
+            httpsStatus.textContent = '❌ Website draait op HTTP - PWA werkt NIET! Schakel over naar HTTPS.';
+        }
+
+        // Service Worker Check
+        const swCheck = document.getElementById('sw-check');
+        const swStatus = document.getElementById('sw-status');
+        if ('serviceWorker' in navigator) {
+            swCheck.className += ' success';
+            swStatus.textContent = '✅ Service Workers ondersteund';
+        } else {
+            swCheck.className += ' error';
+            swStatus.textContent = '❌ Service Workers NIET ondersteund - PWA werkt niet!';
+        }
+
+        // Cache API Check
+        const cacheCheck = document.getElementById('cache-check');
+        const cacheStatus = document.getElementById('cache-status');
+        if ('caches' in window) {
+            cacheCheck.className += ' success';
+            cacheStatus.textContent = '✅ Cache API ondersteund';
+        } else {
+            cacheCheck.className += ' error';
+            cacheStatus.textContent = '❌ Cache API NIET ondersteund';
+        }
+
+        // Manifest Check
+        const manifestCheck = document.getElementById('manifest-check');
+        const manifestStatus = document.getElementById('manifest-status');
+        const manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+            manifestCheck.className += ' success';
+            manifestStatus.textContent = '✅ Web App Manifest gevonden';
+        } else {
+            manifestCheck.className += ' warning';
+            manifestStatus.textContent = '⚠️ Web App Manifest niet gevonden op deze pagina';
+        }
+
+        // PWA Features Check
+        const pwaCheck = document.getElementById('pwa-check');
+        const pwaStatus = document.getElementById('pwa-status');
+        let pwaFeatures = [];
+        
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            pwaFeatures.push('✅ Standalone mode actief');
+        } else {
+            pwaFeatures.push('ℹ️ Niet in standalone mode (normaal als niet geïnstalleerd)');
+        }
+
+        if ('BeforeInstallPromptEvent' in window || window.deferredPrompt) {
+            pwaFeatures.push('✅ Install prompt beschikbaar');
+        } else {
+            pwaFeatures.push('ℹ️ Install prompt niet beschikbaar');
+        }
+
+        pwaStatus.innerHTML = pwaFeatures.join('<br>');
+
+        // Recommendations
+        const recommendations = document.getElementById('recommendations');
+        const recs = [];
+
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            recs.push('🔒 <strong>Schakel over naar HTTPS</strong> - Dit is verplicht voor PWA');
+        }
+
+        if (!('serviceWorker' in navigator)) {
+            recs.push('🔄 <strong>Update je browser</strong> - Chrome 45+, Firefox 44+, of Samsung Internet');
+            recs.push('📱 Probeer een andere browser zoals Chrome of Samsung Internet');
+        }
+
+        if (getBrowserName() === 'Onbekend') {
+            recs.push('❓ Je browser wordt niet herkend - probeer Chrome, Firefox, of Samsung Internet');
+        }
+
+        if (recs.length === 0) {
+            recs.push('✅ Je browser ondersteunt PWA features!');
+            if (location.protocol === 'https:') {
+                recs.push('🚀 Je kunt nu een werkende PWA maken');
+            }
+        }
+
+        recommendations.innerHTML = recs.map(rec => `<li>${rec}</li>`).join('');
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Rubik's Cube</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Rubik's Cube">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png">
+    <link rel="apple-touch-icon" href="../icons/icon-192.png">
+
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="../css/template.css">
+
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="cube-icon"></div>
+                Rubik's Cube
+            </a>
+            <ul class="nav-menu" id="nav-menu">
+            </ul>
+            <div class="mobile-menu" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title" id="main-title">Rubik's Cube Simulator</h1>
+            <p class="page-subtitle" id="page-subtitle">Ontdek de wereld van de Rubik's Cube</p>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <canvas id="cubeCanvas" width="800" height="500"></canvas>
+        </div>
+
+        <!-- custom content -->
+        <div class="controls" id="cube-controls">
+            <button onclick="cube.doMoves('R')">R</button>
+            <button onclick="cube.doMoves('R\'')">R'</button>
+            <button onclick="cube.doMoves('U')">U</button>
+            <button onclick="cube.doMoves('U\'')">U'</button>
+            <button onclick="cube.doMoves('F')">F</button>
+            <button onclick="cube.doMoves('F\'')">F'</button>
+            <button onclick="cube.doMoves('D')">D</button>
+            <button onclick="cube.doMoves('D\'')">D'</button>
+            <button onclick="cube.doMoves('L')">L</button>
+            <button onclick="cube.doMoves('L\'')">L'</button>
+            <button onclick="cube.doMoves('B')">B</button>
+            <button onclick="cube.doMoves('B\'')">B'</button>
+            <button onclick="cube.doMoves('DD')">DD</button>
+            <button onclick="cube.doMoves('LL')">LL</button>
+            <button onclick="cube.scramble()">Scramble</button>
+            <button onclick="cube.reset()">Reset</button>
+        </div>
+
+        <input type="range" id="speedSlider" min="0" max="100" value="0">
+        <span id="speedValue">50</span>
+
+        <div class="page-content" id="page-content">
+            <h2>Welkom bij de Rubik's Cube Simulator</h2>
+            <p>Gebruik de knoppen hierboven om de cube te draaien en te ontdekken hoe de verschillende bewegingen werken.</p>
+            
+            <!-- Install button voor PWA -->
+            <div id="install-container" style="margin-top: 20px; display: none;">
+                <button id="install-button" style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    📱 Installeer App
+                </button>
+            </div>
+        </div>
+        <!-- custom content -->
+
+    </div>
+
+    <script src="../js/template.js"></script>
+    <script src="../js/cube.js"></script>
+    <script src="../js/index.js"></script>
+
+    <script>
+        // Service Worker registratie
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('../service-worker.js', { scope: '../' })
+                    .then(function (registration) {
+                        console.log('✅ ServiceWorker geregistreerd met scope: ', registration.scope);
+                    })
+                    .catch(function (err) {
+                        console.log('❌ ServiceWorker registratie faalde: ', err);
+                    });
+            });
+        }
+
+        // PWA Install functionaliteit
+        let deferredPrompt;
+        const installButton = document.getElementById('install-button');
+        const installContainer = document.getElementById('install-container');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('💾 PWA installeerbaar!');
+            e.preventDefault();
+            deferredPrompt = e;
+            installContainer.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`👤 User response: ${outcome}`);
+                deferredPrompt = null;
+                installContainer.style.display = 'none';
+            }
+        });
+
+        // PWA geïnstalleerd event
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('🎉 PWA geïnstalleerd!');
+            installContainer.style.display = 'none';
+        });
+
+        // Debug informatie
+        console.log('🔍 PWA Debug:');
+        console.log('- Location:', window.location.href);
+        console.log('- ServiceWorker support:', 'serviceWorker' in navigator);
+        console.log('- Manifest URL:', '../manifest.json');
+    </script>
+
+</body>
+
+</html>

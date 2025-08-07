@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGI Form (POST)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="get.html">GET Form</a></li>
+      <li><a href="post.html" class="active">POST Form</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>POST Form (Python)</h1>
+    <form action="scripts/script.py" method="post" class="form">
+      <input type="text" name="name" placeholder="Enter your name" required />
+      <input type="number" name="age" min="0" placeholder="Enter your age" required />
+      <button type="submit">Submit</button>
+    </form>
+
+    <h1>POST Form (PHP)</h1>
+    <form action="scripts/script.php" method="post" class="form">
+      <input type="text" name="name" placeholder="Enter your name" required />
+      <input type="number" name="age" min="0" placeholder="Enter your age" required />
+      <button type="submit">Submit</button>
+    </form>
+
+    <h1>POST Form (Node.js)</h1>
+    <p>File don't exist</p>
+    <form action="scripts/script.js" method="post" class="form">
+      <input type="text" name="name" placeholder="Enter your name" required />
+      <input type="number" name="age" min="0" placeholder="Enter your age" required />
+      <button type="submit">Submit</button>
+    </form>
+
+    <h1>POST Form (Ruby)</h1>
+    <p>Not allowed</p>
+    <form action="scripts/script.rb" method="post" class="form">
+      <input type="text" name="name" placeholder="Enter your name" required />
+      <input type="number" name="age" min="0" placeholder="Enter your age" required />
+      <button type="submit">Submit</button>
+    </form>
+  </main>
+</body>
+</html>

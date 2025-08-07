@@ -1,25 +1,5 @@
 {
-    "k": {
-        "password": "8254c329a92850f6d539dd376f4816ee2764517da5e0235514af433164480d7a",
-        "created": true
-    },
     "kobe": {
-        "password": "3ea1e155ad46c87ddf3700ef2d3cbba2a4c6d2dd050ed3531835020302289a19",
-        "created": true
-    },
-    "mark": {
-        "password": "6201eb4dccc956cc4fa3a78dca0c2888177ec52efd48f125df214f046eb43138",
-        "created": true
-    },
-    "jan": {
-        "password": "6a0ac0fd972c325d6ca5512b67a5e0ad996c4a3e9b59971d125164e6d4db1a1c",
-        "created": true
-    },
-    "l": {
-        "password": "acac86c0e609ca906f632b0e2dacccb2b77d22b0621f20ebece1a4835b93f6f0",
-        "created": true
-    },
-    "lol": {
-        "password": "07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc"
+        "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
     }
 }

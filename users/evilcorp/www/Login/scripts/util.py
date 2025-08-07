@@ -55,7 +55,7 @@ def get_session_data():
     if time.time() - session_data.get('created', 0) > 3600:
         return None
     
-    log_debug(f"Session data: {session_data}")
+    # log_debug(f"Session data: {session_data}")
     return session_data
 
 def get_session_user():

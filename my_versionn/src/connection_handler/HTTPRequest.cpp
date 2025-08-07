@@ -6,7 +6,7 @@
 /*   By: ygurma <ygurma@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 16:34:57 by kvanden-          #+#    #+#             */
-/*   Updated: 2025/07/28 19:45:42 by ygurma           ###   ########.fr       */
+/*   Updated: 2025/08/07 17:03:31 by ygurma           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,8 +369,9 @@ void HTTPRequest::_setBody()
 
 void HTTPRequest::parseRequest(const char *rawRequest, ssize_t bytesRead, const std::string &serverKey)
 {
+    // Add new incoming data to the end of our buffer
     _requestBuffer.insert(_requestBuffer.end(), rawRequest, rawRequest + bytesRead);
-
+    // If there's no current parsing function, we're ready to parse the body
     if (_currentFunction == NULL)
     {
         _setBody();
@@ -381,24 +382,28 @@ void HTTPRequest::parseRequest(const char *rawRequest, ssize_t bytesRead, const 
 
     while (true)
     {
+        // Try to find the end of a line (newline character) in the buffer
         std::vector<char>::iterator it = std::find(_requestBuffer.begin(), _requestBuffer.end(), '\n');
         if (it == _requestBuffer.end())
-            break;
-
+            break; // No complete line yet, wait for more data
+        // Get the full line (excluding \n)
         size_t lineLen = it - _requestBuffer.begin();
         line.assign(_requestBuffer.begin(), _requestBuffer.begin() + lineLen);
-
+        // Remove trailing \r if present (common in HTTP line endings: \r\n)
         if (!line.empty() && line[line.size() - 1] == '\r')
             line.erase(line.size() - 1);
-
+        // Call the current parsing function (start line, header, etc.)
         (this->*_currentFunction)(line, serverKey);
+        // Remove the processed line from the buffer
         _requestBuffer.erase(_requestBuffer.begin(), it + 1);
+        // If an error occurred during parsing, stop
         if (_errorCode != 200)
             return;
+         // If there's nothing more to parse (start + headers done), break
         if (_currentFunction == NULL)
             break;
     }
-
+    // If we just finished parsing headers, move to body
     if (_currentFunction == NULL)
         _setBody();
 }

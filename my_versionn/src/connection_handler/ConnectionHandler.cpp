@@ -128,28 +128,36 @@ void ConnectionHandler::sendCgiResponse()
 	_cgi = NULL;
 	this->_request.reset();
 }
-//DID IT
+// Handles a single client request:
+// - Checks if a CGI is already running and sends a retry message if busy
+// - Parses the request and finds the correct server config
+// - Delegates to an HTTPAction (like GET/POST) to build the response
+// - Sends back the response or waits if the CGI is still running
+
 bool ConnectionHandler::processClientRequest()
 {
+	// If a CGI process is already running, return 503 (busy)
     if (isCgiBusy())
         return false;
 
+	// Parse the incoming request and determine which server config to use
     initializeRequest();
 
+    // If there's an error in the request, send error response and close
     if (handleRequestError())
         return true;
 
     if (!this->_request.isComplete())
         return false;
-
+    // Handle the action (GET, POST, DELETE...) and send response
     executeAction();
     return true;
 }
 
 // ---- Helper Methods ----
-
+// Checks if a CGI is already in progress and replies with a 503 if so
 bool ConnectionHandler::isCgiBusy()
-{
+{    
     if (this->_cgi)
     {
         HTTPResponse response;
@@ -163,12 +171,14 @@ bool ConnectionHandler::isCgiBusy()
     return false;
 }
 
+// Parses the request line + headers and sets the correct server config
 void ConnectionHandler::initializeRequest()
 {
     this->_createRequest();
     this->_setServerConfig();
 }
 
+// Sends an error response if the request is malformed or invalid
 bool ConnectionHandler::handleRequestError()
 {
     HTTPAction Action(_request, *_serverConfig);
@@ -181,7 +191,7 @@ bool ConnectionHandler::handleRequestError()
     }
     return false;
 }
-
+// Executes the HTTP action (GET/POST/DELETE), or starts CGI if needed
 void ConnectionHandler::executeAction()
 {
     HTTPAction Action(_request, *_serverConfig);

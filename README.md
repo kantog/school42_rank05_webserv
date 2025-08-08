@@ -1,8 +1,3 @@
-
-# Webserv
-
-webserv is a simple HTTP web server it support multiple virtual hosts configured via a .conf file.
-file.conf is based on ...
 # use
 
 ```bash

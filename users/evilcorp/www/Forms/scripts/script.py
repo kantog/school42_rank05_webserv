@@ -4,7 +4,7 @@ import sys
 
 # dit werkt niet
 import time
-time.sleep(10)
+# time.sleep(10)
 
 print("Content-Type: text/html\n")
 

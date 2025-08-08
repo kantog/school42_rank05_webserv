@@ -36,5 +36,5 @@
 compile_commands.json
 webserv
 .cache
-
+.vscode
 *.log

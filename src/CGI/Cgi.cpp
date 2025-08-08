@@ -165,7 +165,6 @@ void Cgi::_runCgi()
     closePipe(_pipeIn);
     closePipe(_pipeOut);
 
-    this->_initEnv();
     std::string interpreter = _serverConfig.getCgiInterpreter(_path);
     if (interpreter.empty()) // normally this should never happen
     {
@@ -174,7 +173,8 @@ void Cgi::_runCgi()
     }
 
     std::string relPath = Path(_path)
-                              .removePrefix(_serverConfig.getDocumentRoot().makeRelative()).toString();
+                              .removePrefix(_serverConfig.getDocumentRoot().makeRelative())
+                              .toString();
 
     if (!relPath.empty() && relPath[0] == '/')
         relPath = relPath.substr(1);
@@ -185,6 +185,9 @@ void Cgi::_runCgi()
         NULL};
 
     chdir(_serverConfig.getDocumentRoot().makeAbsolute().c_str());
+    _path = relPath;
+
+    this->_initEnv();
     execve(interpreter.c_str(), argv, _env.data());
 
     std::cerr << "execve failed: " << strerror(errno) << std::endl;

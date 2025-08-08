@@ -39,7 +39,6 @@ int main(int argc, char **argv)
     {
         HTTPServer server;
         server.init();
-
         globalServerPtr = &server;
         signal(SIGINT, handleSigint); // CTRL+C
         server.start();

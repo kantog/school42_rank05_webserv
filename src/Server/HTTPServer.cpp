@@ -221,7 +221,7 @@ void HTTPServer::start()
 				_createNewConnections(fd);
 			else
 			{
-				std::cout << "FD " << fd << ": ";
+				// std::cout << "FD " << fd << ": ";
 				uint32_t events = localEpollEvents[i].events;
 				_handleConnectionEvent(fd, events);
 			}

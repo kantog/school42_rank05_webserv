@@ -1,5 +1,8 @@
 <?php
-header("Content-Type: text/html");
+header('Content-Type: text/html; charset=utf-8');
+if (php_sapi_name() == "cli") {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+}
 ?>
 <head>
   <meta charset="UTF-8" />

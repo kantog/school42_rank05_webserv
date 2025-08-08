@@ -14,8 +14,6 @@ make
 
 To test our process, start the server using the test configuration file or execute the following curl command:
 
-# UML class diagram
-
 ```bash
 ./webserv users/multipleServers.conf
 
@@ -26,6 +24,7 @@ curl -H "Host: cool" http://localhost:8080 # server 1
 
 curl -H "Host: cool" http://localhost:8000 # server 2
 ``` 
+# UML class diagram
 
 ```mermaid
 

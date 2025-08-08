@@ -2,7 +2,6 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Installeer alleen wat strikt nodig is
 RUN apt update && \
     apt install -y --no-install-recommends \
         g++ \
@@ -14,5 +13,7 @@ RUN apt update && \
 
 WORKDIR /app
 
-# Start met build en run
 CMD ["bash", "-c", "make MODE=debug -j && ./webserv users/multipleServers.conf"]
+
+# docker build -t mijnwebserv .
+# docker run -it --rm -p 8000:8000 -p 8080:8080 -v ${PWD}:/app mijnwebserv

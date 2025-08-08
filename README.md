@@ -14,6 +14,7 @@ make
 
 To test our process, start the server using the test configuration file or execute the following curl command:
 
+# UML class diagram
 
 ```bash
 ./webserv users/multipleServers.conf

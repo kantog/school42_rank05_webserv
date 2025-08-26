@@ -9,7 +9,7 @@ def main():
     if not username:
         print("gast")
         return    
-    print(f"""{username}""")
+    print(f"{username}")
 
 if __name__ == '__main__':
     main()

@@ -152,6 +152,13 @@ void HTTPResponse::_setCustomErrorBody()
 
 void HTTPResponse::setBodyFromFile(const std::string &filePath) 
 {
+
+    if (filePath.empty())
+    {
+        _setCustomErrorBody();
+        return;
+    }
+
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
 
     if (!file.is_open())

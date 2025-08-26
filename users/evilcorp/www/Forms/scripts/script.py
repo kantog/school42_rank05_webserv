@@ -16,7 +16,7 @@ print('''
   <link rel="stylesheet" href="../style.css" />
 </head>
 ''')
-
+lol
 print("<body>")
 print('  <main>')
 print("<h1>Cool from Python</h1>")

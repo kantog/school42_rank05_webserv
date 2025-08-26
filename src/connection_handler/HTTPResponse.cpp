@@ -150,7 +150,7 @@ void HTTPResponse::_setCustomErrorBody()
     this->setBody(oss.str());
 }
 
-void HTTPResponse::setBodyFromFile(const std::string &filePath)
+void HTTPResponse::setBodyFromFile(const std::string &filePath) // TODO
 {
     std::ifstream file(filePath.c_str(), std::ios::in | std::ios::binary);
 

@@ -12,17 +12,17 @@
 #include <cerrno>
 
 ConnectionHandler::ConnectionHandler(std::string &serverKey, int fd) : _cgi(NULL),
-	_serverConfig(NULL),
-	_shouldClose(false),
-	_serverKey(serverKey),
-	_connectionSocketFD(fd),
-	epolloutShouldOpen(false),
-	epolloutShouldClose(false)
+																	   _serverConfig(NULL),
+																	   _shouldClose(false),
+																	   _serverKey(serverKey),
+																	   _connectionSocketFD(fd),
+																	   epolloutShouldOpen(false),
+																	   epolloutShouldClose(false)
 {
 }
 
 ConnectionHandler::ConnectionHandler(const ConnectionHandler &other) : _serverKey(other._serverKey), // dit ok?
-	_connectionSocketFD(other._connectionSocketFD)
+																	   _connectionSocketFD(other._connectionSocketFD)
 {
 }
 
@@ -35,22 +35,6 @@ ConnectionHandler::~ConnectionHandler()
 int ConnectionHandler::_getConnectionSocketFD()
 {
 	return (_connectionSocketFD);
-}
-
-void ConnectionHandler::_handleErrorRecv(int bytesRead)
-{
-	if (bytesRead == 0)
-	{
-		std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
-		_shouldClose = true;
-		return;
-	}
-	if (errno == EAGAIN || errno == EWOULDBLOCK)
-		return;
-	std::cerr << "Error reading from socket " << _connectionSocketFD
-		<< ": " << strerror(errno) << std::endl;
-	_shouldClose = true;
-	return;
 }
 
 void ConnectionHandler::_createRequest()
@@ -68,32 +52,28 @@ void ConnectionHandler::_createRequest()
 			_request.parseRequest(buffer, bytesRead, _serverKey);
 
 			if (_request.isComplete() || _request.isError())
-			{
 				return;
-			}
+		}
+		else if (bytesRead == 0)
+		{
+			std::cout << "Client closed connection " << _connectionSocketFD << std::endl;
+			_shouldClose = true;
+			return;
 		}
 		else
 		{
-			this->_handleErrorRecv(bytesRead);
-			return;
+			return ; // epoll will trigger again
 		}
 	}
 }
 
 void ConnectionHandler::_sendResponse(const std::string &responseString)
 {
-	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(), 
-			responseString.length(), 0);
-	if (bytesWritten == -1)
+	ssize_t bytesWritten = send(_connectionSocketFD, responseString.c_str(),
+								responseString.length(), 0);
+	if (bytesWritten <= 0)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-		{
-			epolloutShouldOpen = true;
-			return;
-		}
-		std::cerr << "Error writing to socket " << _connectionSocketFD
-			<< ": " << strerror(errno) << std::endl;
-		_shouldClose = true;
+		epolloutShouldOpen = true;
 		return;
 	}
 }
@@ -142,7 +122,6 @@ bool ConnectionHandler::_delegateToHTTPAction(HTTPAction &Action)
 	if (!epolloutShouldOpen)
 		this->_request.reset();
 	return (true);
-		
 }
 
 void ConnectionHandler::handleHTTP()
@@ -171,9 +150,8 @@ void ConnectionHandler::handleHTTP()
 	HTTPAction Action(_request, *_serverConfig);
 
 	if (this->_request.isError())
-	{	
-		this->_sendResponse(Action.
-				getFullErrorResponseString(this->_request.getErrorCode()));
+	{
+		this->_sendResponse(Action.getFullErrorResponseString(this->_request.getErrorCode()));
 		this->_shouldClose = true;
 		return;
 	}
@@ -182,5 +160,4 @@ void ConnectionHandler::handleHTTP()
 		return;
 
 	this->_delegateToHTTPAction(Action);
-
 }

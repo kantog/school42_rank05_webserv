@@ -27,7 +27,6 @@ class	ConnectionHandler
 		void _sendResponse(const std::string &responseString);
 		void _setServerConfig();
 
-		void _handleErrorRecv(int bytesRead);
 		bool _delegateToHTTPAction(HTTPAction &Action);
 
 	public:

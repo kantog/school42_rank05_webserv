@@ -244,6 +244,21 @@ void HTTPResponse::_setStatusMessage(int code)
     case HTTP_OK_NOCONTENT:
         _statusText = "No Content";
         break;
+    case HTTP_VERSION_NOTSUPPORTED:
+        _statusText = "HTTP Version Not Supported";
+        break;
+    case HTTP_MOVEDPERM:
+        _statusText = "Moved Permanently";
+        break;
+    case HTTP_FOUND:
+        _statusText = "Found";
+        break;
+    case HTTP_NOTIMPLEMENTED:
+        _statusText = "Not Implemented";
+        break;
+    case HTTP_GATEWAY_TIMEOUT:
+        _statusText = "Gateway Timeout";
+        break;
     default:
         _statusText = "Unknown";
         std::cerr << "Unknown status code: " << code << std::endl;

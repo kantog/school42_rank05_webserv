@@ -16,11 +16,13 @@ print('''
   <link rel="stylesheet" href="../style.css" />
 </head>
 ''')
-lol
 print("<body>")
 print('  <main>')
 print("<h1>Cool from Python</h1>")
 method = os.environ.get("REQUEST_METHOD", "")
+
+
+time.sleep(50)
 
 if method == "GET":
     query = os.environ.get("QUERY_STRING", "")

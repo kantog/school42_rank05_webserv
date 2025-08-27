@@ -5,12 +5,20 @@
 #include <string>
 #include <vector>
 #include "connection_handler/ConnectionHandler.hpp"
+#include "IntervalTimer.hpp"
 
-class HTTPServer
+
+#include "ICallback.hpp"
+
+class HTTPServer: public ICallback
 {
 	private:
 		HTTPServer(const HTTPServer &other);
 		HTTPServer &operator=(const HTTPServer &other);
+
+		IntervalTimer _intervalTimer;
+		void operator()() { checkCgiTimeouts(); }
+		void checkCgiTimeouts();
 
 		std::vector<std::pair<std::string, int> > _listeningSockets;
 		int _epollFD;

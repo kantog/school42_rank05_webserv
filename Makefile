@@ -1,7 +1,7 @@
 NAME = webserv
 
-CC = clang++
-FLAGS = -Wall -Wextra -Werror -std=c++98 \
+CC = g++
+FLAGS = -g -Wall -Wextra -Werror -std=c++98 \
 	-I./inc \
 	-I./inc/config_classes \
 	-I./inc/connection_handler \
@@ -13,6 +13,7 @@ SRCS = \
 	src/Path.cpp \
 	src/Server/HTPPServerInit.cpp \
 	src/Server/HTTPServer.cpp \
+	src/Server/HTTPSserverCgi.cpp \
 	src/connection_handler/ConnectionHandler.cpp \
 	src/connection_handler/HTTPRequest.cpp \
 	src/connection_handler/HTTPResponse.cpp \
@@ -25,7 +26,9 @@ SRCS = \
 	src/connection_handler/HTTP_actions/HTTPActionPOST.cpp \
 	src/connection_handler/HTTP_actions/HTTPActionOPTIONS.cpp \
 	src/connection_handler/HTTP_actions/MethodRegistry.cpp \
-	src/CGI/Cgi.cpp
+	src/CGI/Cgi.cpp \
+	src/Timer.cpp \
+	src/IntervalTimer.cpp
 
 OBJS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 

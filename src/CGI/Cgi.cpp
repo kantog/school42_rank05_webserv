@@ -341,6 +341,13 @@ void Cgi::startCgi()
 
 bool Cgi::processCgi()
 {
+    if (isOverTimeLimit())
+    {
+        _statusCode = HTTP_GATEWAY_TIMEOUT;
+        _isRunning = false;
+        return false;
+    }
+
     (this->*_currentFunction)();
 
     if (_statusCode != HTTP_OK)

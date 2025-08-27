@@ -4,6 +4,8 @@
 #include <string>
 #include "HTTPRequest.hpp"
 #include "ServerConfig.hpp"
+#include "Timer.hpp"
+#include "Defines.hpp"
 
 class Cgi
 {
@@ -14,6 +16,8 @@ class Cgi
 		std::string _path;
 
 		std::string _rawOutput;
+
+		Timer _timer;
 
 		int _pipeIn[2];
 		int _pipeOut[2];
@@ -57,4 +61,5 @@ class Cgi
 		int getStatusCode() const { return _statusCode; }
 		const std::string &getBody() const { return _rawOutput; }
 		const int *getCgiFds() const { return _cgiFds; }
-};
+		bool isOverTimeLimit(void) const { return _timer.getDuration() > CGITIMEOUT; }
+	};

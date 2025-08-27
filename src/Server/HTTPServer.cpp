@@ -9,33 +9,7 @@
 #include <cerrno>		// for errno
 #include <iostream>
 
-void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
-{
-	Cgi *cgi = connectionHandler->getCgi();
-	const int *fd = cgi->getCgiFds();
 
-	while (*fd)
-	{
-		this->_addFDToEpoll(*fd);
-		_cgis[*fd] = connectionHandler;
-		fd++;
-	}
-}
-
-void HTTPServer::_processCgi(ConnectionHandler *connectionHandler)
-{
-	Cgi *cgi = connectionHandler->getCgi();
-	if (cgi->processCgi())
-		return;
-
-	connectionHandler->sendCgiResponse();
-
-	const int *fd = cgi->getCgiFds();
-	this->_closeConnection(_cgis, fd[0]);
-	if (fd[1])
-		this->_closeConnection(_cgis, fd[1]);
-	delete cgi;
-}
 
 void HTTPServer::_createNewConnections(int fd)
 {
@@ -207,7 +181,11 @@ void HTTPServer::start()
 
 	while (!this->_gotStopSignal)
 	{
-		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, -1);
+		
+		_intervalTimer.update(); // kill cgis if needed
+		
+		int eventCount = epoll_wait(_epollFD, localEpollEvents.data(), _maxEpollEvents, 1000);
+
 		if (eventCount == -1)
 		{
 			if (errno == EINTR)

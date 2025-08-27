@@ -17,7 +17,10 @@
 HTTPServer::HTTPServer() : _epollFD(-1),
                            _connAmount(0),
                            _gotStopSignal(false)
-{ }
+{
+    _intervalTimer = IntervalTimer(0.5, this);
+}
+
 
 HTTPServer::~HTTPServer()
 {

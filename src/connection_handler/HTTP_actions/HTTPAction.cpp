@@ -104,8 +104,8 @@ void HTTPAction::run()
 		if (HTTPMethod)
 			delete HTTPMethod;
 		std::cout << e.what() << std::endl;
-		_response.buildErrorPage(HTTP_METHOD_NALLOWED, 
-				_serverConfig.getErrorPagePath(HTTP_METHOD_NALLOWED));
+		_response.buildErrorPage(HTTP_NOTIMPLEMENTED, 
+				_serverConfig.getErrorPagePath(HTTP_NOTIMPLEMENTED));
 		return;
 	}
 	

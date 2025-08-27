@@ -61,9 +61,7 @@ void ConnectionHandler::_createRequest()
 			return;
 		}
 		else
-		{
 			return ; // epoll will trigger again
-		}
 	}
 }
 

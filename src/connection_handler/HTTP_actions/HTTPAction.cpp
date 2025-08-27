@@ -92,10 +92,10 @@ void HTTPAction::run()
 		return;
 	}
 
-	AMethod *HTTPMethod 
-		= _methodRegistry.createMethodInstance(_request.getMethod());
+	AMethod *HTTPMethod = NULL;
 	try 
 	{
+		HTTPMethod = _methodRegistry.createMethodInstance(_request.getMethod());
 		HTTPMethod->implementMethod(_request, _response, _serverConfig);
 		delete HTTPMethod;
 	}
@@ -103,7 +103,10 @@ void HTTPAction::run()
 	{
 		if (HTTPMethod)
 			delete HTTPMethod;
-		throw std::runtime_error(e.what());
+		std::cout << e.what() << std::endl;
+		_response.buildErrorPage(HTTP_METHOD_NALLOWED, 
+				_serverConfig.getErrorPagePath(HTTP_METHOD_NALLOWED));
+		return;
 	}
 	
 	int errorCode = _response.getStatusCode();

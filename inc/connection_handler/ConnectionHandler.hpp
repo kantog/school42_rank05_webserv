@@ -1,4 +1,3 @@
-
 #pragma once 
 
 #include "HTTPRequest.hpp"
@@ -10,7 +9,7 @@
 class	ConnectionHandler 
 {
 	private:
-		HTTPRequest _request; //nog handlen: onvolledige requests binnenkrijgen, check wat recv doet exact
+		HTTPRequest _request;
 		Cgi *_cgi;
 		const ServerConfig *_serverConfig;
 

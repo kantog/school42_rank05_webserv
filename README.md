@@ -23,6 +23,9 @@ curl -H "Host: test" http://localhost:8080 # server 1
 curl -H "Host: cool" http://localhost:8080 # server 1
 
 curl -H "Host: cool" http://localhost:8000 # server 2
+
+curl -v -X POST -F "file=@test.jpeg" http://localhost:8080/Uploads/cool # upload img
+curl -o download.jpeg  http://localhost:8080/Uploads/cool/test.jpeg # download img
 ``` 
 # UML class diagram
 

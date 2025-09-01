@@ -122,7 +122,7 @@ bool ConnectionHandler::_delegateToHTTPAction(HTTPAction &Action)
 	return (true);
 }
 
-void ConnectionHandler::handleHTTP()
+bool ConnectionHandler::handleHTTP()
 {
 	if (epolloutShouldOpen)
 	{
@@ -133,13 +133,13 @@ void ConnectionHandler::handleHTTP()
 	}
 	if (this->_cgi)
 	{
+		return false;
 		HTTPResponse response;
 		response.setStatusCode(503);
 		response.setHeader("Retry-After", "5");
 		response.setBody("Server busy processing request");
 		response.buildResponse();
 		this->_sendResponse(response.getResponseString());
-		return;
 	}
 
 	this->_createRequest();
@@ -151,11 +151,12 @@ void ConnectionHandler::handleHTTP()
 	{
 		this->_sendResponse(Action.getFullErrorResponseString(this->_request.getErrorCode()));
 		this->_shouldClose = true;
-		return;
+		return true;
 	}
 
 	if (!this->_request.isComplete())
-		return;
+		return true;
 
 	this->_delegateToHTTPAction(Action);
+	return true;
 }

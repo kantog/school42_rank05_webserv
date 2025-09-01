@@ -35,7 +35,7 @@ class	ConnectionHandler
 		bool epolloutShouldOpen;
 		bool epolloutShouldClose;
 
-		void handleHTTP();
+		bool handleHTTP();
 		void sendCgiResponse();
 		bool shouldClose();
 

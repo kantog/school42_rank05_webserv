@@ -4,7 +4,6 @@ import sys
 
 # dit werkt niet
 import time
-# time.sleep(10)
 
 print("Content-Type: text/html\n")
 
@@ -20,9 +19,6 @@ print("<body>")
 print('  <main>')
 print("<h1>Cool from Python</h1>")
 method = os.environ.get("REQUEST_METHOD", "")
-
-
-time.sleep(50)
 
 if method == "GET":
     query = os.environ.get("QUERY_STRING", "")

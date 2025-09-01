@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGI Form (POST)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <nav>
+    <ul>
+      <li><a href="get.html">GET Form</a></li>
+      <li><a href="post.html">POST Form</a></li>
+      <li><a href="wrong.html" class="active">wrong cgi</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>invalid script (Python)</h1>
+    <form action="scripts/invalid.py" method="post" class="form">
+      <button type="submit">Submit</button>
+    </form>
+
+        <h1>permisoin Forbidden(Python)</h1>
+    <form action="scripts/permisoin.py" method="post" class="form">
+      <button type="submit">Submit</button>
+    </form>
+
+            <h1>time out (Python)</h1>
+    <form action="scripts/timeOut.py" method="post" class="form">
+      <button type="submit">Submit</button>
+    </form>
+  </main>
+</body>
+
+</html>

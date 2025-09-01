@@ -1,7 +1,6 @@
 #include "HTTPServer.hpp"
 #include <iostream>
 
-
 void HTTPServer::checkCgiTimeouts()
 {
     // std::cout << "Checking for CGI timeouts..." << std::endl;
@@ -20,34 +19,39 @@ void HTTPServer::checkCgiTimeouts()
         }
     }
     for (size_t i = 0; i < toKill.size(); ++i)
-        _processCgi(toKill[i]); 
-
+        _processCgi(toKill[i]);
 }
 
 void HTTPServer::_addCgi(ConnectionHandler *connectionHandler)
 {
-	Cgi *cgi = connectionHandler->getCgi();
-	const int *fd = cgi->getCgiFds();
+    Cgi *cgi = connectionHandler->getCgi();
+    const int *fd = cgi->getCgiFds();
 
-	while (*fd)
-	{
-		this->_addFDToEpoll(*fd);
-		_cgis[*fd] = connectionHandler;
-		fd++;
-	}
+    while (*fd)
+    {
+        this->_addFDToEpoll(*fd);
+        _cgis[*fd] = connectionHandler;
+        fd++;
+    }
 }
 
 void HTTPServer::_processCgi(ConnectionHandler *connectionHandler)
 {
-	Cgi *cgi = connectionHandler->getCgi();
-	if (cgi->processCgi())
-		return;
+    if (!connectionHandler)
+    {
+        std::cerr << "Error: Connection handler not found for CGI" << std::endl;
+        return;
+    }
 
-	connectionHandler->sendCgiResponse();
+    Cgi *cgi = connectionHandler->getCgi();
+    if (cgi->processCgi())
+        return;
 
-	const int *fd = cgi->getCgiFds();
-	this->_closeConnection(_cgis, fd[0]);
-	if (fd[1])
-		this->_closeConnection(_cgis, fd[1]);
-	delete cgi;
+    connectionHandler->sendCgiResponse();
+
+    const int *fd = cgi->getCgiFds();
+    this->_closeConnection(_cgis, fd[0]);
+    if (fd[1])
+        this->_closeConnection(_cgis, fd[1]);
+    delete cgi;
 }

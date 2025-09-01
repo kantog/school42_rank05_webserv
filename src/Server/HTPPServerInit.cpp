@@ -21,11 +21,28 @@ HTTPServer::HTTPServer() : _epollFD(-1),
     _intervalTimer = IntervalTimer(0.5, this);
 }
 
-
 HTTPServer::~HTTPServer()
 {
     std::cout << "Server shutting down..." << std::endl;
     std::cout << "Amount of connections: " << _connAmount << std::endl;
+
+    // // close all cgis
+    // std::map<int, ConnectionHandler *>::iterator cgiIt;
+    // for (cgiIt = _cgis.begin(); cgiIt != _cgis.end(); ++cgiIt)
+    // {
+    //     if (_epollFD > 0)
+    //         epoll_ctl(_epollFD, EPOLL_CTL_DEL, cgiIt->first, NULL);
+        
+    //     Cgi *cgi = cgiIt->second->getCgi();
+    //     if (!cgi)
+    //         continue;
+    //     const int *fd = cgi->getCgiFds();
+    //     this->_closeConnection(_cgis, fd[0]);
+    //     if (fd[1])
+    //         this->_closeConnection(_cgis, fd[1]);
+    //     delete cgi;
+    // }
+    // _cgis.clear();
 
     // close all connections
     std::vector<int> fdsToClose;
@@ -33,16 +50,6 @@ HTTPServer::~HTTPServer()
         fdsToClose.push_back(it->first);
     for (size_t i = 0; i < fdsToClose.size(); ++i)
         _closeConnection(_connectionHandlers, fdsToClose[i]);
-
-    // close all cgis
-    std::map<int, ConnectionHandler *>::iterator cgiIt;
-    for (cgiIt = _cgis.begin(); cgiIt != _cgis.end(); ++cgiIt)
-    {
-        if (_epollFD > 0)
-            epoll_ctl(_epollFD, EPOLL_CTL_DEL, cgiIt->first, NULL);
-        close(cgiIt->first);
-    }
-    _cgis.clear();
 
     // close all listening sockets
     std::cout << "Closing listening sockets..." << std::endl;
@@ -78,13 +85,13 @@ void HTTPServer::_setEPOLLOUT(int fd, bool on)
     {
         newLocalEpollEvent.events = EPOLLOUT | EPOLLIN | EPOLLET;
         if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-            throw(std::runtime_error("Error: problem with epoll_ctl"));
+            throw(std::runtime_error("Error: problem with epoll_ctl 3"));
     }
     else
     {
         newLocalEpollEvent.events = EPOLLIN | EPOLLET;
         if (epoll_ctl(_epollFD, EPOLL_CTL_MOD, fd, &newLocalEpollEvent) == -1)
-            throw(std::runtime_error("Error: problem with epoll_ctl"));
+            throw(std::runtime_error("Error: problem with epoll_ctl 2"));
     }
 }
 
@@ -96,7 +103,7 @@ void HTTPServer::_addFDToEpoll(int fd)
     if (epoll_ctl(_epollFD, EPOLL_CTL_ADD, fd, &newLocalEpollEvent) == -1)
     {
         close(fd);
-        throw(std::runtime_error("Error: problem with epoll_ctl"));
+        throw(std::runtime_error("Error: problem with epoll_ctl 1"));
     }
 }
 

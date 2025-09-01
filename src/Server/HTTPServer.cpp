@@ -85,7 +85,9 @@ void HTTPServer::_delegateToConnectionHandler(int connectionFd)
 		return;
 	}
 
-	connectionHandler->handleHTTP();
+	if (!connectionHandler->handleHTTP())
+		return;
+	// connectionHandler->handleHTTP();
 
 	if (connectionHandler->isCgiRunning())
 		_addCgi(connectionHandler);
@@ -164,7 +166,7 @@ void HTTPServer::_handleConnectionEvent(int fd, uint32_t events)
 	}
 	if (events & (EPOLLHUP | EPOLLERR))
 	{
-		std::cerr << "Error: connection error/hangup" << std::endl; 
+		std::cerr << fd << ": connection error/hangup" << std::endl; 
 		_closeConnection(_connectionHandlers, fd);						
 	}
 	else if (events & (EPOLLIN | EPOLLOUT))

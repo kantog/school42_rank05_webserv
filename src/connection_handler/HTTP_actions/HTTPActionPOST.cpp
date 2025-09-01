@@ -207,7 +207,7 @@ void HTTPActionPOST::implementMethod(HTTPRequest &request,
 {
 	if (!serverConfig.getCurentRoute().uploadAllowed)
 	{
-		response.setStatusCode(HTTP_METHOD_NALLOWED);
+		response.setStatusCode(HTTP_FORBIDDEN);
 		return;
 	}
 

@@ -362,6 +362,7 @@ std::string HTTPResponse::_createDirString(const std::string &fullDirPath,
 void HTTPResponse::buildDirectoryPage(const std::string &directoryPath)
 {
     this->setBody("INDEX\n" + this->_createDirString(directoryPath));
+    this->setStatusCode(HTTP_OK);
 }
 
 void HTTPResponse::buildReturnPage(int code, const std::string &filePath)

@@ -1,3 +1,8 @@
+# temp
+link to github page for clean rendering readMe
+https://github.com/kantog/school42_rank05_webserv
+
+
 # use
 
 ```bash
@@ -10,7 +15,7 @@ make
 To test our process, start the server using the test configuration file or execute the following curl command:
 
 ```bash
-./webserv users/multipleServers.conf
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --track-fds=yes ./webserv users/multipleServers.conf
 
 curl -H "Host: lol" http://localhost:8080 # default
 curl -H "Host: evil" http://localhost:8080 # server 0
